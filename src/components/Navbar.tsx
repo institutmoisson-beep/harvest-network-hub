@@ -12,23 +12,23 @@ const Navbar = () => {
       <div className="container mx-auto flex items-center justify-between py-3 px-4">
         <Link to="/" className="flex items-center gap-3">
           <img src={logo} alt="Institut Moisson" className="h-10 w-10" />
-          <span className="font-display text-lg font-bold text-gradient-gold hidden sm:inline">
+          <span className="font-display text-lg font-bold text-gradient-purple hidden sm:inline">
             Institut Moisson
           </span>
         </Link>
 
         <div className="hidden md:flex items-center gap-6">
-          <Link to="/" className="text-sm font-medium text-foreground/80 hover:text-secondary transition-colors">
+          <Link to="/" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">
             Accueil
           </Link>
-          <Link to="/directory" className="text-sm font-medium text-foreground/80 hover:text-secondary transition-colors">
+          <Link to="/directory" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">
             Annuaire
           </Link>
-          <Link to="/login" className="text-sm font-medium text-foreground/80 hover:text-secondary transition-colors">
+          <Link to="/login" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">
             Connexion
           </Link>
           <Link to="/register">
-            <Button className="bg-gradient-gold text-secondary-foreground font-semibold hover:opacity-90 transition-opacity">
+            <Button className="bg-gradient-purple text-primary-foreground font-semibold hover:opacity-90 transition-opacity">
               Devenir Moissonneur
             </Button>
           </Link>
@@ -45,7 +45,7 @@ const Navbar = () => {
           <Link to="/directory" className="text-sm py-2" onClick={() => setOpen(false)}>Annuaire</Link>
           <Link to="/login" className="text-sm py-2" onClick={() => setOpen(false)}>Connexion</Link>
           <Link to="/register" onClick={() => setOpen(false)}>
-            <Button className="w-full bg-gradient-gold text-secondary-foreground font-semibold">
+            <Button className="w-full bg-gradient-purple text-primary-foreground font-semibold">
               Devenir Moissonneur
             </Button>
           </Link>
