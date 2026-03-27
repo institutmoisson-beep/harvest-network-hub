@@ -13,6 +13,7 @@ import DashboardWallet from "./pages/DashboardWallet.tsx";
 import DashboardNetwork from "./pages/DashboardNetwork.tsx";
 import DashboardCommissions from "./pages/DashboardCommissions.tsx";
 import Directory from "./pages/Directory.tsx";
+import CompanyProfile from "./pages/CompanyProfile.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/directory" element={<Directory />} />
+          <Route path="/company/:id" element={<CompanyProfile />} />
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<DashboardHome />} />
             <Route path="profile" element={<DashboardProfile />} />

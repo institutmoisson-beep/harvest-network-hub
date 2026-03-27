@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import { Building2, Search, MapPin, ShoppingBag } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 const mockCompanies = [
   { id: 1, name: "TechVision Africa", sector: "Technologie", country: "Côte d'Ivoire", products: 12, image: "🏢" },
@@ -26,19 +27,18 @@ const Directory = () => {
       <div className="pt-24 pb-16">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-secondary/30 bg-secondary/10 mb-4">
-              <Building2 size={14} className="text-secondary" />
-              <span className="text-xs font-display uppercase tracking-widest text-secondary">Annuaire</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 bg-primary/10 mb-4">
+              <Building2 size={14} className="text-primary" />
+              <span className="text-xs font-display uppercase tracking-widest text-primary">Annuaire</span>
             </div>
             <h1 className="font-display text-3xl md:text-4xl font-bold mb-3">
-              <span className="text-gradient-gold">Stands</span> Entreprises Partenaires
+              <span className="text-gradient-purple">Stands</span> Entreprises Partenaires
             </h1>
             <p className="text-muted-foreground max-w-lg mx-auto text-sm">
-              Découvrez nos entreprises partenaires et leurs produits. Achetez et activez votre système Moissonneur.
+              Découvrez nos entreprises partenaires et leurs produits. Cliquez sur un stand pour voir le profil et les produits.
             </p>
           </div>
 
-          {/* Search */}
           <div className="max-w-md mx-auto mb-10 relative">
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input placeholder="Rechercher une entreprise ou un secteur..."
@@ -46,25 +46,25 @@ const Directory = () => {
               className="pl-10 bg-input border-border" />
           </div>
 
-          {/* Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filtered.map((company) => (
-              <div key={company.id}
-                className="glass-card rounded-2xl overflow-hidden hover:glow-purple transition-all duration-500 group cursor-pointer">
-                <div className="h-32 bg-gradient-purple flex items-center justify-center text-5xl group-hover:scale-105 transition-transform">
-                  {company.image}
-                </div>
-                <div className="p-5">
-                  <h3 className="font-display text-sm font-bold mb-2">{company.name}</h3>
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
-                    <span className="flex items-center gap-1"><MapPin size={12} /> {company.country}</span>
-                    <span className="flex items-center gap-1"><ShoppingBag size={12} /> {company.products} produits</span>
+              <Link key={company.id} to={`/company/${company.id}`}>
+                <div className="glass-card rounded-2xl overflow-hidden hover:glow-purple transition-all duration-500 group cursor-pointer">
+                  <div className="h-32 bg-gradient-purple flex items-center justify-center text-5xl group-hover:scale-105 transition-transform">
+                    {company.image}
                   </div>
-                  <span className="inline-block px-3 py-1 rounded-full text-[10px] font-display uppercase tracking-wider bg-primary/20 text-primary">
-                    {company.sector}
-                  </span>
+                  <div className="p-5">
+                    <h3 className="font-display text-sm font-bold mb-2">{company.name}</h3>
+                    <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
+                      <span className="flex items-center gap-1"><MapPin size={12} /> {company.country}</span>
+                      <span className="flex items-center gap-1"><ShoppingBag size={12} /> {company.products} produits</span>
+                    </div>
+                    <span className="inline-block px-3 py-1 rounded-full text-[10px] font-display uppercase tracking-wider bg-primary/15 text-primary">
+                      {company.sector}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
 
