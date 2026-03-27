@@ -4,6 +4,15 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
+import Login from "./pages/Login.tsx";
+import Register from "./pages/Register.tsx";
+import DashboardLayout from "./pages/DashboardLayout.tsx";
+import DashboardHome from "./pages/DashboardHome.tsx";
+import DashboardProfile from "./pages/DashboardProfile.tsx";
+import DashboardWallet from "./pages/DashboardWallet.tsx";
+import DashboardNetwork from "./pages/DashboardNetwork.tsx";
+import DashboardCommissions from "./pages/DashboardCommissions.tsx";
+import Directory from "./pages/Directory.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -16,7 +25,16 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/directory" element={<Directory />} />
+          <Route path="/dashboard" element={<DashboardLayout />}>
+            <Route index element={<DashboardHome />} />
+            <Route path="profile" element={<DashboardProfile />} />
+            <Route path="wallet" element={<DashboardWallet />} />
+            <Route path="network" element={<DashboardNetwork />} />
+            <Route path="commissions" element={<DashboardCommissions />} />
+          </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
