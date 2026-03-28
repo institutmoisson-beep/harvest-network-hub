@@ -1,22 +1,30 @@
+import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Building2, Search, MapPin, ShoppingBag } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
 import { Link } from "react-router-dom";
-
-const mockCompanies = [
-  { id: 1, name: "TechVision Africa", sector: "Technologie", country: "Côte d'Ivoire", products: 12, image: "🏢" },
-  { id: 2, name: "GreenHarvest Co.", sector: "Agriculture", country: "Sénégal", products: 8, image: "🌿" },
-  { id: 3, name: "DigiPay Solutions", sector: "Fintech", country: "Cameroun", products: 5, image: "💳" },
-  { id: 4, name: "SolarWave Energy", sector: "Énergie", country: "Mali", products: 15, image: "☀️" },
-  { id: 5, name: "HealthPlus Labs", sector: "Santé", country: "Gabon", products: 20, image: "🏥" },
-  { id: 6, name: "EduSpark Academy", sector: "Éducation", country: "Burkina Faso", products: 10, image: "📚" },
-];
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Directory = () => {
   const [search, setSearch] = useState("");
-  const filtered = mockCompanies.filter((c) =>
+  const [companies, setCompanies] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await supabase
+        .from("companies")
+        .select("*, products(id)")
+        .eq("is_active", true);
+      setCompanies(data || []);
+      setLoading(false);
+    };
+    load();
+  }, []);
+
+  const filtered = companies.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase()) ||
     c.sector.toLowerCase().includes(search.toLowerCase())
   );
@@ -46,29 +54,39 @@ const Directory = () => {
               className="pl-10 bg-input border-border" />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filtered.map((company) => (
-              <Link key={company.id} to={`/company/${company.id}`}>
-                <div className="glass-card rounded-2xl overflow-hidden hover:glow-purple transition-all duration-500 group cursor-pointer">
-                  <div className="h-32 bg-gradient-purple flex items-center justify-center text-5xl group-hover:scale-105 transition-transform">
-                    {company.image}
-                  </div>
-                  <div className="p-5">
-                    <h3 className="font-display text-sm font-bold mb-2">{company.name}</h3>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
-                      <span className="flex items-center gap-1"><MapPin size={12} /> {company.country}</span>
-                      <span className="flex items-center gap-1"><ShoppingBag size={12} /> {company.products} produits</span>
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-52 rounded-2xl" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filtered.map((company) => (
+                <Link key={company.id} to={`/company/${company.id}`}>
+                  <div className="glass-card rounded-2xl overflow-hidden hover:glow-purple transition-all duration-500 group cursor-pointer">
+                    <div className="h-32 bg-gradient-purple flex items-center justify-center text-5xl group-hover:scale-105 transition-transform">
+                      {company.logo_url ? (
+                        <img src={company.logo_url} alt="" className="w-full h-full object-cover" />
+                      ) : "🏢"}
                     </div>
-                    <span className="inline-block px-3 py-1 rounded-full text-[10px] font-display uppercase tracking-wider bg-primary/15 text-primary">
-                      {company.sector}
-                    </span>
+                    <div className="p-5">
+                      <h3 className="font-display text-sm font-bold mb-2">{company.name}</h3>
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
+                        <span className="flex items-center gap-1"><MapPin size={12} /> {company.country}</span>
+                        <span className="flex items-center gap-1"><ShoppingBag size={12} /> {company.products?.length || 0} produits</span>
+                      </div>
+                      <span className="inline-block px-3 py-1 rounded-full text-[10px] font-display uppercase tracking-wider bg-primary/15 text-primary">
+                        {company.sector}
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+          )}
 
-          {filtered.length === 0 && (
+          {!loading && filtered.length === 0 && (
             <div className="text-center py-16 text-muted-foreground">
               <Building2 size={48} className="mx-auto mb-4 opacity-30" />
               <p className="font-display text-sm">Aucune entreprise trouvée</p>
