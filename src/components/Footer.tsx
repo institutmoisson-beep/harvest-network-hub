@@ -26,7 +26,7 @@ const Footer = () => (
         <div>
           <h4 className="font-display text-xs uppercase tracking-wider text-primary mb-3">Communauté</h4>
           <div className="flex flex-col gap-2 text-sm text-muted-foreground">
-            <span className="flex items-center gap-2"><Wheat size={14} className="text-primary" /> Solidarité Africaine</span>
+            <span className="flex items-center gap-2"><Wheat size={14} className="text-primary" /> Solidarité Universelle</span>
             <span className="flex items-center gap-2"><Wheat size={14} className="text-primary" /> Penseurs & Visionnaires</span>
             <span className="flex items-center gap-2"><Wheat size={14} className="text-primary" /> Tous unis, jamais seuls</span>
           </div>

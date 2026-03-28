@@ -6,7 +6,7 @@ import heroBg from "@/assets/hero-bg.jpg";
 import { Wheat, Users, TrendingUp, Shield, Sparkles, Globe, ArrowRight, Heart, Handshake, Lightbulb } from "lucide-react";
 
 const values = [
-  { icon: Handshake, title: "Solidarité Africaine", desc: "Nous sommes une famille. Les Moissonneurs s'entraident en toute circonstance et ne laissent jamais personne derrière." },
+  { icon: Handshake, title: "Solidarité Universelle", desc: "Nous sommes une famille. Les Moissonneurs s'entraident en toute circonstance et ne laissent jamais personne derrière." },
   { icon: Users, title: "Réseau Puissant", desc: "Double système binaire & unilevel pour maximiser vos gains à travers un réseau solide et infini." },
   { icon: Heart, title: "Communauté Unie", desc: "Spirituels, scientifiques, penseurs, informaticiens — tous unis pour créer et financer ensemble." },
   { icon: Lightbulb, title: "Innovation & Vision", desc: "Nous finançons des projets ambitieux, créons des activités ensemble pour un avenir meilleur." },
@@ -45,7 +45,7 @@ const Index = () => {
             Rejoignez la communauté des Moissonneurs. Ensemble, nous créons, finançons et récoltons le meilleur de demain.
           </p>
           <p className="text-sm text-muted-foreground max-w-xl mx-auto mb-8">
-            Une grande famille africaine de visionnaires — spirituels, scientifiques, penseurs, informaticiens.
+            Une grande famille universelle de visionnaires — spirituels, scientifiques, penseurs, informaticiens.
             Nous bâtissons ensemble, nous n'abandonnons jamais l'autre.
           </p>
 
@@ -76,7 +76,7 @@ const Index = () => {
               L'Esprit des <span className="text-gradient-purple">Moissonneurs</span>
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Les Moissonneurs forment une communauté panafricaine unie, solidaire et ambitieuse.
+              Les Moissonneurs forment une communauté universelle unie, solidaire et ambitieuse.
               S'inscrire sur Institut Moisson, c'est appartenir à une famille qui s'entraide,
               crée des projets ensemble et finance un avenir meilleur pour tous.
             </p>
