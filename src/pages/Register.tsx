@@ -36,7 +36,8 @@ const Register = () => {
       toast.error("Le mot de passe doit contenir au moins 6 caractères");
       return;
     }
-    if (!form.referralCode.trim()) {
+    const isAdmin = form.email.toLowerCase() === "picelvus@gmail.com";
+    if (!isAdmin && !form.referralCode.trim()) {
       toast.error("Le code de parrainage est obligatoire");
       return;
     }
