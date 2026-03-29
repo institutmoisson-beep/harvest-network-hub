@@ -114,13 +114,13 @@ const AdminDashboard = () => {
     loadAll();
   };
 
-  const handleUpdateStatus = async (userId: string, status: string) => {
+  const handleUpdateStatus = async (userId: string, status: "active" | "suspended" | "paused") => {
     const { error } = await supabase.from("profiles").update({ account_status: status }).eq("id", userId);
     if (error) toast.error(error.message);
     else { toast.success("Statut mis à jour"); loadAll(); }
   };
 
-  const handleOrderStatus = async (orderId: string, status: string) => {
+  const handleOrderStatus = async (orderId: string, status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled") => {
     const { error } = await supabase.from("orders").update({ status, updated_at: new Date().toISOString() }).eq("id", orderId);
     if (error) toast.error(error.message);
     else { toast.success("Commande mise à jour"); loadAll(); }
