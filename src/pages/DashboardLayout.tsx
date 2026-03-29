@@ -4,10 +4,10 @@ import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 import {
   LayoutDashboard, Users, Building2, Wallet, TrendingUp, UserCircle,
-  LogOut, Menu, X, ChevronRight
+  LogOut, Menu, X, ChevronRight, Shield
 } from "lucide-react";
 
-const menuItems = [
+const baseMenuItems = [
   { icon: LayoutDashboard, label: "Tableau de Bord", path: "/dashboard" },
   { icon: Users, label: "Mon Réseau", path: "/dashboard/network" },
   { icon: Building2, label: "Annuaire Stands", path: "/directory" },
@@ -21,15 +21,33 @@ const DashboardLayout = () => {
   const location = useLocation();
   const [user, setUser] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [menuItems, setMenuItems] = useState(baseMenuItems);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!session) navigate("/login");
-      else setUser(session.user);
+      else {
+        setUser(session.user);
+        const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", session.user.id);
+        const admin = roles?.some(r => r.role === "admin");
+        setIsAdmin(!!admin);
+        if (admin) {
+          setMenuItems([...baseMenuItems, { icon: Shield, label: "Administration", path: "/admin" }]);
+        }
+      }
     });
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) navigate("/login");
-      else setUser(session.user);
+      else {
+        setUser(session.user);
+        const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", session.user.id);
+        const admin = roles?.some(r => r.role === "admin");
+        setIsAdmin(!!admin);
+        if (admin) {
+          setMenuItems([...baseMenuItems, { icon: Shield, label: "Administration", path: "/admin" }]);
+        }
+      }
     });
     return () => subscription.unsubscribe();
   }, [navigate]);
