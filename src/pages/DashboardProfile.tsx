@@ -80,6 +80,42 @@ const DashboardProfile = () => {
           </div>
         </div>
 
+        {/* Referral Section */}
+        <div className="mt-4 p-4 rounded-lg bg-primary/5 border border-primary/20">
+          <Label className="text-xs font-bold text-primary">🌾 Code Moissonneur</Label>
+          <div className="flex items-center gap-2 mt-1">
+            <Input value={referralCode} readOnly className="bg-input border-border text-sm font-mono font-bold" />
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(referralCode);
+                setCopied(true);
+                toast.success("Code copié !");
+                setTimeout(() => setCopied(false), 2000);
+              }}
+              className="p-2 rounded-md hover:bg-primary/10 text-primary"
+            >
+              {copied ? <Check size={16} /> : <Copy size={16} />}
+            </button>
+          </div>
+          <Label className="text-xs font-bold text-primary mt-3 block">🔗 Lien de Parrainage</Label>
+          <div className="flex items-center gap-2 mt-1">
+            <Input
+              value={`${window.location.origin}/register?ref=${referralCode}`}
+              readOnly
+              className="bg-input border-border text-xs"
+            />
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(`${window.location.origin}/register?ref=${referralCode}`);
+                toast.success("Lien copié !");
+              }}
+              className="p-2 rounded-md hover:bg-primary/10 text-primary"
+            >
+              <Copy size={16} />
+            </button>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <Label className="text-xs">Prénom</Label>
