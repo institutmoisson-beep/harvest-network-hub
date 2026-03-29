@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Copy, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,9 +17,11 @@ const DashboardProfile = () => {
   const [country, setCountry] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [saving, setSaving] = useState(false);
+  const [referralCode, setReferralCode] = useState("");
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { navigate("/login"); return; }
       const u = session.user;
       setUser(u);
@@ -27,6 +30,14 @@ const DashboardProfile = () => {
       setLastName(m.last_name || "");
       setPhone(m.phone || "");
       setCountry(m.country || "");
+
+      // Fetch referral code from profiles table
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("referral_code")
+        .eq("id", u.id)
+        .single();
+      if (profile) setReferralCode(profile.referral_code);
     });
   }, [navigate]);
 
@@ -66,6 +77,42 @@ const DashboardProfile = () => {
           <div>
             <p className="font-display font-bold">{firstName} {lastName}</p>
             <p className="text-sm text-muted-foreground">{user.email}</p>
+          </div>
+        </div>
+
+        {/* Referral Section */}
+        <div className="mt-4 p-4 rounded-lg bg-primary/5 border border-primary/20">
+          <Label className="text-xs font-bold text-primary">🌾 Code Moissonneur</Label>
+          <div className="flex items-center gap-2 mt-1">
+            <Input value={referralCode} readOnly className="bg-input border-border text-sm font-mono font-bold" />
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(referralCode);
+                setCopied(true);
+                toast.success("Code copié !");
+                setTimeout(() => setCopied(false), 2000);
+              }}
+              className="p-2 rounded-md hover:bg-primary/10 text-primary"
+            >
+              {copied ? <Check size={16} /> : <Copy size={16} />}
+            </button>
+          </div>
+          <Label className="text-xs font-bold text-primary mt-3 block">🔗 Lien de Parrainage</Label>
+          <div className="flex items-center gap-2 mt-1">
+            <Input
+              value={`${window.location.origin}/register?ref=${referralCode}`}
+              readOnly
+              className="bg-input border-border text-xs"
+            />
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(`${window.location.origin}/register?ref=${referralCode}`);
+                toast.success("Lien copié !");
+              }}
+              className="p-2 rounded-md hover:bg-primary/10 text-primary"
+            >
+              <Copy size={16} />
+            </button>
           </div>
         </div>
 
