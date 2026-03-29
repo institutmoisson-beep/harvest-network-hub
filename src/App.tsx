@@ -14,6 +14,7 @@ import DashboardNetwork from "./pages/DashboardNetwork.tsx";
 import DashboardCommissions from "./pages/DashboardCommissions.tsx";
 import Directory from "./pages/Directory.tsx";
 import CompanyProfile from "./pages/CompanyProfile.tsx";
+import AdminDashboard from "./pages/AdminDashboard.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/register" element={<Register />} />
           <Route path="/directory" element={<Directory />} />
           <Route path="/company/:id" element={<CompanyProfile />} />
+          <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<DashboardHome />} />
             <Route path="profile" element={<DashboardProfile />} />
