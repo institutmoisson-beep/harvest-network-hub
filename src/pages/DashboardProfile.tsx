@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Copy, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ const DashboardProfile = () => {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) { navigate("/login"); return; }
       const u = session.user;
       setUser(u);
@@ -29,6 +30,14 @@ const DashboardProfile = () => {
       setLastName(m.last_name || "");
       setPhone(m.phone || "");
       setCountry(m.country || "");
+
+      // Fetch referral code from profiles table
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("referral_code")
+        .eq("id", u.id)
+        .single();
+      if (profile) setReferralCode(profile.referral_code);
     });
   }, [navigate]);
 
