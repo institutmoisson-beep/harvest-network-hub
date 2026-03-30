@@ -144,7 +144,7 @@ const AdminDashboard = () => {
     else { toast.success("Statut mis à jour"); loadAll(); }
   };
 
-  const handleOrderStatus = async (orderId: string, status: string) => {
+  const handleOrderStatus = async (orderId: string, status: "pending" | "confirmed" | "shipped" | "delivered" | "cancelled") => {
     const { error } = await supabase.from("orders").update({ status, updated_at: new Date().toISOString() }).eq("id", orderId);
     if (error) toast.error(error.message);
     else { toast.success("Commande mise à jour"); loadAll(); }
