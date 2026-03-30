@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      commission_rates: {
+        Row: {
+          created_at: string
+          id: string
+          level: number
+          percentage: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          level: number
+          percentage?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          level?: number
+          percentage?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       commissions: {
         Row: {
           amount: number
@@ -58,10 +82,14 @@ export type Database = {
       companies: {
         Row: {
           banner_url: string | null
+          contact_email: string | null
+          contact_facebook: string | null
+          contact_whatsapp: string | null
           country: string
           created_at: string
           description: string | null
           id: string
+          image_url_2: string | null
           is_active: boolean
           logo_url: string | null
           name: string
@@ -71,10 +99,14 @@ export type Database = {
         }
         Insert: {
           banner_url?: string | null
+          contact_email?: string | null
+          contact_facebook?: string | null
+          contact_whatsapp?: string | null
           country?: string
           created_at?: string
           description?: string | null
           id?: string
+          image_url_2?: string | null
           is_active?: boolean
           logo_url?: string | null
           name: string
@@ -84,10 +116,14 @@ export type Database = {
         }
         Update: {
           banner_url?: string | null
+          contact_email?: string | null
+          contact_facebook?: string | null
+          contact_whatsapp?: string | null
           country?: string
           created_at?: string
           description?: string | null
           id?: string
+          image_url_2?: string | null
           is_active?: boolean
           logo_url?: string | null
           name?: string
@@ -123,6 +159,44 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      order_ratings: {
+        Row: {
+          comment: string | null
+          created_at: string
+          delivery_rating: number
+          id: string
+          order_id: string
+          product_rating: number
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          delivery_rating?: number
+          id?: string
+          order_id: string
+          product_rating?: number
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          delivery_rating?: number
+          id?: string
+          order_id?: string
+          product_rating?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_ratings_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       orders: {
         Row: {
