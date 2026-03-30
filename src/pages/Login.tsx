@@ -10,7 +10,7 @@ import { Eye, EyeOff, LogIn } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -18,10 +18,29 @@ const Login = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    let email = identifier;
+
+    // If identifier looks like a MSN code, find the email
+    if (identifier.toUpperCase().startsWith("MSN") && !identifier.includes("@")) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("email")
+        .eq("referral_code", identifier.toUpperCase())
+        .single();
+
+      if (!profile?.email) {
+        toast.error("Code Moissonneur introuvable");
+        setLoading(false);
+        return;
+      }
+      email = profile.email;
+    }
+
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
-      toast.error(error.message);
+      toast.error("Identifiants incorrects");
     } else {
       toast.success("Connexion réussie !");
       navigate("/dashboard");
@@ -34,24 +53,22 @@ const Login = () => {
       <div className="relative z-10 w-full max-w-md">
         <div className="glass-card rounded-2xl p-8">
           <div className="text-center mb-8">
-            <Link to="/">
-              <img src={logo} alt="Institut Moisson" className="h-16 w-16 mx-auto mb-4" />
-            </Link>
+            <Link to="/"><img src={logo} alt="Institut Moisson" className="h-16 w-16 mx-auto mb-4" /></Link>
             <h1 className="font-display text-2xl font-bold text-gradient-gold">Connexion</h1>
             <p className="text-sm text-muted-foreground mt-1">Accédez à votre espace Moissonneur</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <Label htmlFor="email" className="text-sm">Email</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                placeholder="votre@email.com" required className="mt-1 bg-input border-border" />
+              <Label htmlFor="identifier" className="text-sm">Email ou Code Moissonneur</Label>
+              <Input id="identifier" value={identifier} onChange={e => setIdentifier(e.target.value)}
+                placeholder="votre@email.com ou MSN123456" required className="mt-1 bg-input border-border" />
             </div>
             <div>
               <Label htmlFor="password" className="text-sm">Mot de passe</Label>
               <div className="relative mt-1">
                 <Input id="password" type={showPw ? "text" : "password"} value={password}
-                  onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required
+                  onChange={e => setPassword(e.target.value)} placeholder="••••••••" required
                   className="bg-input border-border pr-10" />
                 <button type="button" onClick={() => setShowPw(!showPw)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">

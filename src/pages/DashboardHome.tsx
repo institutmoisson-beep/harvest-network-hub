@@ -1,24 +1,46 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Users, TrendingUp, Wallet, Wheat, Building2, UserCircle } from "lucide-react";
+import { Users, TrendingUp, Wallet, Wheat, Building2, UserCircle, ShoppingBag } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-const statCards = [
-  { label: "Filleuls Directs", value: "0", icon: Users, color: "text-secondary" },
-  { label: "Réseau Total", value: "0", icon: TrendingUp, color: "text-primary" },
-  { label: "Solde Wallet", value: "0 FCFA", icon: Wallet, color: "text-gold" },
-  { label: "Niveau Carrière", value: "Semeur", icon: Wheat, color: "text-secondary" },
-];
-
 const DashboardHome = () => {
   const [meta, setMeta] = useState<any>({});
+  const [stats, setStats] = useState({ directs: 0, network: 0, balance: 0, level: "semeur", commissions: 0 });
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setMeta(session.user.user_metadata || {});
-    });
+    const load = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      setMeta(session.user.user_metadata || {});
+      const uid = session.user.id;
+
+      const [walletRes, directsRes, profileRes, commRes] = await Promise.all([
+        supabase.from("wallets").select("balance").eq("user_id", uid).single(),
+        supabase.from("network").select("id").eq("sponsor_id", uid),
+        supabase.from("profiles").select("career_level").eq("id", uid).single(),
+        supabase.from("commissions").select("amount").eq("user_id", uid),
+      ]);
+
+      const totalComm = commRes.data?.reduce((s, c) => s + Number(c.amount), 0) || 0;
+
+      setStats({
+        balance: Number(walletRes.data?.balance || 0),
+        directs: directsRes.data?.length || 0,
+        network: directsRes.data?.length || 0,
+        level: profileRes.data?.career_level || "semeur",
+        commissions: totalComm,
+      });
+    };
+    load();
   }, []);
+
+  const levelLabels: Record<string, string> = {
+    semeur: "🌱 Semeur", cultivateur: "🌿 Cultivateur", jardinier: "🌾 Moissonneur",
+    recolteur: "🏕 Guide de Champ", fermier: "⚔️ Maître Moissonneur", maitre_fermier: "👑 Grand Moissonneur",
+    intendant: "🌟 Intendant", sage_moissonneur: "💎 Sage Moissonneur",
+    grand_moissonneur: "🏆 Grand Moissonneur Suprême", guide_moissonneur: "🔱 Guide Moissonneur",
+  };
 
   return (
     <div className="p-6">
@@ -27,17 +49,20 @@ const DashboardHome = () => {
         <h2 className="font-display text-xl font-bold mb-1">
           Bienvenue, <span className="text-gradient-gold">{meta.first_name || "Moissonneur"}</span> 👋
         </h2>
-        <p className="text-sm text-muted-foreground">
-          Votre parcours de Moissonneur commence ici. Explorez votre réseau et développez votre activité.
-        </p>
+        <p className="text-sm text-muted-foreground">Unis pour prospérer & protéger</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {statCards.map((s, i) => (
-          <div key={i} className="glass-card rounded-xl p-5 hover:glow-purple transition-all">
-            <s.icon size={20} className={s.color} />
-            <p className="font-display text-xl font-bold mt-3">{s.value}</p>
-            <p className="text-xs text-muted-foreground mt-1">{s.label}</p>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {[
+          { label: "Filleuls Directs", value: String(stats.directs), icon: Users, color: "text-secondary" },
+          { label: "Solde Wallet", value: `${stats.balance.toLocaleString()} FCFA`, icon: Wallet, color: "text-primary" },
+          { label: "Total Commissions", value: `${stats.commissions.toLocaleString()} FCFA`, icon: TrendingUp, color: "text-green-500" },
+          { label: "Niveau Carrière", value: levelLabels[stats.level] || stats.level, icon: Wheat, color: "text-primary" },
+        ].map((s, i) => (
+          <div key={i} className="glass-card rounded-xl p-4 hover:glow-purple transition-all">
+            <s.icon size={18} className={s.color} />
+            <p className="font-display text-lg font-bold mt-2">{s.value}</p>
+            <p className="text-[10px] text-muted-foreground mt-1">{s.label}</p>
           </div>
         ))}
       </div>
@@ -46,11 +71,11 @@ const DashboardHome = () => {
         <h3 className="font-display text-sm font-bold mb-4">Actions Rapides</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { to: "/directory", icon: Building2, label: "Voir les Stands", color: "text-primary" },
-            { to: "/dashboard/wallet", icon: Wallet, label: "Mon Wallet", color: "text-secondary" },
+            { to: "/directory", icon: Building2, label: "Stands", color: "text-primary" },
+            { to: "/dashboard/wallet", icon: Wallet, label: "Portefeuille", color: "text-secondary" },
             { to: "/dashboard/network", icon: Users, label: "Mon Réseau", color: "text-primary" },
-            { to: "/dashboard/profile", icon: UserCircle, label: "Mon Profil", color: "text-gold" },
-          ].map((a) => (
+            { to: "/dashboard/profile", icon: UserCircle, label: "Mon Profil", color: "text-primary" },
+          ].map(a => (
             <Link key={a.to} to={a.to}>
               <Button variant="outline" className="w-full h-auto py-4 flex flex-col gap-2 border-border hover:bg-muted">
                 <a.icon size={20} className={a.color} />
