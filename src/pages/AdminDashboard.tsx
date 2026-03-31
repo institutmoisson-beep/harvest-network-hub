@@ -492,19 +492,19 @@ const AdminDashboard = () => {
             </div>
           </TabsContent>
 
-          {/* ---- PRODUCTS ---- */}
+          {/* ---- PACKS ---- */}
           <TabsContent value="products">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">{productsList.length} produits</p>
+                <p className="text-sm text-muted-foreground">{productsList.length} packs</p>
                 <Button size="sm" className="bg-gradient-gold text-secondary-foreground font-display text-xs" onClick={() => openProductForm()}>
-                  <Plus size={14} className="mr-1" /> Ajouter un produit
+                  <Plus size={14} className="mr-1" /> Ajouter un pack
                 </Button>
               </div>
 
               {showProductForm && (
                 <div className="glass-card rounded-xl p-4 border-2 border-primary/30">
-                  <h3 className="font-display text-sm font-bold mb-3">{editingProduct ? "Modifier" : "Nouveau"} Produit</h3>
+                  <h3 className="font-display text-sm font-bold mb-3">{editingProduct ? "Modifier" : "Nouveau"} Pack</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div><Label className="text-xs">Nom *</Label><Input value={productForm.name} onChange={e => setProductForm(p => ({ ...p, name: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
                     <div><Label className="text-xs">Prix *</Label><Input type="number" value={productForm.price} onChange={e => setProductForm(p => ({ ...p, price: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
@@ -525,7 +525,7 @@ const AdminDashboard = () => {
                         {sectors.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
                       </select>
                     </div>
-                    <div><Label className="text-xs">Image URL</Label><Input value={productForm.image_url} onChange={e => setProductForm(p => ({ ...p, image_url: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
+                    <div><Label className="text-xs">Image principale (URL)</Label><Input value={productForm.image_url} onChange={e => setProductForm(p => ({ ...p, image_url: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
                     <div className="flex items-center gap-4 mt-4">
                       <label className="flex items-center gap-2 text-xs cursor-pointer">
                         <input type="checkbox" checked={productForm.is_physical} onChange={e => setProductForm(p => ({ ...p, is_physical: e.target.checked }))} /> Produit physique
@@ -536,6 +536,49 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   <div className="mt-3"><Label className="text-xs">Description</Label><Textarea value={productForm.description} onChange={e => setProductForm(p => ({ ...p, description: e.target.value }))} className="mt-1 bg-input border-border text-sm" rows={3} /></div>
+                  
+                  {/* Multi-image section */}
+                  <div className="mt-3 space-y-2">
+                    <Label className="text-xs font-bold">Images supplémentaires</Label>
+                    {productForm.images.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {productForm.images.map((img, i) => (
+                          <div key={i} className="relative group">
+                            <img src={img} alt="" className="w-16 h-16 rounded-lg object-cover border border-border" />
+                            <button type="button" className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-4 h-4 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => setProductForm(p => ({ ...p, images: p.images.filter((_, idx) => idx !== i) }))}>×</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      <Input value={imageUrlInput} onChange={e => setImageUrlInput(e.target.value)} placeholder="URL de l'image..." className="bg-input border-border text-sm flex-1" />
+                      <Button size="sm" variant="outline" className="text-xs" onClick={() => {
+                        if (imageUrlInput.trim()) {
+                          setProductForm(p => ({ ...p, images: [...p.images, imageUrlInput.trim()] }));
+                          setImageUrlInput("");
+                        }
+                      }}><Plus size={12} className="mr-1" /> URL</Button>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Ou télécharger depuis votre appareil :</Label>
+                      <input type="file" accept="image/*" multiple className="mt-1 text-xs" onChange={async (e) => {
+                        const files = e.target.files;
+                        if (!files) return;
+                        for (const file of Array.from(files)) {
+                          const ext = file.name.split('.').pop();
+                          const path = `packs/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+                          const { error } = await supabase.storage.from("pack-images").upload(path, file);
+                          if (error) { toast.error(`Erreur upload: ${error.message}`); continue; }
+                          const { data: urlData } = supabase.storage.from("pack-images").getPublicUrl(path);
+                          setProductForm(p => ({ ...p, images: [...p.images, urlData.publicUrl] }));
+                        }
+                        toast.success("Images téléchargées !");
+                        e.target.value = "";
+                      }} />
+                    </div>
+                  </div>
+
                   <div className="flex gap-2 mt-3">
                     <Button size="sm" className="bg-gradient-gold text-secondary-foreground font-display text-xs" onClick={saveProduct}><Save size={14} className="mr-1" /> Enregistrer</Button>
                     <Button size="sm" variant="outline" className="text-xs" onClick={() => setShowProductForm(false)}><X size={14} className="mr-1" /> Annuler</Button>
