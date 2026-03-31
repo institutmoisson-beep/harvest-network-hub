@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Users, TrendingUp, Wallet, Wheat, Building2, UserCircle, ShoppingBag } from "lucide-react";
+import { Users, TrendingUp, Wallet, Wheat, Building2, UserCircle, ShoppingBag, Package } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
