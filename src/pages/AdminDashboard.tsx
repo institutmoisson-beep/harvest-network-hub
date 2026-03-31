@@ -197,10 +197,10 @@ const AdminDashboard = () => {
   const openProductForm = (product?: Product) => {
     if (product) {
       setEditingProduct(product);
-      setProductForm({ name: product.name, price: String(product.price), company_id: product.company_id, description: product.description || "", image_url: product.image_url || "", is_physical: product.is_physical, activates_system: product.activates_system, currency: product.currency });
+      setProductForm({ name: product.name, price: String(product.price), company_id: product.company_id, description: product.description || "", image_url: product.image_url || "", is_physical: product.is_physical, activates_system: product.activates_system, currency: product.currency, sector: (product as any).sector || "" });
     } else {
       setEditingProduct(null);
-      setProductForm({ name: "", price: "", company_id: companies[0]?.id || "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA" });
+      setProductForm({ name: "", price: "", company_id: companies[0]?.id || "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA", sector: "" });
     }
     setShowProductForm(true);
   };
