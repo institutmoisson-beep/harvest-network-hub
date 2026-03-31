@@ -24,6 +24,9 @@ const Navbar = () => {
           <Link to="/directory" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">
             Annuaire Entreprises
           </Link>
+          <Link to="/packs" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">
+            Packs
+          </Link>
           <Link to="/moissonneurs-pros" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">
             Moissonneurs Pros
           </Link>
