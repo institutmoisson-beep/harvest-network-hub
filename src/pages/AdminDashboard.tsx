@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import {
   Users, Wallet, Building2, ShoppingCart, Plus, Edit2, Save, X,
   CheckCircle, XCircle, ArrowLeft, Trash2, CreditCard, Package, Percent,
-  Eye, DollarSign
+  Eye, DollarSign, Star, Tags
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 
