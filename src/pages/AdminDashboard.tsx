@@ -477,7 +477,7 @@ const AdminDashboard = () => {
                       <div>
                         <p className="font-display text-sm font-bold">{c.name}</p>
                         <p className="text-xs text-muted-foreground">{c.sector} • {c.country}</p>
-                        <p className="text-xs text-muted-foreground">{productsList.filter(p => p.company_id === c.id).length} produits</p>
+                        <p className="text-xs text-muted-foreground">{productsList.filter(p => p.company_id === c.id).length} packs</p>
                       </div>
                     </div>
                     <div className="flex gap-1 flex-wrap">
