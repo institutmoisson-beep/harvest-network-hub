@@ -80,7 +80,7 @@ const AdminDashboard = () => {
   };
 
   const loadAll = async () => {
-    const [usersRes, txRes, compRes, ordersRes, addrRes, prodRes, pmRes, crRes, walRes] = await Promise.all([
+    const [usersRes, txRes, compRes, ordersRes, addrRes, prodRes, pmRes, crRes, walRes, secRes] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("wallet_transactions").select("*").order("created_at", { ascending: false }),
       supabase.from("companies").select("*").order("created_at", { ascending: false }),
@@ -90,6 +90,7 @@ const AdminDashboard = () => {
       supabase.from("payment_methods").select("*").order("created_at", { ascending: false }),
       supabase.from("commission_rates").select("*").order("level", { ascending: true }),
       supabase.from("wallets").select("*"),
+      supabase.from("sectors").select("*").order("name", { ascending: true }),
     ]);
     if (usersRes.data) {
       setUsers(usersRes.data as Profile[]);
