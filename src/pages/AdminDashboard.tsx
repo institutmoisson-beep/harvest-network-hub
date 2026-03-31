@@ -119,6 +119,7 @@ const AdminDashboard = () => {
       walRes.data.forEach((w: any) => { wMap[w.user_id] = Number(w.balance); });
       setWalletsMap(wMap);
     }
+    if (secRes.data) setSectors(secRes.data as Sector[]);
   };
 
   // Transaction handling
