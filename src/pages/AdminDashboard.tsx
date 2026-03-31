@@ -42,6 +42,8 @@ const AdminDashboard = () => {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [commissionRates, setCommissionRates] = useState<CommissionRate[]>([]);
   const [walletsMap, setWalletsMap] = useState<Record<string, number>>({});
+  const [sectors, setSectors] = useState<Sector[]>([]);
+  const [newSectorName, setNewSectorName] = useState("");
 
   // Forms
   const [showCompanyForm, setShowCompanyForm] = useState(false);
