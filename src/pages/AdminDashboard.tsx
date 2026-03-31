@@ -317,7 +317,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="users" className="text-[10px] gap-1"><Users size={12} /> Utilisateurs</TabsTrigger>
             <TabsTrigger value="transactions" className="text-[10px] gap-1"><Wallet size={12} /> Transactions</TabsTrigger>
             <TabsTrigger value="companies" className="text-[10px] gap-1"><Building2 size={12} /> Entreprises</TabsTrigger>
-            <TabsTrigger value="products" className="text-[10px] gap-1"><Package size={12} /> Produits</TabsTrigger>
+            <TabsTrigger value="products" className="text-[10px] gap-1"><Package size={12} /> Packs</TabsTrigger>
             <TabsTrigger value="sectors" className="text-[10px] gap-1"><Tags size={12} /> Secteurs</TabsTrigger>
             <TabsTrigger value="orders" className="text-[10px] gap-1"><ShoppingCart size={12} /> Commandes</TabsTrigger>
             <TabsTrigger value="payments" className="text-[10px] gap-1"><CreditCard size={12} /> Paiements</TabsTrigger>
