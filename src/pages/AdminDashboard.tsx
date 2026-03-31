@@ -693,6 +693,61 @@ const AdminDashboard = () => {
               <p className="text-xs text-muted-foreground">Les commissions sont payées automatiquement lors de l'achat d'un pack d'activation. Modifiez les taux ci-dessus et cliquez en dehors du champ pour sauvegarder.</p>
             </div>
           </TabsContent>
+
+          {/* ---- SECTORS ---- */}
+          <TabsContent value="sectors">
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">{sectors.length} secteurs</p>
+              <div className="glass-card rounded-xl p-4 flex items-center gap-3">
+                <Input value={newSectorName} onChange={e => setNewSectorName(e.target.value)} placeholder="Nom du secteur..." className="bg-input border-border text-sm flex-1" />
+                <Button size="sm" className="bg-gradient-gold text-secondary-foreground font-display text-xs" onClick={async () => {
+                  if (!newSectorName.trim()) return;
+                  const { error } = await supabase.from("sectors").insert({ name: newSectorName.trim() } as any);
+                  if (error) toast.error(error.message);
+                  else { toast.success("Secteur ajouté"); setNewSectorName(""); loadAll(); }
+                }}><Plus size={14} className="mr-1" /> Ajouter</Button>
+              </div>
+              {sectors.map(s => (
+                <div key={s.id} className="glass-card rounded-xl p-4 flex items-center justify-between">
+                  <p className="font-display text-sm font-bold">{s.name}</p>
+                  <Button size="sm" variant="destructive" className="text-xs h-7" onClick={async () => {
+                    await supabase.from("sectors").delete().eq("id", s.id);
+                    toast.success("Secteur supprimé"); loadAll();
+                  }}><Trash2 size={12} /></Button>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+
+          {/* ---- MOISSONNEURS PROS ---- */}
+          <TabsContent value="pros">
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">Gérez la visibilité des utilisateurs dans l'annuaire "Moissonneurs Pros"</p>
+              {users.map(u => (
+                <div key={u.id} className="glass-card rounded-xl p-4 flex items-center justify-between gap-2 flex-wrap">
+                  <div>
+                    <p className="font-display text-sm font-bold">{u.first_name} {u.last_name}</p>
+                    <p className="text-xs text-muted-foreground">{u.email} • {u.referral_code}</p>
+                    <Badge variant="outline" className="text-[10px] mt-1">{u.career_level}</Badge>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge className={`text-[10px] ${(u as any).is_pro_visible ? "bg-green-600" : "bg-muted text-muted-foreground"}`}>
+                      {(u as any).is_pro_visible ? "Visible" : "Masqué"}
+                    </Badge>
+                    <Button size="sm" variant={(u as any).is_pro_visible ? "destructive" : "default"} className="text-xs h-7"
+                      onClick={async () => {
+                        await supabase.from("profiles").update({ is_pro_visible: !(u as any).is_pro_visible } as any).eq("id", u.id);
+                        toast.success((u as any).is_pro_visible ? "Retiré de l'annuaire" : "Ajouté à l'annuaire");
+                        loadAll();
+                      }}>
+                      <Star size={12} className="mr-1" />
+                      {(u as any).is_pro_visible ? "Retirer" : "Afficher"}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
 
