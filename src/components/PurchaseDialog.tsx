@@ -112,6 +112,10 @@ const PurchaseDialog = ({ product, open, onOpenChange, companyName }: PurchaseDi
       await payCommissions(user.id, product.price, product.id);
 
       toast.success("Achat effectué avec succès ! Votre portefeuille a été débité.");
+      // Offer contract download
+      const { data: profile } = await supabase.from("profiles").select("first_name, last_name").eq("id", user.id).single();
+      const memberName = profile ? `${profile.first_name} ${profile.last_name}` : "Membre";
+      downloadContract(memberName, product.name, product.price, companyName);
       onOpenChange(false);
     } catch (err: any) {
       toast.error(err.message || "Erreur lors de l'achat");
