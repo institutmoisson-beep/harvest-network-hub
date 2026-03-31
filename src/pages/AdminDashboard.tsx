@@ -515,6 +515,14 @@ const AdminDashboard = () => {
                       </select>
                     </div>
                     <div><Label className="text-xs">Devise</Label><Input value={productForm.currency} onChange={e => setProductForm(p => ({ ...p, currency: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
+                    <div>
+                      <Label className="text-xs">Secteur</Label>
+                      <select value={productForm.sector} onChange={e => setProductForm(p => ({ ...p, sector: e.target.value }))}
+                        className="mt-1 w-full rounded-md bg-input border border-border text-sm p-2">
+                        <option value="">Aucun secteur</option>
+                        {sectors.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                      </select>
+                    </div>
                     <div><Label className="text-xs">Image URL</Label><Input value={productForm.image_url} onChange={e => setProductForm(p => ({ ...p, image_url: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
                     <div className="flex items-center gap-4 mt-4">
                       <label className="flex items-center gap-2 text-xs cursor-pointer">
