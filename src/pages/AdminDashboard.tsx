@@ -747,7 +747,7 @@ const AdminDashboard = () => {
                 <Input value={newSectorName} onChange={e => setNewSectorName(e.target.value)} placeholder="Nom du secteur..." className="bg-input border-border text-sm flex-1" />
                 <Button size="sm" className="bg-gradient-gold text-secondary-foreground font-display text-xs" onClick={async () => {
                   if (!newSectorName.trim()) return;
-                  const { error } = await supabase.from("sectors").insert({ name: newSectorName.trim() } as any);
+                  const { error } = await supabase.from("sectors").insert({ name: newSectorName.trim() });
                   if (error) toast.error(error.message);
                   else { toast.success("Secteur ajouté"); setNewSectorName(""); loadAll(); }
                 }}><Plus size={14} className="mr-1" /> Ajouter</Button>
