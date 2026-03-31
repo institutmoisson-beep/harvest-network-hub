@@ -52,7 +52,8 @@ const AdminDashboard = () => {
 
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [productForm, setProductForm] = useState({ name: "", price: "", company_id: "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA", sector: "" });
+  const [productForm, setProductForm] = useState({ name: "", price: "", company_id: "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA", sector: "", images: [] as string[] });
+  const [imageUrlInput, setImageUrlInput] = useState("");
 
   const [showPmForm, setShowPmForm] = useState(false);
   const [pmForm, setPmForm] = useState({ label: "", type: "mobile_money", value: "" });
@@ -198,17 +199,18 @@ const AdminDashboard = () => {
   const openProductForm = (product?: Product) => {
     if (product) {
       setEditingProduct(product);
-      setProductForm({ name: product.name, price: String(product.price), company_id: product.company_id, description: product.description || "", image_url: product.image_url || "", is_physical: product.is_physical, activates_system: product.activates_system, currency: product.currency, sector: (product as any).sector || "" });
+      setProductForm({ name: product.name, price: String(product.price), company_id: product.company_id, description: product.description || "", image_url: product.image_url || "", is_physical: product.is_physical, activates_system: product.activates_system, currency: product.currency, sector: (product as any).sector || "", images: Array.isArray((product as any).images) ? (product as any).images : [] });
     } else {
       setEditingProduct(null);
-      setProductForm({ name: "", price: "", company_id: companies[0]?.id || "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA", sector: "" });
+      setProductForm({ name: "", price: "", company_id: companies[0]?.id || "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA", sector: "", images: [] });
     }
+    setImageUrlInput("");
     setShowProductForm(true);
   };
 
   const saveProduct = async () => {
     if (!productForm.name.trim() || !productForm.price || !productForm.company_id) { toast.error("Nom, prix et entreprise requis"); return; }
-    const payload = { name: productForm.name, price: parseFloat(productForm.price), company_id: productForm.company_id, description: productForm.description, image_url: productForm.image_url || null, is_physical: productForm.is_physical, activates_system: productForm.activates_system, currency: productForm.currency, sector: productForm.sector, updated_at: new Date().toISOString() };
+    const payload = { name: productForm.name, price: parseFloat(productForm.price), company_id: productForm.company_id, description: productForm.description, image_url: productForm.image_url || null, is_physical: productForm.is_physical, activates_system: productForm.activates_system, currency: productForm.currency, sector: productForm.sector, images: productForm.images, updated_at: new Date().toISOString() };
     if (editingProduct) {
       const { error } = await supabase.from("products").update(payload).eq("id", editingProduct.id);
       if (error) toast.error(error.message);
@@ -317,7 +319,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="users" className="text-[10px] gap-1"><Users size={12} /> Utilisateurs</TabsTrigger>
             <TabsTrigger value="transactions" className="text-[10px] gap-1"><Wallet size={12} /> Transactions</TabsTrigger>
             <TabsTrigger value="companies" className="text-[10px] gap-1"><Building2 size={12} /> Entreprises</TabsTrigger>
-            <TabsTrigger value="products" className="text-[10px] gap-1"><Package size={12} /> Produits</TabsTrigger>
+            <TabsTrigger value="products" className="text-[10px] gap-1"><Package size={12} /> Packs</TabsTrigger>
             <TabsTrigger value="sectors" className="text-[10px] gap-1"><Tags size={12} /> Secteurs</TabsTrigger>
             <TabsTrigger value="orders" className="text-[10px] gap-1"><ShoppingCart size={12} /> Commandes</TabsTrigger>
             <TabsTrigger value="payments" className="text-[10px] gap-1"><CreditCard size={12} /> Paiements</TabsTrigger>
@@ -475,7 +477,7 @@ const AdminDashboard = () => {
                       <div>
                         <p className="font-display text-sm font-bold">{c.name}</p>
                         <p className="text-xs text-muted-foreground">{c.sector} • {c.country}</p>
-                        <p className="text-xs text-muted-foreground">{productsList.filter(p => p.company_id === c.id).length} produits</p>
+                        <p className="text-xs text-muted-foreground">{productsList.filter(p => p.company_id === c.id).length} packs</p>
                       </div>
                     </div>
                     <div className="flex gap-1 flex-wrap">
@@ -490,19 +492,19 @@ const AdminDashboard = () => {
             </div>
           </TabsContent>
 
-          {/* ---- PRODUCTS ---- */}
+          {/* ---- PACKS ---- */}
           <TabsContent value="products">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">{productsList.length} produits</p>
+                <p className="text-sm text-muted-foreground">{productsList.length} packs</p>
                 <Button size="sm" className="bg-gradient-gold text-secondary-foreground font-display text-xs" onClick={() => openProductForm()}>
-                  <Plus size={14} className="mr-1" /> Ajouter un produit
+                  <Plus size={14} className="mr-1" /> Ajouter un pack
                 </Button>
               </div>
 
               {showProductForm && (
                 <div className="glass-card rounded-xl p-4 border-2 border-primary/30">
-                  <h3 className="font-display text-sm font-bold mb-3">{editingProduct ? "Modifier" : "Nouveau"} Produit</h3>
+                  <h3 className="font-display text-sm font-bold mb-3">{editingProduct ? "Modifier" : "Nouveau"} Pack</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div><Label className="text-xs">Nom *</Label><Input value={productForm.name} onChange={e => setProductForm(p => ({ ...p, name: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
                     <div><Label className="text-xs">Prix *</Label><Input type="number" value={productForm.price} onChange={e => setProductForm(p => ({ ...p, price: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
@@ -523,7 +525,7 @@ const AdminDashboard = () => {
                         {sectors.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
                       </select>
                     </div>
-                    <div><Label className="text-xs">Image URL</Label><Input value={productForm.image_url} onChange={e => setProductForm(p => ({ ...p, image_url: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
+                    <div><Label className="text-xs">Image principale (URL)</Label><Input value={productForm.image_url} onChange={e => setProductForm(p => ({ ...p, image_url: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
                     <div className="flex items-center gap-4 mt-4">
                       <label className="flex items-center gap-2 text-xs cursor-pointer">
                         <input type="checkbox" checked={productForm.is_physical} onChange={e => setProductForm(p => ({ ...p, is_physical: e.target.checked }))} /> Produit physique
@@ -534,6 +536,49 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   <div className="mt-3"><Label className="text-xs">Description</Label><Textarea value={productForm.description} onChange={e => setProductForm(p => ({ ...p, description: e.target.value }))} className="mt-1 bg-input border-border text-sm" rows={3} /></div>
+                  
+                  {/* Multi-image section */}
+                  <div className="mt-3 space-y-2">
+                    <Label className="text-xs font-bold">Images supplémentaires</Label>
+                    {productForm.images.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {productForm.images.map((img, i) => (
+                          <div key={i} className="relative group">
+                            <img src={img} alt="" className="w-16 h-16 rounded-lg object-cover border border-border" />
+                            <button type="button" className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full w-4 h-4 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => setProductForm(p => ({ ...p, images: p.images.filter((_, idx) => idx !== i) }))}>×</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      <Input value={imageUrlInput} onChange={e => setImageUrlInput(e.target.value)} placeholder="URL de l'image..." className="bg-input border-border text-sm flex-1" />
+                      <Button size="sm" variant="outline" className="text-xs" onClick={() => {
+                        if (imageUrlInput.trim()) {
+                          setProductForm(p => ({ ...p, images: [...p.images, imageUrlInput.trim()] }));
+                          setImageUrlInput("");
+                        }
+                      }}><Plus size={12} className="mr-1" /> URL</Button>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Ou télécharger depuis votre appareil :</Label>
+                      <input type="file" accept="image/*" multiple className="mt-1 text-xs" onChange={async (e) => {
+                        const files = e.target.files;
+                        if (!files) return;
+                        for (const file of Array.from(files)) {
+                          const ext = file.name.split('.').pop();
+                          const path = `packs/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+                          const { error } = await supabase.storage.from("pack-images").upload(path, file);
+                          if (error) { toast.error(`Erreur upload: ${error.message}`); continue; }
+                          const { data: urlData } = supabase.storage.from("pack-images").getPublicUrl(path);
+                          setProductForm(p => ({ ...p, images: [...p.images, urlData.publicUrl] }));
+                        }
+                        toast.success("Images téléchargées !");
+                        e.target.value = "";
+                      }} />
+                    </div>
+                  </div>
+
                   <div className="flex gap-2 mt-3">
                     <Button size="sm" className="bg-gradient-gold text-secondary-foreground font-display text-xs" onClick={saveProduct}><Save size={14} className="mr-1" /> Enregistrer</Button>
                     <Button size="sm" variant="outline" className="text-xs" onClick={() => setShowProductForm(false)}><X size={14} className="mr-1" /> Annuler</Button>
@@ -702,7 +747,7 @@ const AdminDashboard = () => {
                 <Input value={newSectorName} onChange={e => setNewSectorName(e.target.value)} placeholder="Nom du secteur..." className="bg-input border-border text-sm flex-1" />
                 <Button size="sm" className="bg-gradient-gold text-secondary-foreground font-display text-xs" onClick={async () => {
                   if (!newSectorName.trim()) return;
-                  const { error } = await supabase.from("sectors").insert({ name: newSectorName.trim() } as any);
+                  const { error } = await supabase.from("sectors").insert({ name: newSectorName.trim() });
                   if (error) toast.error(error.message);
                   else { toast.success("Secteur ajouté"); setNewSectorName(""); loadAll(); }
                 }}><Plus size={14} className="mr-1" /> Ajouter</Button>
