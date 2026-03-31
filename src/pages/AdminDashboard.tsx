@@ -23,6 +23,7 @@ type Order = { id: string; user_id: string; product_id: string; company_id: stri
 type Product = { id: string; name: string; price: number; company_id: string; description: string | null; image_url: string | null; is_active: boolean; is_physical: boolean; activates_system: boolean; currency: string };
 type PaymentMethod = { id: string; label: string; type: string; value: string; is_active: boolean };
 type CommissionRate = { id: string; level: number; percentage: number };
+type Sector = { id: string; name: string };
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
