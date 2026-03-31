@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import {
   Users, Wallet, Building2, ShoppingCart, Plus, Edit2, Save, X,
   CheckCircle, XCircle, ArrowLeft, Trash2, CreditCard, Package, Percent,
-  Eye, DollarSign
+  Eye, DollarSign, Star, Tags
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 
@@ -23,6 +23,7 @@ type Order = { id: string; user_id: string; product_id: string; company_id: stri
 type Product = { id: string; name: string; price: number; company_id: string; description: string | null; image_url: string | null; is_active: boolean; is_physical: boolean; activates_system: boolean; currency: string };
 type PaymentMethod = { id: string; label: string; type: string; value: string; is_active: boolean };
 type CommissionRate = { id: string; level: number; percentage: number };
+type Sector = { id: string; name: string };
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -41,6 +42,8 @@ const AdminDashboard = () => {
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [commissionRates, setCommissionRates] = useState<CommissionRate[]>([]);
   const [walletsMap, setWalletsMap] = useState<Record<string, number>>({});
+  const [sectors, setSectors] = useState<Sector[]>([]);
+  const [newSectorName, setNewSectorName] = useState("");
 
   // Forms
   const [showCompanyForm, setShowCompanyForm] = useState(false);
@@ -49,7 +52,7 @@ const AdminDashboard = () => {
 
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [productForm, setProductForm] = useState({ name: "", price: "", company_id: "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA" });
+  const [productForm, setProductForm] = useState({ name: "", price: "", company_id: "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA", sector: "" });
 
   const [showPmForm, setShowPmForm] = useState(false);
   const [pmForm, setPmForm] = useState({ label: "", type: "mobile_money", value: "" });
@@ -77,7 +80,7 @@ const AdminDashboard = () => {
   };
 
   const loadAll = async () => {
-    const [usersRes, txRes, compRes, ordersRes, addrRes, prodRes, pmRes, crRes, walRes] = await Promise.all([
+    const [usersRes, txRes, compRes, ordersRes, addrRes, prodRes, pmRes, crRes, walRes, secRes] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("wallet_transactions").select("*").order("created_at", { ascending: false }),
       supabase.from("companies").select("*").order("created_at", { ascending: false }),
@@ -87,6 +90,7 @@ const AdminDashboard = () => {
       supabase.from("payment_methods").select("*").order("created_at", { ascending: false }),
       supabase.from("commission_rates").select("*").order("level", { ascending: true }),
       supabase.from("wallets").select("*"),
+      supabase.from("sectors").select("*").order("name", { ascending: true }),
     ]);
     if (usersRes.data) {
       setUsers(usersRes.data as Profile[]);
@@ -115,6 +119,7 @@ const AdminDashboard = () => {
       walRes.data.forEach((w: any) => { wMap[w.user_id] = Number(w.balance); });
       setWalletsMap(wMap);
     }
+    if (secRes.data) setSectors(secRes.data as Sector[]);
   };
 
   // Transaction handling
@@ -193,17 +198,17 @@ const AdminDashboard = () => {
   const openProductForm = (product?: Product) => {
     if (product) {
       setEditingProduct(product);
-      setProductForm({ name: product.name, price: String(product.price), company_id: product.company_id, description: product.description || "", image_url: product.image_url || "", is_physical: product.is_physical, activates_system: product.activates_system, currency: product.currency });
+      setProductForm({ name: product.name, price: String(product.price), company_id: product.company_id, description: product.description || "", image_url: product.image_url || "", is_physical: product.is_physical, activates_system: product.activates_system, currency: product.currency, sector: (product as any).sector || "" });
     } else {
       setEditingProduct(null);
-      setProductForm({ name: "", price: "", company_id: companies[0]?.id || "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA" });
+      setProductForm({ name: "", price: "", company_id: companies[0]?.id || "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA", sector: "" });
     }
     setShowProductForm(true);
   };
 
   const saveProduct = async () => {
     if (!productForm.name.trim() || !productForm.price || !productForm.company_id) { toast.error("Nom, prix et entreprise requis"); return; }
-    const payload = { name: productForm.name, price: parseFloat(productForm.price), company_id: productForm.company_id, description: productForm.description, image_url: productForm.image_url || null, is_physical: productForm.is_physical, activates_system: productForm.activates_system, currency: productForm.currency, updated_at: new Date().toISOString() };
+    const payload = { name: productForm.name, price: parseFloat(productForm.price), company_id: productForm.company_id, description: productForm.description, image_url: productForm.image_url || null, is_physical: productForm.is_physical, activates_system: productForm.activates_system, currency: productForm.currency, sector: productForm.sector, updated_at: new Date().toISOString() };
     if (editingProduct) {
       const { error } = await supabase.from("products").update(payload).eq("id", editingProduct.id);
       if (error) toast.error(error.message);
@@ -308,14 +313,16 @@ const AdminDashboard = () => {
 
       <div className="p-4 max-w-6xl mx-auto">
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="grid grid-cols-3 sm:grid-cols-7 mb-6 h-auto">
+          <TabsList className="grid grid-cols-4 sm:grid-cols-9 mb-6 h-auto">
             <TabsTrigger value="users" className="text-[10px] gap-1"><Users size={12} /> Utilisateurs</TabsTrigger>
             <TabsTrigger value="transactions" className="text-[10px] gap-1"><Wallet size={12} /> Transactions</TabsTrigger>
             <TabsTrigger value="companies" className="text-[10px] gap-1"><Building2 size={12} /> Entreprises</TabsTrigger>
             <TabsTrigger value="products" className="text-[10px] gap-1"><Package size={12} /> Produits</TabsTrigger>
+            <TabsTrigger value="sectors" className="text-[10px] gap-1"><Tags size={12} /> Secteurs</TabsTrigger>
             <TabsTrigger value="orders" className="text-[10px] gap-1"><ShoppingCart size={12} /> Commandes</TabsTrigger>
             <TabsTrigger value="payments" className="text-[10px] gap-1"><CreditCard size={12} /> Paiements</TabsTrigger>
             <TabsTrigger value="commissions" className="text-[10px] gap-1"><Percent size={12} /> Commissions</TabsTrigger>
+            <TabsTrigger value="pros" className="text-[10px] gap-1"><Star size={12} /> Pros</TabsTrigger>
           </TabsList>
 
           {/* ---- USERS ---- */}
@@ -508,6 +515,14 @@ const AdminDashboard = () => {
                       </select>
                     </div>
                     <div><Label className="text-xs">Devise</Label><Input value={productForm.currency} onChange={e => setProductForm(p => ({ ...p, currency: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
+                    <div>
+                      <Label className="text-xs">Secteur</Label>
+                      <select value={productForm.sector} onChange={e => setProductForm(p => ({ ...p, sector: e.target.value }))}
+                        className="mt-1 w-full rounded-md bg-input border border-border text-sm p-2">
+                        <option value="">Aucun secteur</option>
+                        {sectors.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                      </select>
+                    </div>
                     <div><Label className="text-xs">Image URL</Label><Input value={productForm.image_url} onChange={e => setProductForm(p => ({ ...p, image_url: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
                     <div className="flex items-center gap-4 mt-4">
                       <label className="flex items-center gap-2 text-xs cursor-pointer">
@@ -676,6 +691,61 @@ const AdminDashboard = () => {
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">Les commissions sont payées automatiquement lors de l'achat d'un pack d'activation. Modifiez les taux ci-dessus et cliquez en dehors du champ pour sauvegarder.</p>
+            </div>
+          </TabsContent>
+
+          {/* ---- SECTORS ---- */}
+          <TabsContent value="sectors">
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">{sectors.length} secteurs</p>
+              <div className="glass-card rounded-xl p-4 flex items-center gap-3">
+                <Input value={newSectorName} onChange={e => setNewSectorName(e.target.value)} placeholder="Nom du secteur..." className="bg-input border-border text-sm flex-1" />
+                <Button size="sm" className="bg-gradient-gold text-secondary-foreground font-display text-xs" onClick={async () => {
+                  if (!newSectorName.trim()) return;
+                  const { error } = await supabase.from("sectors").insert({ name: newSectorName.trim() } as any);
+                  if (error) toast.error(error.message);
+                  else { toast.success("Secteur ajouté"); setNewSectorName(""); loadAll(); }
+                }}><Plus size={14} className="mr-1" /> Ajouter</Button>
+              </div>
+              {sectors.map(s => (
+                <div key={s.id} className="glass-card rounded-xl p-4 flex items-center justify-between">
+                  <p className="font-display text-sm font-bold">{s.name}</p>
+                  <Button size="sm" variant="destructive" className="text-xs h-7" onClick={async () => {
+                    await supabase.from("sectors").delete().eq("id", s.id);
+                    toast.success("Secteur supprimé"); loadAll();
+                  }}><Trash2 size={12} /></Button>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+
+          {/* ---- MOISSONNEURS PROS ---- */}
+          <TabsContent value="pros">
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">Gérez la visibilité des utilisateurs dans l'annuaire "Moissonneurs Pros"</p>
+              {users.map(u => (
+                <div key={u.id} className="glass-card rounded-xl p-4 flex items-center justify-between gap-2 flex-wrap">
+                  <div>
+                    <p className="font-display text-sm font-bold">{u.first_name} {u.last_name}</p>
+                    <p className="text-xs text-muted-foreground">{u.email} • {u.referral_code}</p>
+                    <Badge variant="outline" className="text-[10px] mt-1">{u.career_level}</Badge>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge className={`text-[10px] ${(u as any).is_pro_visible ? "bg-green-600" : "bg-muted text-muted-foreground"}`}>
+                      {(u as any).is_pro_visible ? "Visible" : "Masqué"}
+                    </Badge>
+                    <Button size="sm" variant={(u as any).is_pro_visible ? "destructive" : "default"} className="text-xs h-7"
+                      onClick={async () => {
+                        await supabase.from("profiles").update({ is_pro_visible: !(u as any).is_pro_visible } as any).eq("id", u.id);
+                        toast.success((u as any).is_pro_visible ? "Retiré de l'annuaire" : "Ajouté à l'annuaire");
+                        loadAll();
+                      }}>
+                      <Star size={12} className="mr-1" />
+                      {(u as any).is_pro_visible ? "Retirer" : "Afficher"}
+                    </Button>
+                  </div>
+                </div>
+              ))}
             </div>
           </TabsContent>
         </Tabs>

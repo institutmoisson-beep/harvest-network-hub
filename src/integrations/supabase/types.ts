@@ -299,6 +299,7 @@ export type Database = {
           is_physical: boolean
           name: string
           price: number
+          sector: string | null
           updated_at: string
         }
         Insert: {
@@ -313,6 +314,7 @@ export type Database = {
           is_physical?: boolean
           name: string
           price?: number
+          sector?: string | null
           updated_at?: string
         }
         Update: {
@@ -327,6 +329,7 @@ export type Database = {
           is_physical?: boolean
           name?: string
           price?: number
+          sector?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -349,6 +352,7 @@ export type Database = {
           email: string | null
           first_name: string
           id: string
+          is_pro_visible: boolean
           is_system_active: boolean
           last_name: string
           phone: string | null
@@ -365,6 +369,7 @@ export type Database = {
           email?: string | null
           first_name?: string
           id: string
+          is_pro_visible?: boolean
           is_system_active?: boolean
           last_name?: string
           phone?: string | null
@@ -381,6 +386,7 @@ export type Database = {
           email?: string | null
           first_name?: string
           id?: string
+          is_pro_visible?: boolean
           is_system_active?: boolean
           last_name?: string
           phone?: string | null
@@ -397,6 +403,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sectors: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
       }
       shipping_addresses: {
         Row: {

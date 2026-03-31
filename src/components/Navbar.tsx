@@ -22,7 +22,10 @@ const Navbar = () => {
             Accueil
           </Link>
           <Link to="/directory" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">
-            Annuaire
+            Annuaire Entreprises
+          </Link>
+          <Link to="/moissonneurs-pros" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">
+            Moissonneurs Pros
           </Link>
           <Link to="/login" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">
             Connexion
@@ -42,7 +45,8 @@ const Navbar = () => {
       {open && (
         <div className="md:hidden glass-card border-t border-border/50 p-4 flex flex-col gap-3">
           <Link to="/" className="text-sm py-2" onClick={() => setOpen(false)}>Accueil</Link>
-          <Link to="/directory" className="text-sm py-2" onClick={() => setOpen(false)}>Annuaire</Link>
+          <Link to="/directory" className="text-sm py-2" onClick={() => setOpen(false)}>Annuaire Entreprises</Link>
+          <Link to="/moissonneurs-pros" className="text-sm py-2" onClick={() => setOpen(false)}>Moissonneurs Pros</Link>
           <Link to="/login" className="text-sm py-2" onClick={() => setOpen(false)}>Connexion</Link>
           <Link to="/register" onClick={() => setOpen(false)}>
             <Button className="w-full bg-gradient-purple text-primary-foreground font-semibold">
