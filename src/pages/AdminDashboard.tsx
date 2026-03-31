@@ -207,7 +207,7 @@ const AdminDashboard = () => {
 
   const saveProduct = async () => {
     if (!productForm.name.trim() || !productForm.price || !productForm.company_id) { toast.error("Nom, prix et entreprise requis"); return; }
-    const payload = { name: productForm.name, price: parseFloat(productForm.price), company_id: productForm.company_id, description: productForm.description, image_url: productForm.image_url || null, is_physical: productForm.is_physical, activates_system: productForm.activates_system, currency: productForm.currency, updated_at: new Date().toISOString() };
+    const payload = { name: productForm.name, price: parseFloat(productForm.price), company_id: productForm.company_id, description: productForm.description, image_url: productForm.image_url || null, is_physical: productForm.is_physical, activates_system: productForm.activates_system, currency: productForm.currency, sector: productForm.sector, updated_at: new Date().toISOString() };
     if (editingProduct) {
       const { error } = await supabase.from("products").update(payload).eq("id", editingProduct.id);
       if (error) toast.error(error.message);
