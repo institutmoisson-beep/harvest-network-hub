@@ -52,7 +52,7 @@ const AdminDashboard = () => {
 
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [productForm, setProductForm] = useState({ name: "", price: "", company_id: "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA" });
+  const [productForm, setProductForm] = useState({ name: "", price: "", company_id: "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA", sector: "" });
 
   const [showPmForm, setShowPmForm] = useState(false);
   const [pmForm, setPmForm] = useState({ label: "", type: "mobile_money", value: "" });
