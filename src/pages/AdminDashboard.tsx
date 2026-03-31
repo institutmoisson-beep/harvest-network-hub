@@ -313,14 +313,16 @@ const AdminDashboard = () => {
 
       <div className="p-4 max-w-6xl mx-auto">
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="grid grid-cols-3 sm:grid-cols-7 mb-6 h-auto">
+          <TabsList className="grid grid-cols-4 sm:grid-cols-9 mb-6 h-auto">
             <TabsTrigger value="users" className="text-[10px] gap-1"><Users size={12} /> Utilisateurs</TabsTrigger>
             <TabsTrigger value="transactions" className="text-[10px] gap-1"><Wallet size={12} /> Transactions</TabsTrigger>
             <TabsTrigger value="companies" className="text-[10px] gap-1"><Building2 size={12} /> Entreprises</TabsTrigger>
             <TabsTrigger value="products" className="text-[10px] gap-1"><Package size={12} /> Produits</TabsTrigger>
+            <TabsTrigger value="sectors" className="text-[10px] gap-1"><Tags size={12} /> Secteurs</TabsTrigger>
             <TabsTrigger value="orders" className="text-[10px] gap-1"><ShoppingCart size={12} /> Commandes</TabsTrigger>
             <TabsTrigger value="payments" className="text-[10px] gap-1"><CreditCard size={12} /> Paiements</TabsTrigger>
             <TabsTrigger value="commissions" className="text-[10px] gap-1"><Percent size={12} /> Commissions</TabsTrigger>
+            <TabsTrigger value="pros" className="text-[10px] gap-1"><Star size={12} /> Pros</TabsTrigger>
           </TabsList>
 
           {/* ---- USERS ---- */}
