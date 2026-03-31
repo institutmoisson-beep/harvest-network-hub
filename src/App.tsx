@@ -16,6 +16,7 @@ import Directory from "./pages/Directory.tsx";
 import CompanyProfile from "./pages/CompanyProfile.tsx";
 import AdminDashboard from "./pages/AdminDashboard.tsx";
 import MoissoneursPros from "./pages/MoissoneursPros.tsx";
+import Packs from "./pages/Packs.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
