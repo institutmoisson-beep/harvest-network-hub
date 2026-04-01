@@ -251,10 +251,50 @@ const AdminDashboard = () => {
     loadAll();
   };
 
-  // Commission rates
-  const updateRate = async (id: string, pct: number) => {
-    await supabase.from("commission_rates").update({ percentage: pct, updated_at: new Date().toISOString() }).eq("id", id);
-    toast.success("Taux mis à jour"); loadAll();
+  // Sector add
+  const addSector = async () => {
+    if (!newSectorName.trim()) { toast.error("Nom du secteur requis"); return; }
+    const { error } = await supabase.from("sectors").insert({ name: newSectorName.trim() });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Secteur ajouté");
+    setNewSectorName("");
+    loadAll();
+  };
+
+  // Pack commission rates
+  const [packRates, setPackRates] = useState<Record<string, { id?: string; level: number; percentage: number }[]>>({});
+  const [selectedPackForRates, setSelectedPackForRates] = useState<string>("");
+  const [newRateLevel, setNewRateLevel] = useState("");
+  const [newRatePct, setNewRatePct] = useState("");
+
+  const loadPackRates = async (productId: string) => {
+    const { data } = await supabase.from("pack_commission_rates").select("*").eq("product_id", productId).order("level", { ascending: true });
+    if (data) setPackRates(prev => ({ ...prev, [productId]: data }));
+  };
+
+  const savePackRate = async (productId: string, level: number, percentage: number) => {
+    const { error } = await supabase.from("pack_commission_rates").upsert(
+      { product_id: productId, level, percentage },
+      { onConflict: "product_id,level" }
+    );
+    if (error) toast.error(error.message);
+    else { toast.success(`Niveau ${level}: ${percentage}%`); loadPackRates(productId); }
+  };
+
+  const deletePackRate = async (id: string, productId: string) => {
+    await supabase.from("pack_commission_rates").delete().eq("id", id);
+    toast.success("Niveau supprimé");
+    loadPackRates(productId);
+  };
+
+  const addNewPackRate = async (productId: string) => {
+    const level = parseInt(newRateLevel);
+    const pct = parseFloat(newRatePct);
+    if (isNaN(level) || level < 1) { toast.error("Niveau invalide"); return; }
+    if (isNaN(pct) || pct < 0) { toast.error("Pourcentage invalide"); return; }
+    await savePackRate(productId, level, pct);
+    setNewRateLevel("");
+    setNewRatePct("");
   };
 
   // Wallet credit/debit
