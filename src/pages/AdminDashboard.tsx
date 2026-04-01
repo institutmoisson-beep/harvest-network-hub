@@ -266,10 +266,6 @@ const AdminDashboard = () => {
   };
 
   // Pack commission rates
-  const [packRates, setPackRates] = useState<Record<string, { id?: string; level: number; percentage: number }[]>>({});
-  const [selectedPackForRates, setSelectedPackForRates] = useState<string>("");
-  const [newRateLevel, setNewRateLevel] = useState("");
-  const [newRatePct, setNewRatePct] = useState("");
 
   const loadPackRates = async (productId: string) => {
     const { data } = await supabase.from("pack_commission_rates").select("*").eq("product_id", productId).order("level", { ascending: true });
