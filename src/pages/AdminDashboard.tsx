@@ -44,6 +44,10 @@ const AdminDashboard = () => {
   const [walletsMap, setWalletsMap] = useState<Record<string, number>>({});
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [newSectorName, setNewSectorName] = useState("");
+  const [packRates, setPackRates] = useState<Record<string, { id?: string; level: number; percentage: number }[]>>({});
+  const [selectedPackForRates, setSelectedPackForRates] = useState<string>("");
+  const [newRateLevel, setNewRateLevel] = useState("");
+  const [newRatePct, setNewRatePct] = useState("");
 
   // Forms
   const [showCompanyForm, setShowCompanyForm] = useState(false);
@@ -251,10 +255,46 @@ const AdminDashboard = () => {
     loadAll();
   };
 
-  // Commission rates
-  const updateRate = async (id: string, pct: number) => {
-    await supabase.from("commission_rates").update({ percentage: pct, updated_at: new Date().toISOString() }).eq("id", id);
-    toast.success("Taux mis à jour"); loadAll();
+  // Sector add
+  const addSector = async () => {
+    if (!newSectorName.trim()) { toast.error("Nom du secteur requis"); return; }
+    const { error } = await supabase.from("sectors").insert({ name: newSectorName.trim() });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Secteur ajouté");
+    setNewSectorName("");
+    loadAll();
+  };
+
+  // Pack commission rates
+
+  const loadPackRates = async (productId: string) => {
+    const { data } = await supabase.from("pack_commission_rates").select("*").eq("product_id", productId).order("level", { ascending: true });
+    if (data) setPackRates(prev => ({ ...prev, [productId]: data }));
+  };
+
+  const savePackRate = async (productId: string, level: number, percentage: number) => {
+    const { error } = await supabase.from("pack_commission_rates").upsert(
+      { product_id: productId, level, percentage },
+      { onConflict: "product_id,level" }
+    );
+    if (error) toast.error(error.message);
+    else { toast.success(`Niveau ${level}: ${percentage}%`); loadPackRates(productId); }
+  };
+
+  const deletePackRate = async (id: string, productId: string) => {
+    await supabase.from("pack_commission_rates").delete().eq("id", id);
+    toast.success("Niveau supprimé");
+    loadPackRates(productId);
+  };
+
+  const addNewPackRate = async (productId: string) => {
+    const level = parseInt(newRateLevel);
+    const pct = parseFloat(newRatePct);
+    if (isNaN(level) || level < 1) { toast.error("Niveau invalide"); return; }
+    if (isNaN(pct) || pct < 0) { toast.error("Pourcentage invalide"); return; }
+    await savePackRate(productId, level, pct);
+    setNewRateLevel("");
+    setNewRatePct("");
   };
 
   // Wallet credit/debit
@@ -717,25 +757,56 @@ const AdminDashboard = () => {
             </div>
           </TabsContent>
 
-          {/* ---- COMMISSION RATES ---- */}
+          {/* ---- COMMISSION RATES PER PACK ---- */}
           <TabsContent value="commissions">
             <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">Configurez le pourcentage de commission par niveau de parrainage</p>
+              <p className="text-sm text-muted-foreground">Configurez les commissions <strong>par pack</strong>. Sélectionnez un pack puis définissez les taux par niveau. Au-delà des niveaux configurés, le système applique une décroissance automatique.</p>
+              
               <div className="glass-card rounded-xl p-4">
-                <div className="space-y-3">
-                  {commissionRates.map(cr => (
-                    <div key={cr.id} className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-display font-bold min-w-[100px]">Niveau {cr.level}</p>
+                <Label className="text-xs font-bold">Sélectionner un pack</Label>
+                <select value={selectedPackForRates} onChange={e => {
+                  const pid = e.target.value;
+                  setSelectedPackForRates(pid);
+                  if (pid) loadPackRates(pid);
+                }} className="mt-1 w-full rounded-md bg-input border border-border text-sm p-2">
+                  <option value="">-- Choisir un pack --</option>
+                  {productsList.filter(p => p.activates_system).map(p => (
+                    <option key={p.id} value={p.id}>{p.name} — {Number(p.price).toLocaleString()} {p.currency}</option>
+                  ))}
+                </select>
+              </div>
+
+              {selectedPackForRates && (
+                <div className="glass-card rounded-xl p-4 space-y-3">
+                  <h3 className="font-display text-sm font-bold">
+                    Taux de commission — {productsList.find(p => p.id === selectedPackForRates)?.name}
+                  </h3>
+                  
+                  {(packRates[selectedPackForRates] || []).map(r => (
+                    <div key={r.id || r.level} className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-display font-bold min-w-[100px]">Niveau {r.level}</p>
                       <div className="flex items-center gap-2">
-                        <Input type="number" step="0.1" defaultValue={cr.percentage} className="w-20 bg-input border-border text-sm text-center"
-                          onBlur={e => { const v = parseFloat(e.target.value); if (!isNaN(v) && v !== cr.percentage) updateRate(cr.id, v); }} />
+                        <Input type="number" step="0.1" defaultValue={r.percentage} className="w-20 bg-input border-border text-sm text-center"
+                          onBlur={e => { const v = parseFloat(e.target.value); if (!isNaN(v) && v !== r.percentage) savePackRate(selectedPackForRates, r.level, v); }} />
                         <span className="text-xs text-muted-foreground">%</span>
+                        {r.id && <Button size="sm" variant="destructive" className="text-xs h-6 w-6 p-0" onClick={() => deletePackRate(r.id!, selectedPackForRates)}><Trash2 size={10} /></Button>}
                       </div>
                     </div>
                   ))}
+
+                  <div className="flex items-center gap-2 pt-2 border-t border-border">
+                    <Input type="number" placeholder="Niveau" value={newRateLevel} onChange={e => setNewRateLevel(e.target.value)} className="w-20 bg-input border-border text-sm text-center" />
+                    <Input type="number" step="0.1" placeholder="%" value={newRatePct} onChange={e => setNewRatePct(e.target.value)} className="w-20 bg-input border-border text-sm text-center" />
+                    <Button size="sm" className="bg-gradient-gold text-secondary-foreground font-display text-xs" onClick={() => addNewPackRate(selectedPackForRates)}>
+                      <Plus size={12} className="mr-1" /> Ajouter niveau
+                    </Button>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground mt-2">
+                    💡 Au-delà du dernier niveau configuré, le système applique automatiquement une décroissance (÷2 par niveau supplémentaire) jusqu'à un minimum de 0.01%.
+                  </p>
                 </div>
-              </div>
-              <p className="text-xs text-muted-foreground">Les commissions sont payées automatiquement lors de l'achat d'un pack d'activation. Modifiez les taux ci-dessus et cliquez en dehors du champ pour sauvegarder.</p>
+              )}
             </div>
           </TabsContent>
 
@@ -744,13 +815,11 @@ const AdminDashboard = () => {
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">{sectors.length} secteurs</p>
               <div className="glass-card rounded-xl p-4 flex items-center gap-3">
-                <Input value={newSectorName} onChange={e => setNewSectorName(e.target.value)} placeholder="Nom du secteur..." className="bg-input border-border text-sm flex-1" />
-                <Button size="sm" className="bg-gradient-gold text-secondary-foreground font-display text-xs" onClick={async () => {
-                  if (!newSectorName.trim()) return;
-                  const { error } = await supabase.from("sectors").insert({ name: newSectorName.trim() });
-                  if (error) toast.error(error.message);
-                  else { toast.success("Secteur ajouté"); setNewSectorName(""); loadAll(); }
-                }}><Plus size={14} className="mr-1" /> Ajouter</Button>
+                <Input value={newSectorName} onChange={e => setNewSectorName(e.target.value)} placeholder="Nom du secteur..." className="bg-input border-border text-sm flex-1"
+                  onKeyDown={e => { if (e.key === "Enter") addSector(); }} />
+                <Button size="sm" className="bg-gradient-gold text-secondary-foreground font-display text-xs" onClick={addSector}>
+                  <Plus size={14} className="mr-1" /> Ajouter
+                </Button>
               </div>
               {sectors.map(s => (
                 <div key={s.id} className="glass-card rounded-xl p-4 flex items-center justify-between">

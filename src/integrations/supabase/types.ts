@@ -259,6 +259,38 @@ export type Database = {
           },
         ]
       }
+      pack_commission_rates: {
+        Row: {
+          created_at: string
+          id: string
+          level: number
+          percentage: number
+          product_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          level: number
+          percentage?: number
+          product_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          level?: number
+          percentage?: number
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pack_commission_rates_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_methods: {
         Row: {
           created_at: string
