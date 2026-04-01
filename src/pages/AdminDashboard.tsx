@@ -491,16 +491,48 @@ const AdminDashboard = () => {
                   <h3 className="font-display text-sm font-bold mb-3">{editingCompany ? "Modifier" : "Nouvelle"} Entreprise</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div><Label className="text-xs">Nom *</Label><Input value={companyForm.name} onChange={e => setCompanyForm(p => ({ ...p, name: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
-                    <div><Label className="text-xs">Secteur</Label><Input value={companyForm.sector} onChange={e => setCompanyForm(p => ({ ...p, sector: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
+                    <div>
+                      <Label className="text-xs">Secteur</Label>
+                      <select value={companyForm.sector} onChange={e => setCompanyForm(p => ({ ...p, sector: e.target.value }))}
+                        className="mt-1 w-full rounded-md bg-input border border-border text-sm p-2">
+                        <option value="">Sélectionner...</option>
+                        {sectors.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                      </select>
+                    </div>
                     <div><Label className="text-xs">Pays</Label><Input value={companyForm.country} onChange={e => setCompanyForm(p => ({ ...p, country: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
                     <div><Label className="text-xs">Site Web</Label><Input value={companyForm.website_url} onChange={e => setCompanyForm(p => ({ ...p, website_url: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
-                    <div><Label className="text-xs">Logo URL</Label><Input value={companyForm.logo_url} onChange={e => setCompanyForm(p => ({ ...p, logo_url: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
-                    <div><Label className="text-xs">Bannière URL</Label><Input value={companyForm.banner_url} onChange={e => setCompanyForm(p => ({ ...p, banner_url: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
-                    <div><Label className="text-xs">Image 2 URL</Label><Input value={companyForm.image_url_2} onChange={e => setCompanyForm(p => ({ ...p, image_url_2: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
                     <div><Label className="text-xs">WhatsApp</Label><Input value={companyForm.contact_whatsapp} onChange={e => setCompanyForm(p => ({ ...p, contact_whatsapp: e.target.value }))} placeholder="+225..." className="mt-1 bg-input border-border text-sm" /></div>
                     <div><Label className="text-xs">Facebook</Label><Input value={companyForm.contact_facebook} onChange={e => setCompanyForm(p => ({ ...p, contact_facebook: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
                     <div><Label className="text-xs">Email contact</Label><Input value={companyForm.contact_email} onChange={e => setCompanyForm(p => ({ ...p, contact_email: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
                   </div>
+
+                  {/* Image uploads */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
+                    {[
+                      { label: "Logo", field: "logo_url" as const },
+                      { label: "Bannière", field: "banner_url" as const },
+                      { label: "Image 2", field: "image_url_2" as const },
+                    ].map(({ label, field }) => (
+                      <div key={field} className="space-y-1">
+                        <Label className="text-xs">{label}</Label>
+                        {companyForm[field] && <img src={companyForm[field]} alt={label} className="w-full h-20 rounded-lg object-cover border border-border" />}
+                        <Input value={companyForm[field]} onChange={e => setCompanyForm(p => ({ ...p, [field]: e.target.value }))} placeholder="URL..." className="bg-input border-border text-xs" />
+                        <input type="file" accept="image/*" className="text-[10px] w-full" onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const ext = file.name.split('.').pop();
+                          const path = `companies/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+                          const { error } = await supabase.storage.from("company-images").upload(path, file);
+                          if (error) { toast.error(`Erreur upload: ${error.message}`); return; }
+                          const { data: urlData } = supabase.storage.from("company-images").getPublicUrl(path);
+                          setCompanyForm(p => ({ ...p, [field]: urlData.publicUrl }));
+                          toast.success(`${label} téléchargé !`);
+                          e.target.value = "";
+                        }} />
+                      </div>
+                    ))}
+                  </div>
+
                   <div className="mt-3"><Label className="text-xs">Description</Label><Textarea value={companyForm.description} onChange={e => setCompanyForm(p => ({ ...p, description: e.target.value }))} className="mt-1 bg-input border-border text-sm" rows={3} /></div>
                   <div className="flex gap-2 mt-3">
                     <Button size="sm" className="bg-gradient-gold text-secondary-foreground font-display text-xs" onClick={saveCompany}><Save size={14} className="mr-1" /> Enregistrer</Button>
