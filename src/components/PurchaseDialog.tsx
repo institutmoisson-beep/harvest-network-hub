@@ -126,22 +126,52 @@ const PurchaseDialog = ({ product, open, onOpenChange, companyName }: PurchaseDi
 
   const payCommissions = async (buyerId: string, amount: number, productId: string) => {
     try {
-      // Get commission rates
-      const { data: rates } = await supabase.from("commission_rates").select("*").order("level", { ascending: true });
+      // Get per-pack commission rates
+      const { data: rates } = await supabase.from("pack_commission_rates").select("*").eq("product_id", productId).order("level", { ascending: true });
+      
       if (!rates || rates.length === 0) return;
 
-      // Walk up the sponsor chain
+      // Build rate lookup + find last configured level for decay formula
+      const rateMap = new Map<number, number>();
+      let maxConfiguredLevel = 0;
+      let lastPct = 0;
+      rates.forEach((r: any) => {
+        rateMap.set(r.level, Number(r.percentage));
+        if (r.level > maxConfiguredLevel) {
+          maxConfiguredLevel = r.level;
+          lastPct = Number(r.percentage);
+        }
+      });
+
+      // Walk up the sponsor chain infinitely
       let currentUserId = buyerId;
-      for (let level = 1; level <= rates.length; level++) {
+      let level = 0;
+      const MIN_PCT = 0.01;
+
+      while (true) {
+        level++;
         const { data: profile } = await supabase.from("profiles").select("referred_by").eq("id", currentUserId).single();
         if (!profile?.referred_by) break;
 
         const sponsorId = profile.referred_by;
-        const rate = rates.find(r => r.level === level);
-        if (!rate || rate.percentage <= 0) { currentUserId = sponsorId; continue; }
 
-        const commission = (amount * Number(rate.percentage)) / 100;
-        if (commission <= 0) { currentUserId = sponsorId; continue; }
+        // Determine commission percentage
+        let pct: number;
+        if (rateMap.has(level)) {
+          pct = rateMap.get(level)!;
+        } else if (maxConfiguredLevel > 0 && lastPct > MIN_PCT) {
+          // Infinite decay: halve per extra level beyond configured
+          const extraLevels = level - maxConfiguredLevel;
+          pct = lastPct / Math.pow(2, extraLevels);
+          if (pct < MIN_PCT) break; // Stop when too small
+        } else {
+          break;
+        }
+
+        if (pct <= 0) { currentUserId = sponsorId; continue; }
+
+        const commission = (amount * pct) / 100;
+        if (commission < 1) { currentUserId = sponsorId; continue; } // Min 1 FCFA
 
         // Credit sponsor wallet
         const { data: sponsorWallet } = await supabase.from("wallets").select("*").eq("user_id", sponsorId).single();
@@ -152,17 +182,17 @@ const PurchaseDialog = ({ product, open, onOpenChange, companyName }: PurchaseDi
           }).eq("id", sponsorWallet.id);
         }
 
-        // Record commission transaction
+        // Record wallet transaction
         await supabase.from("wallet_transactions").insert({
           user_id: sponsorId, type: "commission" as const, amount: commission,
           status: "approved" as const,
-          notes: `Commission niveau ${level} (${rate.percentage}%) sur achat de filleul`,
+          notes: `Commission niveau ${level} (${pct.toFixed(2)}%) sur achat de filleul`,
         });
 
         // Record in commissions table
         await supabase.from("commissions").insert({
           user_id: sponsorId, source_user_id: buyerId, amount: commission,
-          level, description: `Commission niveau ${level}`,
+          level, description: `Commission niveau ${level} (${pct.toFixed(2)}%)`,
         });
 
         currentUserId = sponsorId;
