@@ -44,6 +44,10 @@ const AdminDashboard = () => {
   const [walletsMap, setWalletsMap] = useState<Record<string, number>>({});
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [newSectorName, setNewSectorName] = useState("");
+  const [packRates, setPackRates] = useState<Record<string, { id?: string; level: number; percentage: number }[]>>({});
+  const [selectedPackForRates, setSelectedPackForRates] = useState<string>("");
+  const [newRateLevel, setNewRateLevel] = useState("");
+  const [newRatePct, setNewRatePct] = useState("");
 
   // Forms
   const [showCompanyForm, setShowCompanyForm] = useState(false);
