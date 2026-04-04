@@ -22,6 +22,8 @@ const DashboardProfile = () => {
   const [copied, setCopied] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const load = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -37,6 +39,7 @@ const DashboardProfile = () => {
         setCountry(prof.country || "");
         setReferralCode(prof.referral_code);
       }
+      setLoading(false);
     };
     load();
   }, [navigate]);
@@ -78,7 +81,11 @@ const DashboardProfile = () => {
     grand_moissonneur: "🏆 Grand Moissonneur Suprême", guide_moissonneur: "🔱 Guide Moissonneur",
   };
 
-  if (!user) return null;
+  if (loading || !user) return (
+    <div className="p-6 flex items-center justify-center min-h-[50vh]">
+      <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+    </div>
+  );
 
   return (
     <div className="p-6 max-w-2xl mx-auto">

@@ -92,7 +92,7 @@ const DashboardLayout = () => {
       <main className="flex-1 lg:ml-64">
         <header className="sticky top-0 z-30 glass-card border-b border-border/50 px-4 py-3 flex items-center gap-4">
           <button className="lg:hidden text-foreground" onClick={() => setSidebarOpen(true)}><Menu size={22} /></button>
-          <div className="ml-auto flex items-center gap-3">
+          <Link to="/dashboard/profile" className="ml-auto flex items-center gap-3 hover:opacity-80 transition-opacity">
             <div className="text-right">
               <p className="text-sm font-semibold">{meta.first_name || "Moissonneur"}</p>
               <p className="text-xs text-muted-foreground">🌱 Semeur</p>
@@ -100,7 +100,7 @@ const DashboardLayout = () => {
             <div className="w-9 h-9 rounded-full bg-gradient-purple flex items-center justify-center text-primary-foreground font-display text-xs font-bold">
               {(meta.first_name?.[0] || "M").toUpperCase()}
             </div>
-          </div>
+          </Link>
         </header>
         <Outlet />
       </main>
