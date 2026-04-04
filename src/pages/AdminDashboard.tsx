@@ -48,6 +48,17 @@ const AdminDashboard = () => {
   const [selectedPackForRates, setSelectedPackForRates] = useState<string>("");
   const [newRateLevel, setNewRateLevel] = useState("");
   const [newRatePct, setNewRatePct] = useState("");
+  const [userRolesMap, setUserRolesMap] = useState<Record<string, string[]>>({});
+  const [showRoleDialog, setShowRoleDialog] = useState(false);
+  const [roleDialogUser, setRoleDialogUser] = useState<Profile | null>(null);
+
+  const STAFF_ROLES = [
+    { value: "pack_manager", label: "📦 Gestion Packs" },
+    { value: "financier", label: "💰 Financier" },
+    { value: "partner_manager", label: "🤝 Gestion Partenaires" },
+    { value: "communication", label: "📢 Communication" },
+    { value: "moderator", label: "🛡️ Modérateur" },
+  ];
 
   // Forms
   const [showCompanyForm, setShowCompanyForm] = useState(false);
