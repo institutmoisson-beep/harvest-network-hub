@@ -610,7 +610,14 @@ export type Database = {
     }
     Enums: {
       account_status: "active" | "suspended" | "paused"
-      app_role: "admin" | "moderator" | "user"
+      app_role:
+        | "admin"
+        | "moderator"
+        | "user"
+        | "pack_manager"
+        | "financier"
+        | "partner_manager"
+        | "communication"
       career_level:
         | "semeur"
         | "cultivateur"
@@ -758,7 +765,15 @@ export const Constants = {
   public: {
     Enums: {
       account_status: ["active", "suspended", "paused"],
-      app_role: ["admin", "moderator", "user"],
+      app_role: [
+        "admin",
+        "moderator",
+        "user",
+        "pack_manager",
+        "financier",
+        "partner_manager",
+        "communication",
+      ],
       career_level: [
         "semeur",
         "cultivateur",
