@@ -96,7 +96,7 @@ const AdminDashboard = () => {
   };
 
   const loadAll = async () => {
-    const [usersRes, txRes, compRes, ordersRes, addrRes, prodRes, pmRes, crRes, walRes, secRes] = await Promise.all([
+    const [usersRes, txRes, compRes, ordersRes, addrRes, prodRes, pmRes, crRes, walRes, secRes, rolesRes] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("wallet_transactions").select("*").order("created_at", { ascending: false }),
       supabase.from("companies").select("*").order("created_at", { ascending: false }),
@@ -107,6 +107,7 @@ const AdminDashboard = () => {
       supabase.from("commission_rates").select("*").order("level", { ascending: true }),
       supabase.from("wallets").select("*"),
       supabase.from("sectors").select("*").order("name", { ascending: true }),
+      supabase.from("user_roles").select("*"),
     ]);
     if (usersRes.data) {
       setUsers(usersRes.data as Profile[]);
@@ -136,6 +137,26 @@ const AdminDashboard = () => {
       setWalletsMap(wMap);
     }
     if (secRes.data) setSectors(secRes.data as Sector[]);
+    if (rolesRes.data) {
+      const rMap: Record<string, string[]> = {};
+      rolesRes.data.forEach((r: any) => {
+        if (!rMap[r.user_id]) rMap[r.user_id] = [];
+        rMap[r.user_id].push(r.role);
+      });
+      setUserRolesMap(rMap);
+    }
+  };
+
+  const toggleUserRole = async (userId: string, role: string) => {
+    const currentRoles = userRolesMap[userId] || [];
+    if (currentRoles.includes(role)) {
+      await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", role as any);
+      toast.success(`Rôle "${role}" retiré`);
+    } else {
+      await supabase.from("user_roles").insert({ user_id: userId, role: role as any });
+      toast.success(`Rôle "${role}" attribué`);
+    }
+    loadAll();
   };
 
   // Transaction handling
