@@ -415,10 +415,16 @@ const AdminDashboard = () => {
                         <Badge variant="outline" className="text-[10px]">{u.career_level}</Badge>
                         <Badge className={`text-[10px] ${u.account_status === "active" ? "bg-green-600" : u.account_status === "suspended" ? "bg-destructive" : "bg-yellow-600"}`}>{u.account_status}</Badge>
                         <Badge variant={u.is_system_active ? "default" : "outline"} className="text-[10px]">{u.is_system_active ? "Système actif" : "Inactif"}</Badge>
+                        {(userRolesMap[u.id] || []).filter(r => r !== "user").map(role => (
+                          <Badge key={role} className="text-[10px] bg-primary/80">{role}</Badge>
+                        ))}
                       </div>
                     </div>
                     <div className="flex gap-1 flex-wrap">
                       <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => viewUserDetail(u.id)}><Eye size={12} className="mr-1" /> Détails</Button>
+                      <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => { setRoleDialogUser(u); setShowRoleDialog(true); }}>
+                        <Shield size={12} className="mr-1" /> Rôles
+                      </Button>
                       <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => { setWalletActionUser(u); setWalletAction("credit"); setShowWalletAction(true); }}>
                         <DollarSign size={12} className="mr-1" /> Créditer
                       </Button>
