@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import {
   Users, Wallet, Building2, ShoppingCart, Plus, Edit2, Save, X,
   CheckCircle, XCircle, ArrowLeft, Trash2, CreditCard, Package, Percent,
-  Eye, DollarSign, Star, Tags
+  Eye, DollarSign, Star, Tags, Shield
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 
@@ -48,6 +48,17 @@ const AdminDashboard = () => {
   const [selectedPackForRates, setSelectedPackForRates] = useState<string>("");
   const [newRateLevel, setNewRateLevel] = useState("");
   const [newRatePct, setNewRatePct] = useState("");
+  const [userRolesMap, setUserRolesMap] = useState<Record<string, string[]>>({});
+  const [showRoleDialog, setShowRoleDialog] = useState(false);
+  const [roleDialogUser, setRoleDialogUser] = useState<Profile | null>(null);
+
+  const STAFF_ROLES = [
+    { value: "pack_manager", label: "📦 Gestion Packs" },
+    { value: "financier", label: "💰 Financier" },
+    { value: "partner_manager", label: "🤝 Gestion Partenaires" },
+    { value: "communication", label: "📢 Communication" },
+    { value: "moderator", label: "🛡️ Modérateur" },
+  ];
 
   // Forms
   const [showCompanyForm, setShowCompanyForm] = useState(false);
@@ -85,7 +96,7 @@ const AdminDashboard = () => {
   };
 
   const loadAll = async () => {
-    const [usersRes, txRes, compRes, ordersRes, addrRes, prodRes, pmRes, crRes, walRes, secRes] = await Promise.all([
+    const [usersRes, txRes, compRes, ordersRes, addrRes, prodRes, pmRes, crRes, walRes, secRes, rolesRes] = await Promise.all([
       supabase.from("profiles").select("*").order("created_at", { ascending: false }),
       supabase.from("wallet_transactions").select("*").order("created_at", { ascending: false }),
       supabase.from("companies").select("*").order("created_at", { ascending: false }),
@@ -96,6 +107,7 @@ const AdminDashboard = () => {
       supabase.from("commission_rates").select("*").order("level", { ascending: true }),
       supabase.from("wallets").select("*"),
       supabase.from("sectors").select("*").order("name", { ascending: true }),
+      supabase.from("user_roles").select("*"),
     ]);
     if (usersRes.data) {
       setUsers(usersRes.data as Profile[]);
@@ -125,6 +137,26 @@ const AdminDashboard = () => {
       setWalletsMap(wMap);
     }
     if (secRes.data) setSectors(secRes.data as Sector[]);
+    if (rolesRes.data) {
+      const rMap: Record<string, string[]> = {};
+      rolesRes.data.forEach((r: any) => {
+        if (!rMap[r.user_id]) rMap[r.user_id] = [];
+        rMap[r.user_id].push(r.role);
+      });
+      setUserRolesMap(rMap);
+    }
+  };
+
+  const toggleUserRole = async (userId: string, role: string) => {
+    const currentRoles = userRolesMap[userId] || [];
+    if (currentRoles.includes(role)) {
+      await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", role as any);
+      toast.success(`Rôle "${role}" retiré`);
+    } else {
+      await supabase.from("user_roles").insert({ user_id: userId, role: role as any });
+      toast.success(`Rôle "${role}" attribué`);
+    }
+    loadAll();
   };
 
   // Transaction handling
@@ -383,10 +415,16 @@ const AdminDashboard = () => {
                         <Badge variant="outline" className="text-[10px]">{u.career_level}</Badge>
                         <Badge className={`text-[10px] ${u.account_status === "active" ? "bg-green-600" : u.account_status === "suspended" ? "bg-destructive" : "bg-yellow-600"}`}>{u.account_status}</Badge>
                         <Badge variant={u.is_system_active ? "default" : "outline"} className="text-[10px]">{u.is_system_active ? "Système actif" : "Inactif"}</Badge>
+                        {(userRolesMap[u.id] || []).filter(r => r !== "user").map(role => (
+                          <Badge key={role} className="text-[10px] bg-primary/80">{role}</Badge>
+                        ))}
                       </div>
                     </div>
                     <div className="flex gap-1 flex-wrap">
                       <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => viewUserDetail(u.id)}><Eye size={12} className="mr-1" /> Détails</Button>
+                      <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => { setRoleDialogUser(u); setShowRoleDialog(true); }}>
+                        <Shield size={12} className="mr-1" /> Rôles
+                      </Button>
                       <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => { setWalletActionUser(u); setWalletAction("credit"); setShowWalletAction(true); }}>
                         <DollarSign size={12} className="mr-1" /> Créditer
                       </Button>
@@ -914,6 +952,37 @@ const AdminDashboard = () => {
             <Button className={`w-full font-display text-xs ${walletAction === "credit" ? "bg-green-600 hover:bg-green-700" : "bg-destructive hover:bg-destructive/90"}`} onClick={handleWalletAction}>
               {walletAction === "credit" ? "Créditer" : "Débiter"}
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Role Management Dialog */}
+      <Dialog open={showRoleDialog} onOpenChange={setShowRoleDialog}>
+        <DialogContent className="max-w-sm glass-card border-border">
+          <DialogHeader>
+            <DialogTitle className="font-display text-sm flex items-center gap-2">
+              <Shield size={16} /> Gérer les rôles
+            </DialogTitle>
+            <DialogDescription>
+              {roleDialogUser?.first_name} {roleDialogUser?.last_name} — {roleDialogUser?.email}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            {STAFF_ROLES.map(role => {
+              const hasRole = (userRolesMap[roleDialogUser?.id || ""] || []).includes(role.value);
+              return (
+                <button key={role.value} onClick={() => roleDialogUser && toggleUserRole(roleDialogUser.id, role.value)}
+                  className={`w-full flex items-center justify-between p-3 rounded-xl border transition-colors text-sm ${hasRole ? "bg-primary/20 border-primary/50 text-foreground" : "bg-muted/30 border-border text-muted-foreground hover:bg-muted/50"}`}>
+                  <span className="font-display font-bold text-xs">{role.label}</span>
+                  <Badge className={`text-[10px] ${hasRole ? "bg-green-600" : "bg-muted text-muted-foreground"}`}>
+                    {hasRole ? "Actif" : "Inactif"}
+                  </Badge>
+                </button>
+              );
+            })}
+            <p className="text-[10px] text-muted-foreground mt-2">
+              💡 Cliquez sur un rôle pour l'attribuer ou le retirer. L'utilisateur verra automatiquement son tableau de bord correspondant.
+            </p>
           </div>
         </DialogContent>
       </Dialog>

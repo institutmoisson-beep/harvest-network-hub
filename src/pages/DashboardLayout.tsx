@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 import {
   LayoutDashboard, Users, Building2, Wallet, TrendingUp, UserCircle,
-  LogOut, Menu, X, ChevronRight, Shield
+  LogOut, Menu, X, ChevronRight, Shield, Package, DollarSign, MessageCircle, Handshake
 } from "lucide-react";
 
 const baseMenuItems = [
@@ -16,39 +16,41 @@ const baseMenuItems = [
   { icon: UserCircle, label: "Mon Profil", path: "/dashboard/profile" },
 ];
 
+const roleMenuItems: Record<string, { icon: any; label: string; path: string }> = {
+  admin: { icon: Shield, label: "Administration", path: "/admin" },
+  pack_manager: { icon: Package, label: "Gestion Packs", path: "/staff/packs" },
+  financier: { icon: DollarSign, label: "Gestion Finance", path: "/staff/finance" },
+  partner_manager: { icon: Handshake, label: "Gestion Partenaires", path: "/staff/partners" },
+  communication: { icon: MessageCircle, label: "Communication", path: "/staff/communication" },
+};
+
 const DashboardLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [menuItems, setMenuItems] = useState(baseMenuItems);
+  const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (!session) navigate("/login");
-      else {
-        setUser(session.user);
-        const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", session.user.id);
-        const admin = roles?.some(r => r.role === "admin");
-        setIsAdmin(!!admin);
-        if (admin) {
-          setMenuItems([...baseMenuItems, { icon: Shield, label: "Administration", path: "/admin" }]);
-        }
-      }
-    });
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session) navigate("/login");
-      else {
-        setUser(session.user);
-        const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", session.user.id);
-        const admin = roles?.some(r => r.role === "admin");
-        setIsAdmin(!!admin);
-        if (admin) {
-          setMenuItems([...baseMenuItems, { icon: Shield, label: "Administration", path: "/admin" }]);
-        }
-      }
-    });
+    const setupUser = async (session: any) => {
+      if (!session) { navigate("/login"); return; }
+      setUser(session.user);
+      // Fetch roles
+      const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", session.user.id);
+      const extras: typeof baseMenuItems = [];
+      roles?.forEach(r => {
+        const item = roleMenuItems[r.role];
+        if (item) extras.push(item);
+      });
+      setMenuItems([...baseMenuItems, ...extras]);
+      // Fetch profile
+      const { data: prof } = await supabase.from("profiles").select("first_name, last_name, career_level").eq("id", session.user.id).single();
+      if (prof) setProfile(prof);
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => setupUser(session));
+    supabase.auth.getSession().then(({ data: { session } }) => setupUser(session));
     return () => subscription.unsubscribe();
   }, [navigate]);
 
@@ -58,7 +60,8 @@ const DashboardLayout = () => {
   };
 
   if (!user) return null;
-  const meta = user.user_metadata || {};
+  const displayName = profile?.first_name || user.user_metadata?.first_name || "Moissonneur";
+  const careerLevel = profile?.career_level || "semeur";
 
   return (
     <div className="min-h-screen flex">
@@ -68,7 +71,7 @@ const DashboardLayout = () => {
           <span className="font-display text-sm font-bold text-gradient-gold">Institut Moisson</span>
           <button className="lg:hidden ml-auto text-foreground" onClick={() => setSidebarOpen(false)}><X size={20} /></button>
         </div>
-        <nav className="p-3 space-y-1">
+        <nav className="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-140px)]">
           {menuItems.map((item) => {
             const active = location.pathname === item.path;
             return (
@@ -94,11 +97,11 @@ const DashboardLayout = () => {
           <button className="lg:hidden text-foreground" onClick={() => setSidebarOpen(true)}><Menu size={22} /></button>
           <Link to="/dashboard/profile" className="ml-auto flex items-center gap-3 hover:opacity-80 transition-opacity">
             <div className="text-right">
-              <p className="text-sm font-semibold">{meta.first_name || "Moissonneur"}</p>
-              <p className="text-xs text-muted-foreground">🌱 Semeur</p>
+              <p className="text-sm font-semibold">{displayName}</p>
+              <p className="text-xs text-muted-foreground">🌱 {careerLevel}</p>
             </div>
             <div className="w-9 h-9 rounded-full bg-gradient-purple flex items-center justify-center text-primary-foreground font-display text-xs font-bold">
-              {(meta.first_name?.[0] || "M").toUpperCase()}
+              {displayName[0]?.toUpperCase() || "M"}
             </div>
           </Link>
         </header>
