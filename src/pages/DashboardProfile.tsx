@@ -22,6 +22,8 @@ const DashboardProfile = () => {
   const [copied, setCopied] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
 
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const load = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -37,6 +39,7 @@ const DashboardProfile = () => {
         setCountry(prof.country || "");
         setReferralCode(prof.referral_code);
       }
+      setLoading(false);
     };
     load();
   }, [navigate]);
