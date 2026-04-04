@@ -19,6 +19,10 @@ const CompanyProfile = lazy(() => import("./pages/CompanyProfile.tsx"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard.tsx"));
 const MoissoneursPros = lazy(() => import("./pages/MoissoneursPros.tsx"));
 const Packs = lazy(() => import("./pages/Packs.tsx"));
+const StaffPackManager = lazy(() => import("./pages/StaffPackManager.tsx"));
+const StaffFinancier = lazy(() => import("./pages/StaffFinancier.tsx"));
+const StaffPartnerManager = lazy(() => import("./pages/StaffPartnerManager.tsx"));
+const StaffCommunication = lazy(() => import("./pages/StaffCommunication.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
 const queryClient = new QueryClient();
@@ -46,6 +50,10 @@ const App = () => (
             <Route path="/directory" element={<Directory />} />
             <Route path="/company/:id" element={<CompanyProfile />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/staff/packs" element={<StaffPackManager />} />
+            <Route path="/staff/finance" element={<StaffFinancier />} />
+            <Route path="/staff/partners" element={<StaffPartnerManager />} />
+            <Route path="/staff/communication" element={<StaffCommunication />} />
             <Route path="/moissonneurs-pros" element={<MoissoneursPros />} />
             <Route path="/packs" element={<Packs />} />
             <Route path="/dashboard" element={<DashboardLayout />}>
