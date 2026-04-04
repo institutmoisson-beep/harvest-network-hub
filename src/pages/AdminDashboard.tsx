@@ -955,6 +955,37 @@ const AdminDashboard = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Role Management Dialog */}
+      <Dialog open={showRoleDialog} onOpenChange={setShowRoleDialog}>
+        <DialogContent className="max-w-sm glass-card border-border">
+          <DialogHeader>
+            <DialogTitle className="font-display text-sm flex items-center gap-2">
+              <Shield size={16} /> Gérer les rôles
+            </DialogTitle>
+            <DialogDescription>
+              {roleDialogUser?.first_name} {roleDialogUser?.last_name} — {roleDialogUser?.email}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            {STAFF_ROLES.map(role => {
+              const hasRole = (userRolesMap[roleDialogUser?.id || ""] || []).includes(role.value);
+              return (
+                <button key={role.value} onClick={() => roleDialogUser && toggleUserRole(roleDialogUser.id, role.value)}
+                  className={`w-full flex items-center justify-between p-3 rounded-xl border transition-colors text-sm ${hasRole ? "bg-primary/20 border-primary/50 text-foreground" : "bg-muted/30 border-border text-muted-foreground hover:bg-muted/50"}`}>
+                  <span className="font-display font-bold text-xs">{role.label}</span>
+                  <Badge className={`text-[10px] ${hasRole ? "bg-green-600" : "bg-muted text-muted-foreground"}`}>
+                    {hasRole ? "Actif" : "Inactif"}
+                  </Badge>
+                </button>
+              );
+            })}
+            <p className="text-[10px] text-muted-foreground mt-2">
+              💡 Cliquez sur un rôle pour l'attribuer ou le retirer. L'utilisateur verra automatiquement son tableau de bord correspondant.
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
