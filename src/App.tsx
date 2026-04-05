@@ -14,6 +14,7 @@ const DashboardProfile = lazy(() => import("./pages/DashboardProfile.tsx"));
 const DashboardWallet = lazy(() => import("./pages/DashboardWallet.tsx"));
 const DashboardNetwork = lazy(() => import("./pages/DashboardNetwork.tsx"));
 const DashboardCommissions = lazy(() => import("./pages/DashboardCommissions.tsx"));
+const DashboardPacks = lazy(() => import("./pages/DashboardPacks.tsx"));
 const Directory = lazy(() => import("./pages/Directory.tsx"));
 const CompanyProfile = lazy(() => import("./pages/CompanyProfile.tsx"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard.tsx"));
@@ -62,6 +63,7 @@ const App = () => (
               <Route path="wallet" element={<DashboardWallet />} />
               <Route path="network" element={<DashboardNetwork />} />
               <Route path="commissions" element={<DashboardCommissions />} />
+              <Route path="packs" element={<DashboardPacks />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -71,7 +71,7 @@ const DashboardHome = () => {
         <h3 className="font-display text-sm font-bold mb-4">Actions Rapides</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { to: "/packs", icon: Package, label: "Packs MLM", color: "text-secondary" },
+            { to: "/dashboard/packs", icon: Package, label: "Packs MLM", color: "text-secondary" },
             { to: "/directory", icon: Building2, label: "Stands", color: "text-primary" },
             { to: "/dashboard/wallet", icon: Wallet, label: "Portefeuille", color: "text-secondary" },
             { to: "/dashboard/network", icon: Users, label: "Mon Réseau", color: "text-primary" },

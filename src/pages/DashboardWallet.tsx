@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Wallet, ArrowUpRight, ArrowDownLeft, Clock, Copy, ExternalLink, Check, Send, Globe } from "lucide-react";
+import { Wallet, ArrowUpRight, ArrowDownLeft, Clock, Copy, ExternalLink, Check, Send, Globe, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,11 +15,16 @@ const DashboardWallet = () => {
   const [loading, setLoading] = useState(true);
   const [rechargeOpen, setRechargeOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [transferOpen, setTransferOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const { selectedCurrency, setSelectedCurrency, formatConverted, currencies } = useCurrencyRates();
+  const [profiles, setProfiles] = useState<Record<string, any>>({});
 
   const [rechargeForm, setRechargeForm] = useState({ amount: "", transactionRef: "", transactionDate: "", contact: "", operator: "" });
   const [withdrawForm, setWithdrawForm] = useState({ amount: "", service: "", contact: "", withdrawalAddress: "", notes: "" });
+  const [transferForm, setTransferForm] = useState({ amount: "", recipientCode: "", notes: "" });
+  const [recipientFound, setRecipientFound] = useState<any>(null);
+  const [searchingRecipient, setSearchingRecipient] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => { loadData(); }, []);
@@ -34,7 +39,19 @@ const DashboardWallet = () => {
       supabase.from("payment_methods").select("*").eq("is_active", true),
     ]);
     if (walletRes.data) setBalance(Number(walletRes.data.balance));
-    if (txRes.data) setTransactions(txRes.data);
+    if (txRes.data) {
+      setTransactions(txRes.data);
+      // Load profiles for transfer recipients
+      const recipientIds = [...new Set(txRes.data.map((t: any) => t.recipient_id).filter(Boolean))];
+      const senderIds = [...new Set(txRes.data.filter((t: any) => t.type === "transfert").map((t: any) => t.user_id))];
+      const allIds = [...new Set([...recipientIds, ...senderIds])];
+      if (allIds.length > 0) {
+        const { data: profs } = await supabase.from("profiles").select("id, first_name, last_name, referral_code").in("id", allIds);
+        const pMap: Record<string, any> = {};
+        profs?.forEach((p: any) => { pMap[p.id] = p; });
+        setProfiles(pMap);
+      }
+    }
     if (pmRes.data) setPaymentMethods(pmRes.data);
     setLoading(false);
   };
@@ -44,6 +61,64 @@ const DashboardWallet = () => {
     setCopiedId(id);
     toast.success("Copié !");
     setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const searchRecipient = async (code: string) => {
+    setTransferForm(p => ({ ...p, recipientCode: code }));
+    setRecipientFound(null);
+    if (code.length < 4) return;
+    setSearchingRecipient(true);
+    const { data } = await supabase.from("profiles").select("id, first_name, last_name, referral_code").eq("referral_code", code.toUpperCase()).maybeSingle();
+    setRecipientFound(data);
+    setSearchingRecipient(false);
+  };
+
+  const handleTransfer = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    if (!recipientFound) { toast.error("Destinataire introuvable"); return; }
+    if (recipientFound.id === user.id) { toast.error("Vous ne pouvez pas vous envoyer de l'argent"); return; }
+    const amount = parseFloat(transferForm.amount);
+    if (!amount || amount <= 0) { toast.error("Montant invalide"); return; }
+    if (amount > balance) { toast.error("Solde insuffisant"); return; }
+
+    setSubmitting(true);
+    try {
+      // Debit sender wallet
+      const { data: senderWallet } = await supabase.from("wallets").select("*").eq("user_id", user.id).single();
+      if (!senderWallet) throw new Error("Portefeuille introuvable");
+      await supabase.from("wallets").update({ balance: Number(senderWallet.balance) - amount, updated_at: new Date().toISOString() }).eq("id", senderWallet.id);
+
+      // Credit recipient wallet
+      const { data: recipientWallet } = await supabase.from("wallets").select("*").eq("user_id", recipientFound.id).single();
+      if (recipientWallet) {
+        await supabase.from("wallets").update({ balance: Number(recipientWallet.balance) + amount, updated_at: new Date().toISOString() }).eq("id", recipientWallet.id);
+      }
+
+      // Record sender transaction (debit)
+      await supabase.from("wallet_transactions").insert({
+        user_id: user.id, type: "transfert" as any, amount,
+        status: "approved" as const, recipient_id: recipientFound.id,
+        notes: transferForm.notes || `Transfert à ${recipientFound.first_name} ${recipientFound.last_name} (${recipientFound.referral_code})`,
+      });
+
+      // Record recipient transaction (credit) 
+      await supabase.from("wallet_transactions").insert({
+        user_id: recipientFound.id, type: "transfert" as any, amount,
+        status: "approved" as const, recipient_id: user.id,
+        notes: `Transfert reçu`,
+      });
+
+      toast.success(`${amount.toLocaleString()} FCFA envoyés à ${recipientFound.first_name}`);
+      setTransferOpen(false);
+      setTransferForm({ amount: "", recipientCode: "", notes: "" });
+      setRecipientFound(null);
+      loadData();
+    } catch (err: any) {
+      toast.error(err.message || "Erreur");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleRecharge = async () => {
@@ -81,7 +156,7 @@ const DashboardWallet = () => {
 
   const statusColor = (s: string) => s === "approved" ? "text-green-400" : s === "rejected" ? "text-red-400" : "text-yellow-400";
   const statusLabel = (s: string) => s === "approved" ? "Approuvé" : s === "rejected" ? "Rejeté" : "En attente";
-  const typeLabel = (t: string) => t === "recharge" ? "Recharge" : t === "retrait" ? "Retrait" : t === "achat" ? "Achat" : t === "commission" ? "Commission" : t;
+  const typeLabel = (t: string) => t === "recharge" ? "Recharge" : t === "retrait" ? "Retrait" : t === "achat" ? "Achat" : t === "commission" ? "Commission" : t === "transfert" ? "Transfert" : t;
 
   return (
     <div className="p-6">
@@ -96,7 +171,6 @@ const DashboardWallet = () => {
         <p className="font-display text-4xl font-black text-gradient-gold">
           {loading ? "..." : `${balance.toLocaleString()} FCFA`}
         </p>
-        {/* Currency conversion */}
         {selectedCurrency !== "XOF" && !loading && (
           <p className="text-lg font-display font-bold text-primary mt-1">
             ≈ {formatConverted(balance, selectedCurrency)}
@@ -111,9 +185,12 @@ const DashboardWallet = () => {
             ))}
           </select>
         </div>
-        <div className="flex items-center justify-center gap-4 mt-4">
+        <div className="flex items-center justify-center gap-3 mt-4 flex-wrap">
           <Button onClick={() => setRechargeOpen(true)} className="bg-gradient-purple font-display text-xs hover:opacity-90 glow-purple">
             <ArrowDownLeft size={16} className="mr-1" /> Recharger
+          </Button>
+          <Button onClick={() => setTransferOpen(true)} className="bg-gradient-gold text-secondary-foreground font-display text-xs hover:opacity-90 glow-gold">
+            <UserCheck size={16} className="mr-1" /> Transférer
           </Button>
           <Button onClick={() => setWithdrawOpen(true)} variant="outline" className="font-display text-xs border-secondary/50 text-foreground hover:bg-secondary/10">
             <ArrowUpRight size={16} className="mr-1" /> Retirer
@@ -133,26 +210,78 @@ const DashboardWallet = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {transactions.map(tx => (
-              <div key={tx.id} className="flex items-center justify-between p-3 rounded-xl bg-muted/30">
-                <div>
-                  <p className="text-sm font-display font-bold">{typeLabel(tx.type)}</p>
-                  <p className="text-xs text-muted-foreground">{new Date(tx.created_at).toLocaleDateString("fr-FR")}{tx.operator && ` • ${tx.operator}`}</p>
+            {transactions.map(tx => {
+              const isIncomingTransfer = tx.type === "transfert" && tx.notes?.startsWith("Transfert reçu");
+              const recipientProfile = tx.recipient_id ? profiles[tx.recipient_id] : null;
+              return (
+                <div key={tx.id} className="flex items-center justify-between p-3 rounded-xl bg-muted/30">
+                  <div>
+                    <p className="text-sm font-display font-bold">{typeLabel(tx.type)}</p>
+                    {tx.type === "transfert" && (
+                      <p className="text-xs text-muted-foreground">
+                        {isIncomingTransfer
+                          ? `De: ${recipientProfile ? `${recipientProfile.first_name} ${recipientProfile.last_name}` : "Utilisateur"}`
+                          : `À: ${recipientProfile ? `${recipientProfile.first_name} ${recipientProfile.last_name}` : "Utilisateur"}`}
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground">{new Date(tx.created_at).toLocaleDateString("fr-FR")}{tx.operator && ` • ${tx.operator}`}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-sm font-bold ${tx.type === "recharge" || tx.type === "commission" || isIncomingTransfer ? "text-green-400" : "text-red-400"}`}>
+                      {tx.type === "recharge" || tx.type === "commission" || isIncomingTransfer ? "+" : "-"}{Number(tx.amount).toLocaleString()} FCFA
+                    </p>
+                    {selectedCurrency !== "XOF" && (
+                      <p className="text-[10px] text-muted-foreground">≈ {formatConverted(Number(tx.amount), selectedCurrency)}</p>
+                    )}
+                    <p className={`text-xs font-semibold ${statusColor(tx.status)}`}>{statusLabel(tx.status)}</p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className={`text-sm font-bold ${tx.type === "recharge" || tx.type === "commission" ? "text-green-400" : "text-red-400"}`}>
-                    {tx.type === "recharge" || tx.type === "commission" ? "+" : "-"}{Number(tx.amount).toLocaleString()} FCFA
-                  </p>
-                  {selectedCurrency !== "XOF" && (
-                    <p className="text-[10px] text-muted-foreground">≈ {formatConverted(Number(tx.amount), selectedCurrency)}</p>
-                  )}
-                  <p className={`text-xs font-semibold ${statusColor(tx.status)}`}>{statusLabel(tx.status)}</p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
+
+      {/* Transfer Dialog */}
+      <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
+        <DialogContent className="max-w-md glass-card border-border">
+          <DialogHeader>
+            <DialogTitle className="font-display text-gradient-gold flex items-center gap-2"><UserCheck size={20} /> Transférer</DialogTitle>
+            <DialogDescription>Envoyez de l'argent à un autre Moissonneur via son code.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label className="text-xs">Code Moissonneur du destinataire *</Label>
+              <Input value={transferForm.recipientCode} onChange={e => searchRecipient(e.target.value)}
+                placeholder="MSN123456" className="mt-1 bg-input border-border text-sm font-mono uppercase" />
+              {searchingRecipient && <p className="text-xs text-muted-foreground mt-1">Recherche...</p>}
+              {recipientFound && (
+                <div className="mt-2 p-2 rounded-lg bg-green-600/10 border border-green-600/30">
+                  <p className="text-xs font-bold text-green-400">✅ {recipientFound.first_name} {recipientFound.last_name}</p>
+                  <p className="text-[10px] text-muted-foreground">{recipientFound.referral_code}</p>
+                </div>
+              )}
+              {transferForm.recipientCode.length >= 4 && !searchingRecipient && !recipientFound && (
+                <p className="text-xs text-destructive mt-1">Aucun utilisateur trouvé avec ce code</p>
+              )}
+            </div>
+            <div>
+              <Label className="text-xs">Montant (FCFA) *</Label>
+              <Input type="number" value={transferForm.amount} onChange={e => setTransferForm(p => ({ ...p, amount: e.target.value }))}
+                placeholder="5000" className="mt-1 bg-input border-border text-sm" />
+              <p className="text-xs text-muted-foreground mt-1">Solde: {balance.toLocaleString()} FCFA</p>
+            </div>
+            <div>
+              <Label className="text-xs">Notes (optionnel)</Label>
+              <Input value={transferForm.notes} onChange={e => setTransferForm(p => ({ ...p, notes: e.target.value }))}
+                placeholder="Motif du transfert" className="mt-1 bg-input border-border text-sm" />
+            </div>
+            <Button onClick={handleTransfer} disabled={submitting || !recipientFound} className="w-full bg-gradient-gold text-secondary-foreground font-display font-bold hover:opacity-90 glow-gold">
+              {submitting ? "Envoi..." : <><Send size={16} className="mr-2" /> Envoyer</>}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Recharge Dialog */}
       <Dialog open={rechargeOpen} onOpenChange={setRechargeOpen}>
