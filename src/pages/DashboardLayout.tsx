@@ -9,6 +9,7 @@ import {
 
 const baseMenuItems = [
   { icon: LayoutDashboard, label: "Tableau de Bord", path: "/dashboard" },
+  { icon: Package, label: "Packs MLM", path: "/dashboard/packs" },
   { icon: Users, label: "Mon Réseau", path: "/dashboard/network" },
   { icon: Building2, label: "Annuaire Stands", path: "/directory" },
   { icon: Wallet, label: "Portefeuille", path: "/dashboard/wallet" },
