@@ -525,6 +525,7 @@ export type Database = {
           id: string
           notes: string | null
           operator: string | null
+          recipient_id: string | null
           reviewed_at: string | null
           reviewed_by: string | null
           service: string | null
@@ -542,6 +543,7 @@ export type Database = {
           id?: string
           notes?: string | null
           operator?: string | null
+          recipient_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           service?: string | null
@@ -559,6 +561,7 @@ export type Database = {
           id?: string
           notes?: string | null
           operator?: string | null
+          recipient_id?: string | null
           reviewed_at?: string | null
           reviewed_by?: string | null
           service?: string | null
@@ -646,7 +649,12 @@ export type Database = {
         | "delivered"
         | "cancelled"
       transaction_status: "pending" | "approved" | "rejected"
-      transaction_type: "recharge" | "retrait" | "achat" | "commission"
+      transaction_type:
+        | "recharge"
+        | "retrait"
+        | "achat"
+        | "commission"
+        | "transfert"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -804,7 +812,13 @@ export const Constants = {
         "cancelled",
       ],
       transaction_status: ["pending", "approved", "rejected"],
-      transaction_type: ["recharge", "retrait", "achat", "commission"],
+      transaction_type: [
+        "recharge",
+        "retrait",
+        "achat",
+        "commission",
+        "transfert",
+      ],
     },
   },
 } as const
