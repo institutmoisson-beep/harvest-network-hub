@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Package, Plus, Edit2, Save, X, Trash2 } from "lucide-react";
+import { ArrowLeft, Package, Plus, Edit2, Save, X, Trash2, Upload, ImagePlus } from "lucide-react";
 import logo from "@/assets/logo.png";
 
 type Product = { id: string; name: string; price: number; company_id: string; description: string | null; image_url: string | null; is_active: boolean; is_physical: boolean; activates_system: boolean; currency: string; sector: string | null; images: string[] | null };
@@ -22,10 +22,10 @@ const StaffPackManager = () => {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState({ name: "", price: "", company_id: "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA", sector: "", images: [] as string[] });
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    checkAccess();
-  }, []);
+  useEffect(() => { checkAccess(); }, []);
 
   const checkAccess = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -58,9 +58,36 @@ const StaffPackManager = () => {
     setShowForm(true);
   };
 
+  const uploadImages = async (files: FileList) => {
+    setUploading(true);
+    const newUrls: string[] = [];
+    for (const file of Array.from(files)) {
+      const ext = file.name.split(".").pop();
+      const path = `packs/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from("pack-images").upload(path, file, { cacheControl: "31536000", upsert: false });
+      if (error) { toast.error(`Erreur upload: ${file.name}`); continue; }
+      const { data: urlData } = supabase.storage.from("pack-images").getPublicUrl(path);
+      newUrls.push(urlData.publicUrl);
+    }
+    setForm(p => {
+      const updated = [...p.images, ...newUrls];
+      return { ...p, images: updated, image_url: p.image_url || updated[0] || "" };
+    });
+    setUploading(false);
+    if (newUrls.length > 0) toast.success(`${newUrls.length} image(s) ajoutée(s)`);
+  };
+
+  const removeImage = (index: number) => {
+    setForm(p => {
+      const updated = p.images.filter((_, i) => i !== index);
+      const removedUrl = p.images[index];
+      return { ...p, images: updated, image_url: p.image_url === removedUrl ? (updated[0] || "") : p.image_url };
+    });
+  };
+
   const save = async () => {
     if (!form.name.trim() || !form.price || !form.company_id) { toast.error("Nom, prix et entreprise requis"); return; }
-    const payload = { name: form.name, price: parseFloat(form.price), company_id: form.company_id, description: form.description, image_url: form.image_url || null, is_physical: form.is_physical, activates_system: form.activates_system, currency: form.currency, sector: form.sector, images: form.images, updated_at: new Date().toISOString() };
+    const payload = { name: form.name, price: parseFloat(form.price), company_id: form.company_id, description: form.description, image_url: form.image_url || (form.images[0] || null), is_physical: form.is_physical, activates_system: form.activates_system, currency: form.currency, sector: form.sector, images: form.images, updated_at: new Date().toISOString() };
     if (editing) {
       const { error } = await supabase.from("products").update(payload).eq("id", editing.id);
       if (error) toast.error(error.message);
@@ -117,7 +144,6 @@ const StaffPackManager = () => {
                 </select>
               </div>
               <div><Label className="text-xs">Devise</Label><Input value={form.currency} onChange={e => setForm(p => ({ ...p, currency: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
-              <div><Label className="text-xs">Image URL</Label><Input value={form.image_url} onChange={e => setForm(p => ({ ...p, image_url: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
               <div className="flex items-center gap-4 mt-4">
                 <label className="flex items-center gap-2 text-xs cursor-pointer">
                   <input type="checkbox" checked={form.is_physical} onChange={e => setForm(p => ({ ...p, is_physical: e.target.checked }))} /> Physique
@@ -128,6 +154,34 @@ const StaffPackManager = () => {
               </div>
             </div>
             <div className="mt-3"><Label className="text-xs">Description</Label><Textarea value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} className="mt-1 bg-input border-border text-sm" rows={3} /></div>
+
+            {/* Multi-image upload */}
+            <div className="mt-4">
+              <Label className="text-xs font-bold">Images du pack (produits)</Label>
+              <p className="text-[10px] text-muted-foreground mb-2">Ajoutez une image par produit du pack. Sélectionnez plusieurs fichiers à la fois.</p>
+              <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={e => e.target.files && uploadImages(e.target.files)} />
+              <Button size="sm" variant="outline" className="text-xs mb-3" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+                {uploading ? <><div className="animate-spin w-3 h-3 border border-primary border-t-transparent rounded-full mr-2" /> Upload...</> : <><ImagePlus size={14} className="mr-1" /> Ajouter des images</>}
+              </Button>
+              {form.images.length > 0 && (
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                  {form.images.map((url, i) => (
+                    <div key={i} className="relative group">
+                      <img src={url} alt={`Produit ${i + 1}`} className="w-full h-16 object-cover rounded-lg border border-border" />
+                      <button onClick={() => removeImage(i)} className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 transition-opacity">
+                        <X size={10} />
+                      </button>
+                      {form.image_url === url && <span className="absolute bottom-0 left-0 right-0 bg-primary/80 text-[8px] text-center text-primary-foreground rounded-b-lg">Principal</span>}
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="mt-2">
+                <Label className="text-xs">Ou URL image principale</Label>
+                <Input value={form.image_url} onChange={e => setForm(p => ({ ...p, image_url: e.target.value }))} placeholder="https://..." className="mt-1 bg-input border-border text-sm" />
+              </div>
+            </div>
+
             <div className="flex gap-2 mt-3">
               <Button size="sm" className="bg-gradient-gold text-secondary-foreground font-display text-xs" onClick={save}><Save size={14} className="mr-1" /> Enregistrer</Button>
               <Button size="sm" variant="outline" className="text-xs" onClick={() => setShowForm(false)}><X size={14} className="mr-1" /> Annuler</Button>
@@ -137,17 +191,19 @@ const StaffPackManager = () => {
 
         {products.map(p => {
           const comp = companies.find(c => c.id === p.company_id);
+          const imgCount = (Array.isArray(p.images) ? p.images.length : 0) + (p.image_url ? 1 : 0);
           return (
             <div key={p.id} className="glass-card rounded-xl p-4">
               <div className="flex items-start justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-3">
-                  {p.image_url ? <img src={p.image_url} alt={p.name} className="w-12 h-12 rounded-lg object-cover" /> : <Package size={24} className="text-primary" />}
+                  {p.image_url ? <img src={p.image_url} alt={p.name} className="w-12 h-12 rounded-lg object-cover" loading="lazy" /> : <Package size={24} className="text-primary" />}
                   <div>
                     <p className="font-display text-sm font-bold">{p.name}</p>
                     <p className="text-xs text-muted-foreground">{comp?.name || "?"} • {Number(p.price).toLocaleString()} {p.currency}</p>
                     <div className="flex gap-1 mt-1">
                       {p.is_physical && <Badge variant="outline" className="text-[10px]">Physique</Badge>}
                       {p.activates_system && <Badge variant="outline" className="text-[10px]">MLM</Badge>}
+                      {imgCount > 0 && <Badge variant="outline" className="text-[10px]">{imgCount} 📷</Badge>}
                     </div>
                   </div>
                 </div>
