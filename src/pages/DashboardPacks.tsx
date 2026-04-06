@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Package, ShoppingBag, Check } from "lucide-react";
+import { Package, ShoppingBag, Check, ChevronLeft, ChevronRight, ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,6 +20,46 @@ interface Pack {
   company_id: string;
 }
 
+const PackImageCarousel = ({ images, name }: { images: string[]; name: string }) => {
+  const [current, setCurrent] = useState(0);
+  if (images.length === 0) return (
+    <div className="h-44 bg-gradient-purple flex items-center justify-center">
+      <Package size={40} className="text-primary-foreground/50" />
+    </div>
+  );
+  return (
+    <div className="relative h-44 overflow-hidden group">
+      <img
+        src={images[current]}
+        alt={`${name} - ${current + 1}`}
+        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+        loading="lazy"
+        onError={(e) => { (e.target as HTMLImageElement).src = ""; (e.target as HTMLImageElement).style.display = "none"; }}
+      />
+      {images.length > 1 && (
+        <>
+          <button onClick={(e) => { e.stopPropagation(); setCurrent(p => p === 0 ? images.length - 1 : p - 1); }}
+            className="absolute left-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-background/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <ChevronLeft size={14} />
+          </button>
+          <button onClick={(e) => { e.stopPropagation(); setCurrent(p => p === images.length - 1 ? 0 : p + 1); }}
+            className="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-background/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <ChevronRight size={14} />
+          </button>
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+            {images.map((_, i) => (
+              <span key={i} className={`w-1.5 h-1.5 rounded-full transition-colors ${i === current ? "bg-primary" : "bg-white/50"}`} />
+            ))}
+          </div>
+          <div className="absolute top-2 right-2 bg-background/60 rounded-full px-2 py-0.5 text-[10px] flex items-center gap-1">
+            <ImageIcon size={10} /> {current + 1}/{images.length}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
 const DashboardPacks = () => {
   const [packs, setPacks] = useState<Pack[]>([]);
   const [companies, setCompanies] = useState<Record<string, string>>({});
@@ -32,7 +72,7 @@ const DashboardPacks = () => {
   useEffect(() => {
     const load = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      if (!session) { setLoading(false); return; }
 
       const [prodRes, compRes, profileRes, ordersRes] = await Promise.all([
         supabase.from("products").select("*").eq("is_active", true).order("price", { ascending: true }),
@@ -92,17 +132,11 @@ const DashboardPacks = () => {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {packs.map(pack => {
-            const mainImage = pack.image_url || (pack.images.length > 0 ? pack.images[0] : null);
+            const allImages = [pack.image_url, ...pack.images].filter(Boolean) as string[];
             const alreadyBought = userOrders.includes(pack.id);
             return (
               <div key={pack.id} className="glass-card rounded-2xl overflow-hidden hover:glow-purple transition-all duration-500 group">
-                <div className="h-36 bg-gradient-purple flex items-center justify-center overflow-hidden">
-                  {mainImage ? (
-                    <img src={mainImage} alt={pack.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                  ) : (
-                    <Package size={40} className="text-primary-foreground/50" />
-                  )}
-                </div>
+                <PackImageCarousel images={allImages} name={pack.name} />
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <h3 className="font-display text-sm font-bold">{pack.name}</h3>
@@ -139,7 +173,7 @@ const DashboardPacks = () => {
       <PurchaseDialog
         product={selectedPack}
         open={showPurchase}
-        onOpenChange={(open) => { setShowPurchase(open); if (!open) { /* reload after purchase */ window.location.reload(); } }}
+        onOpenChange={(open) => { setShowPurchase(open); if (!open) { window.location.reload(); } }}
         companyName={selectedPack ? (companies[selectedPack.company_id] || "") : ""}
       />
     </div>

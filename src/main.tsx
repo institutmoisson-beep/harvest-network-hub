@@ -11,7 +11,8 @@ if ("serviceWorker" in navigator) {
   })();
   const isPreview =
     window.location.hostname.includes("id-preview--") ||
-    window.location.hostname.includes("lovableproject.com");
+    window.location.hostname.includes("lovableproject.com") ||
+    window.location.hostname.includes("lovable.app");
 
   if (!isInIframe && !isPreview) {
     window.addEventListener("load", () => {
@@ -24,3 +25,15 @@ if ("serviceWorker" in navigator) {
     );
   }
 }
+
+// PWA install prompt - store the event globally
+let deferredPrompt: any = null;
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Dispatch custom event for components to listen to
+  window.dispatchEvent(new CustomEvent("pwaInstallReady", { detail: e }));
+});
+
+// Expose for components
+(window as any).__pwaInstallPrompt = () => deferredPrompt;
