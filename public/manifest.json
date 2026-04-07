@@ -2,11 +2,16 @@
   "name": "Institut Moisson",
   "short_name": "Moisson",
   "description": "La communauté des moissonneurs - Unis pour prospérer & protéger",
+  "id": "/",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#1a1a2e",
-  "theme_color": "#9b87f5",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "background_color": "#f8f4ea",
+  "theme_color": "#5a3416",
   "orientation": "portrait-primary",
+  "lang": "fr",
+  "categories": ["business", "finance", "lifestyle"],
   "icons": [
     {
       "src": "/icon-192x192.png",

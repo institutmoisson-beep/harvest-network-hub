@@ -27,6 +27,9 @@ const Navbar = () => {
           <Link to="/packs" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">
             Packs
           </Link>
+          <Link to="/telecharger-app" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">
+            Télécharger l'app
+          </Link>
           <Link to="/moissonneurs-pros" className="text-sm font-medium text-foreground/70 hover:text-primary transition-colors">
             Moissonneurs Pros
           </Link>
@@ -50,6 +53,7 @@ const Navbar = () => {
           <Link to="/" className="text-sm py-2" onClick={() => setOpen(false)}>Accueil</Link>
           <Link to="/directory" className="text-sm py-2" onClick={() => setOpen(false)}>Annuaire Entreprises</Link>
           <Link to="/packs" className="text-sm py-2" onClick={() => setOpen(false)}>Packs</Link>
+          <Link to="/telecharger-app" className="text-sm py-2" onClick={() => setOpen(false)}>Télécharger l'app</Link>
           <Link to="/moissonneurs-pros" className="text-sm py-2" onClick={() => setOpen(false)}>Moissonneurs Pros</Link>
           <Link to="/login" className="text-sm py-2" onClick={() => setOpen(false)}>Connexion</Link>
           <Link to="/register" onClick={() => setOpen(false)}>

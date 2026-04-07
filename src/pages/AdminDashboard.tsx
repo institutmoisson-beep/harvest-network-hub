@@ -12,12 +12,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import {
   Users, Wallet, Building2, ShoppingCart, Plus, Edit2, Save, X,
   CheckCircle, XCircle, ArrowLeft, Trash2, CreditCard, Package, Percent,
-  Eye, DollarSign, Star, Tags, Shield
+  Eye, DollarSign, Star, Tags, Shield, Search, ChevronDown, ChevronUp
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 
 type Profile = { id: string; first_name: string; last_name: string; email: string; phone: string; country: string; referral_code: string; career_level: string; account_status: string; is_system_active: boolean; created_at: string };
-type Transaction = { id: string; user_id: string; type: string; amount: number; status: string; created_at: string; operator: string | null; transaction_ref: string | null; service: string | null; contact: string | null; withdrawal_address: string | null; notes: string | null; transaction_date: string | null };
+type Transaction = { id: string; user_id: string; type: string; amount: number; status: string; created_at: string; operator: string | null; transaction_ref: string | null; service: string | null; contact: string | null; withdrawal_address: string | null; notes: string | null; transaction_date: string | null; recipient_id?: string | null };
 type Company = { id: string; name: string; sector: string; country: string; description: string | null; logo_url: string | null; banner_url: string | null; website_url: string | null; is_active: boolean; contact_whatsapp?: string; contact_facebook?: string; contact_email?: string; image_url_2?: string };
 type Order = { id: string; user_id: string; product_id: string; company_id: string; quantity: number; total_price: number; status: string; created_at: string; shipping_address_id: string | null };
 type Product = { id: string; name: string; price: number; company_id: string; description: string | null; image_url: string | null; is_active: boolean; is_physical: boolean; activates_system: boolean; currency: string };
@@ -51,6 +51,10 @@ const AdminDashboard = () => {
   const [userRolesMap, setUserRolesMap] = useState<Record<string, string[]>>({});
   const [showRoleDialog, setShowRoleDialog] = useState(false);
   const [roleDialogUser, setRoleDialogUser] = useState<Profile | null>(null);
+  const [userSearch, setUserSearch] = useState("");
+  const [txSearch, setTxSearch] = useState("");
+  const [usersCollapsed, setUsersCollapsed] = useState(false);
+  const [transactionsCollapsed, setTransactionsCollapsed] = useState(false);
 
   const STAFF_ROLES = [
     { value: "pack_manager", label: "📦 Gestion Packs" },
@@ -374,6 +378,36 @@ const AdminDashboard = () => {
   if (!isAdmin) return null;
 
   const pendingTx = transactions.filter(t => t.status === "pending");
+  const normalize = (value: unknown) => String(value ?? "").toLowerCase();
+  const filteredUsers = users.filter((u) => {
+    if (!userSearch.trim()) return true;
+    const query = userSearch.toLowerCase();
+    const roles = (userRolesMap[u.id] || []).join(" ");
+    return normalize(`${u.first_name} ${u.last_name} ${u.email} ${u.phone} ${u.country} ${u.referral_code} ${roles}`).includes(query);
+  });
+  const filteredTransactions = transactions.filter((tx) => {
+    if (!txSearch.trim()) return true;
+    const query = txSearch.toLowerCase();
+    const owner = profiles[tx.user_id];
+    const counterparty = tx.recipient_id ? profiles[tx.recipient_id] : null;
+    return normalize([
+      tx.type,
+      tx.status,
+      tx.notes,
+      tx.contact,
+      tx.operator,
+      tx.transaction_ref,
+      tx.service,
+      owner?.first_name,
+      owner?.last_name,
+      owner?.email,
+      owner?.referral_code,
+      counterparty?.first_name,
+      counterparty?.last_name,
+      counterparty?.email,
+      counterparty?.referral_code,
+    ].join(" ")).includes(query);
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -402,8 +436,24 @@ const AdminDashboard = () => {
           {/* ---- USERS ---- */}
           <TabsContent value="users">
             <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">{users.length} utilisateurs</p>
-              {users.map(u => (
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <p className="text-sm text-muted-foreground">{filteredUsers.length} / {users.length} utilisateurs</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="relative min-w-[240px]">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <Input value={userSearch} onChange={e => setUserSearch(e.target.value)} placeholder="Rechercher un utilisateur..." className="w-full pl-9 bg-input border-border text-sm" />
+                  </div>
+                  <Button size="sm" variant="outline" className="text-xs" onClick={() => setUsersCollapsed(v => !v)}>
+                    {usersCollapsed ? <><ChevronDown size={12} className="mr-1" /> Déplier</> : <><ChevronUp size={12} className="mr-1" /> Réduire</>}
+                  </Button>
+                </div>
+              </div>
+
+              {usersCollapsed ? (
+                <div className="glass-card rounded-xl p-4 text-sm text-muted-foreground">
+                  Liste des utilisateurs réduite.
+                </div>
+              ) : filteredUsers.map(u => (
                 <div key={u.id} className="glass-card rounded-xl p-4">
                   <div className="flex items-start justify-between gap-2 flex-wrap">
                     <div>
@@ -469,9 +519,26 @@ const AdminDashboard = () => {
           {/* ---- TRANSACTIONS ---- */}
           <TabsContent value="transactions">
             <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">{transactions.length} transactions • {pendingTx.length} en attente</p>
-              {transactions.map(tx => {
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <p className="text-sm text-muted-foreground">{filteredTransactions.length} / {transactions.length} transactions • {pendingTx.length} en attente</p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="relative min-w-[240px]">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <Input value={txSearch} onChange={e => setTxSearch(e.target.value)} placeholder="Rechercher une transaction..." className="w-full pl-9 bg-input border-border text-sm" />
+                  </div>
+                  <Button size="sm" variant="outline" className="text-xs" onClick={() => setTransactionsCollapsed(v => !v)}>
+                    {transactionsCollapsed ? <><ChevronDown size={12} className="mr-1" /> Déplier</> : <><ChevronUp size={12} className="mr-1" /> Réduire</>}
+                  </Button>
+                </div>
+              </div>
+
+              {transactionsCollapsed ? (
+                <div className="glass-card rounded-xl p-4 text-sm text-muted-foreground">
+                  Liste des transactions réduite.
+                </div>
+              ) : filteredTransactions.map(tx => {
                 const user = profiles[tx.user_id];
+                const counterparty = tx.recipient_id ? profiles[tx.recipient_id] : null;
                 return (
                   <div key={tx.id} className="glass-card rounded-xl p-4">
                     <div className="flex items-start justify-between gap-2 flex-wrap">
@@ -487,6 +554,7 @@ const AdminDashboard = () => {
                         {tx.service && <p className="text-xs text-muted-foreground">Service: {tx.service}</p>}
                         {tx.contact && <p className="text-xs text-muted-foreground">Contact: {tx.contact}</p>}
                         {tx.withdrawal_address && <p className="text-xs text-muted-foreground">Adresse: {tx.withdrawal_address}</p>}
+                        {tx.type === "transfert" && counterparty && <p className="text-xs text-muted-foreground">Contrepartie: {counterparty.first_name} {counterparty.last_name} • {counterparty.referral_code}</p>}
                         {tx.notes && <p className="text-xs text-muted-foreground">Notes: {tx.notes}</p>}
                         {tx.transaction_date && <p className="text-xs text-muted-foreground">Date tx: {new Date(tx.transaction_date).toLocaleDateString("fr-FR")}</p>}
                         <p className="text-[10px] text-muted-foreground mt-1">{new Date(tx.created_at).toLocaleString("fr-FR")}</p>
@@ -510,7 +578,7 @@ const AdminDashboard = () => {
                   </div>
                 );
               })}
-              {transactions.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">Aucune transaction</p>}
+              {!transactionsCollapsed && filteredTransactions.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">Aucune transaction</p>}
             </div>
           </TabsContent>
 

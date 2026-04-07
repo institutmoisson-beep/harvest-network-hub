@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import PwaInstallBanner from "@/components/PwaInstallBanner";
 
 const Index = lazy(() => import("./pages/Index.tsx"));
 const Login = lazy(() => import("./pages/Login.tsx"));
@@ -24,6 +25,7 @@ const StaffPackManager = lazy(() => import("./pages/StaffPackManager.tsx"));
 const StaffFinancier = lazy(() => import("./pages/StaffFinancier.tsx"));
 const StaffPartnerManager = lazy(() => import("./pages/StaffPartnerManager.tsx"));
 const StaffCommunication = lazy(() => import("./pages/StaffCommunication.tsx"));
+const InstallApp = lazy(() => import("./pages/InstallApp.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
 const queryClient = new QueryClient();
@@ -43,11 +45,13 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <PwaInstallBanner />
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/telecharger-app" element={<InstallApp />} />
             <Route path="/directory" element={<Directory />} />
             <Route path="/company/:id" element={<CompanyProfile />} />
             <Route path="/admin" element={<AdminDashboard />} />
