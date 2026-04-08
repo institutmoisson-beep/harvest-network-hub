@@ -4,12 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 import {
   LayoutDashboard, Users, Building2, Wallet, TrendingUp, UserCircle,
-  LogOut, Menu, X, ChevronRight, Shield, Package, DollarSign, MessageCircle, Handshake, Download
+  LogOut, Menu, X, ChevronRight, Shield, Package, DollarSign, MessageCircle, Handshake, Download, ShoppingBag
 } from "lucide-react";
 
 const baseMenuItems = [
   { icon: LayoutDashboard, label: "Tableau de Bord", path: "/dashboard" },
   { icon: Package, label: "Packs MLM", path: "/dashboard/packs" },
+  { icon: ShoppingBag, label: "Mes Commandes", path: "/dashboard/orders" },
   { icon: Users, label: "Mon Réseau", path: "/dashboard/network" },
   { icon: Building2, label: "Annuaire Stands", path: "/directory" },
   { icon: Wallet, label: "Portefeuille", path: "/dashboard/wallet" },

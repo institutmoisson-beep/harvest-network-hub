@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Package, Plus, Edit2, Save, X, Trash2, Upload, ImagePlus } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { compressImages } from "@/utils/imageCompression";
 
 type Product = { id: string; name: string; price: number; company_id: string; description: string | null; image_url: string | null; is_active: boolean; is_physical: boolean; activates_system: boolean; currency: string; sector: string | null; images: string[] | null };
 type Company = { id: string; name: string };
@@ -61,8 +62,9 @@ const StaffPackManager = () => {
   const uploadImages = async (files: FileList) => {
     setUploading(true);
     const newUrls: string[] = [];
-    for (const file of Array.from(files)) {
-      const ext = file.name.split(".").pop();
+    const compressed = await compressImages(files);
+    for (const file of compressed) {
+      const ext = "webp";
       const path = `packs/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
       const { error } = await supabase.storage.from("pack-images").upload(path, file, { cacheControl: "31536000", upsert: false });
       if (error) { toast.error(`Erreur upload: ${file.name}`); continue; }
