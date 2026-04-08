@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Package, Plus, Edit2, Save, X, Trash2, Upload, ImagePlus } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { compressImages } from "@/utils/imageCompression";
 
 type Product = { id: string; name: string; price: number; company_id: string; description: string | null; image_url: string | null; is_active: boolean; is_physical: boolean; activates_system: boolean; currency: string; sector: string | null; images: string[] | null };
 type Company = { id: string; name: string };
