@@ -62,8 +62,9 @@ const StaffPackManager = () => {
   const uploadImages = async (files: FileList) => {
     setUploading(true);
     const newUrls: string[] = [];
-    for (const file of Array.from(files)) {
-      const ext = file.name.split(".").pop();
+    const compressed = await compressImages(files);
+    for (const file of compressed) {
+      const ext = "webp";
       const path = `packs/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
       const { error } = await supabase.storage.from("pack-images").upload(path, file, { cacheControl: "31536000", upsert: false });
       if (error) { toast.error(`Erreur upload: ${file.name}`); continue; }
