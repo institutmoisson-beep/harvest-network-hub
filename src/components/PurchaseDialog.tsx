@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ShoppingBag, Truck, FileText } from "lucide-react";
+import { ShoppingBag, Truck, CreditCard, Banknote } from "lucide-react";
 import { downloadContract } from "@/utils/generateContract";
 
 interface Product {
@@ -31,14 +31,29 @@ const PurchaseDialog = ({ product, open, onOpenChange, companyName }: PurchaseDi
   const [loading, setLoading] = useState(false);
   const [savedAddress, setSavedAddress] = useState<any>(null);
   const [useSaved, setUseSaved] = useState(false);
+  const [walletBalance, setWalletBalance] = useState<number>(0);
+  const [paymentMode, setPaymentMode] = useState<"wallet" | "cod">("wallet");
   const [form, setForm] = useState({ fullName: "", phone: "", country: "", city: "", addressLine: "", postalCode: "" });
   const update = (field: string, value: string) => setForm(p => ({ ...p, [field]: value }));
 
   useEffect(() => {
-    if (!open || !product?.is_physical) return;
+    if (!open || !product) return;
     const load = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      // Load wallet balance
+      const { data: wallet } = await supabase.from("wallets").select("balance").eq("user_id", user.id).single();
+      if (wallet) setWalletBalance(Number(wallet.balance));
+
+      // Default payment mode based on product type
+      if (!product.activates_system) {
+        setPaymentMode(wallet && Number(wallet.balance) >= product.price ? "wallet" : "cod");
+      } else {
+        setPaymentMode("wallet");
+      }
+
+      if (!product.is_physical) return;
       const { data } = await supabase.from("shipping_addresses").select("*").eq("user_id", user.id).eq("is_default", true).maybeSingle();
       if (data) {
         setSavedAddress(data);
@@ -58,26 +73,27 @@ const PurchaseDialog = ({ product, open, onOpenChange, companyName }: PurchaseDi
       return;
     }
 
-    setLoading(true);
-    try {
-      // Check wallet
-      const { data: wallet } = await supabase.from("wallets").select("*").eq("user_id", user.id).single();
-      if (!wallet || Number(wallet.balance) < product.price) {
-        toast.error("Solde insuffisant. Rechargez votre portefeuille.");
-        setLoading(false);
+    // Check wallet for wallet payments
+    if (paymentMode === "wallet") {
+      if (walletBalance < product.price) {
+        toast.error(`Solde insuffisant (${walletBalance.toLocaleString()} FCFA). Rechargez votre portefeuille ou choisissez le paiement à la livraison.`);
         return;
       }
+    }
 
-      let shippingAddressId = null;
+    setLoading(true);
+    try {
+      let shippingAddressId: string | null = null;
       if (product.is_physical) {
         if (useSaved && savedAddress) {
           shippingAddressId = savedAddress.id;
         } else {
-          await supabase.from("shipping_addresses").update({ is_default: false } as any).eq("user_id", user.id);
+          // Reset other defaults
+          await supabase.from("shipping_addresses").update({ is_default: false }).eq("user_id", user.id);
           const { data: newAddr, error: addrErr } = await supabase.from("shipping_addresses").insert({
             user_id: user.id, full_name: form.fullName, phone: form.phone, country: form.country, city: form.city,
             address_line: form.addressLine, postal_code: form.postalCode || null, is_default: true,
-          } as any).select().single();
+          }).select().single();
           if (addrErr) throw addrErr;
           shippingAddressId = newAddr.id;
         }
@@ -86,33 +102,42 @@ const PurchaseDialog = ({ product, open, onOpenChange, companyName }: PurchaseDi
       const { data: prodData } = await supabase.from("products").select("company_id, activates_system").eq("id", product.id).single();
       if (!prodData) throw new Error("Produit introuvable");
 
+      const orderStatus = paymentMode === "cod" ? "pending" : "pending";
+
       // Create order
       const { error: orderErr } = await supabase.from("orders").insert({
         user_id: user.id, product_id: product.id, company_id: prodData.company_id,
-        shipping_address_id: shippingAddressId, total_price: product.price, status: "pending",
-      } as any);
+        shipping_address_id: shippingAddressId, total_price: product.price, status: orderStatus,
+      });
       if (orderErr) throw orderErr;
 
-      // Debit wallet
-      const newBalance = Number(wallet.balance) - product.price;
-      await supabase.from("wallets").update({ balance: newBalance, updated_at: new Date().toISOString() }).eq("id", wallet.id);
+      if (paymentMode === "wallet") {
+        // Debit wallet
+        const { data: wallet } = await supabase.from("wallets").select("*").eq("user_id", user.id).single();
+        if (!wallet) throw new Error("Portefeuille introuvable");
+        const newBalance = Number(wallet.balance) - product.price;
+        await supabase.from("wallets").update({ balance: newBalance, updated_at: new Date().toISOString() }).eq("id", wallet.id);
 
-      // Record wallet transaction
-      await supabase.from("wallet_transactions").insert({
-        user_id: user.id, type: "achat" as const, amount: product.price,
-        status: "approved" as const, notes: `Achat: ${product.name} (${companyName})`,
-      });
+        // Record wallet transaction
+        await supabase.from("wallet_transactions").insert({
+          user_id: user.id, type: "achat" as const, amount: product.price,
+          status: "approved" as const, notes: `Achat: ${product.name} (${companyName})`,
+        });
 
-      // Activate system if pack
-      if (prodData.activates_system) {
-        await supabase.from("profiles").update({ is_system_active: true }).eq("id", user.id);
+        // Activate system if pack
+        if (prodData.activates_system) {
+          await supabase.from("profiles").update({ is_system_active: true }).eq("id", user.id);
+        }
+
+        // Pay commissions
+        await payCommissions(user.id, product.price, product.id);
+
+        toast.success("Achat effectué ! Portefeuille débité.");
+      } else {
+        toast.success("Commande enregistrée ! Paiement à la livraison.");
       }
 
-      // Pay commissions to sponsors up the chain
-      await payCommissions(user.id, product.price, product.id);
-
-      toast.success("Achat effectué avec succès ! Votre portefeuille a été débité.");
-      // Offer contract download
+      // Contract download
       const { data: profile } = await supabase.from("profiles").select("first_name, last_name").eq("id", user.id).single();
       const memberName = profile ? `${profile.first_name} ${profile.last_name}` : "Membre";
       downloadContract(memberName, product.name, product.price, companyName);
@@ -126,24 +151,17 @@ const PurchaseDialog = ({ product, open, onOpenChange, companyName }: PurchaseDi
 
   const payCommissions = async (buyerId: string, amount: number, productId: string) => {
     try {
-      // Get per-pack commission rates
       const { data: rates } = await supabase.from("pack_commission_rates").select("*").eq("product_id", productId).order("level", { ascending: true });
-      
       if (!rates || rates.length === 0) return;
 
-      // Build rate lookup + find last configured level for decay formula
       const rateMap = new Map<number, number>();
       let maxConfiguredLevel = 0;
       let lastPct = 0;
       rates.forEach((r: any) => {
         rateMap.set(r.level, Number(r.percentage));
-        if (r.level > maxConfiguredLevel) {
-          maxConfiguredLevel = r.level;
-          lastPct = Number(r.percentage);
-        }
+        if (r.level > maxConfiguredLevel) { maxConfiguredLevel = r.level; lastPct = Number(r.percentage); }
       });
 
-      // Walk up the sponsor chain infinitely
       let currentUserId = buyerId;
       let level = 0;
       const MIN_PCT = 0.01;
@@ -152,44 +170,30 @@ const PurchaseDialog = ({ product, open, onOpenChange, companyName }: PurchaseDi
         level++;
         const { data: profile } = await supabase.from("profiles").select("referred_by").eq("id", currentUserId).single();
         if (!profile?.referred_by) break;
-
         const sponsorId = profile.referred_by;
 
-        // Determine commission percentage
         let pct: number;
-        if (rateMap.has(level)) {
-          pct = rateMap.get(level)!;
-        } else if (maxConfiguredLevel > 0 && lastPct > MIN_PCT) {
-          // Infinite decay: halve per extra level beyond configured
+        if (rateMap.has(level)) { pct = rateMap.get(level)!; }
+        else if (maxConfiguredLevel > 0 && lastPct > MIN_PCT) {
           const extraLevels = level - maxConfiguredLevel;
           pct = lastPct / Math.pow(2, extraLevels);
-          if (pct < MIN_PCT) break; // Stop when too small
-        } else {
-          break;
-        }
+          if (pct < MIN_PCT) break;
+        } else break;
 
         if (pct <= 0) { currentUserId = sponsorId; continue; }
-
         const commission = (amount * pct) / 100;
-        if (commission < 1) { currentUserId = sponsorId; continue; } // Min 1 FCFA
+        if (commission < 1) { currentUserId = sponsorId; continue; }
 
-        // Credit sponsor wallet
         const { data: sponsorWallet } = await supabase.from("wallets").select("*").eq("user_id", sponsorId).single();
         if (sponsorWallet) {
-          await supabase.from("wallets").update({
-            balance: Number(sponsorWallet.balance) + commission,
-            updated_at: new Date().toISOString()
-          }).eq("id", sponsorWallet.id);
+          await supabase.from("wallets").update({ balance: Number(sponsorWallet.balance) + commission, updated_at: new Date().toISOString() }).eq("id", sponsorWallet.id);
         }
 
-        // Record wallet transaction
         await supabase.from("wallet_transactions").insert({
           user_id: sponsorId, type: "commission" as const, amount: commission,
-          status: "approved" as const,
-          notes: `Commission niveau ${level} (${pct.toFixed(2)}%) sur achat de filleul`,
+          status: "approved" as const, notes: `Commission niveau ${level} (${pct.toFixed(2)}%) sur achat de filleul`,
         });
 
-        // Record in commissions table
         await supabase.from("commissions").insert({
           user_id: sponsorId, source_user_id: buyerId, amount: commission,
           level, description: `Commission niveau ${level} (${pct.toFixed(2)}%)`,
@@ -197,12 +201,13 @@ const PurchaseDialog = ({ product, open, onOpenChange, companyName }: PurchaseDi
 
         currentUserId = sponsorId;
       }
-    } catch (err) {
-      console.error("Error paying commissions:", err);
-    }
+    } catch (err) { console.error("Error paying commissions:", err); }
   };
 
   if (!product) return null;
+
+  const insufficientBalance = walletBalance < product.price;
+  const canCOD = !product.activates_system && product.is_physical;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -223,6 +228,45 @@ const PurchaseDialog = ({ product, open, onOpenChange, companyName }: PurchaseDi
             </div>
             <span className="font-display text-sm font-bold text-primary">{product.price.toLocaleString()} {product.currency || "FCFA"}</span>
           </div>
+
+          {/* Wallet balance info */}
+          <div className={`p-3 rounded-xl text-xs ${insufficientBalance ? "bg-destructive/10 border border-destructive/30" : "bg-green-500/10 border border-green-500/30"}`}>
+            <p className="font-display font-bold">
+              💰 Solde: {walletBalance.toLocaleString()} FCFA
+            </p>
+            {insufficientBalance && (
+              <p className="text-destructive mt-1">
+                ⚠️ Solde insuffisant pour payer avec le portefeuille.
+                {canCOD ? " Vous pouvez choisir le paiement à la livraison." : " Rechargez votre portefeuille."}
+              </p>
+            )}
+          </div>
+
+          {/* Payment mode selector */}
+          {canCOD && (
+            <div className="space-y-2">
+              <p className="text-xs font-display font-bold">Mode de paiement</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setPaymentMode("wallet")}
+                  disabled={insufficientBalance}
+                  className={`p-3 rounded-xl border text-xs text-left transition-all ${paymentMode === "wallet" ? "border-primary bg-primary/10" : "border-border bg-muted/30"} ${insufficientBalance ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                >
+                  <CreditCard size={16} className="mb-1 text-primary" />
+                  <p className="font-display font-bold">Portefeuille</p>
+                  <p className="text-muted-foreground text-[10px]">Paiement immédiat</p>
+                </button>
+                <button
+                  onClick={() => setPaymentMode("cod")}
+                  className={`p-3 rounded-xl border text-xs text-left transition-all cursor-pointer ${paymentMode === "cod" ? "border-primary bg-primary/10" : "border-border bg-muted/30"}`}
+                >
+                  <Banknote size={16} className="mb-1 text-secondary" />
+                  <p className="font-display font-bold">À la livraison</p>
+                  <p className="text-muted-foreground text-[10px]">Payez quand vous recevez</p>
+                </button>
+              </div>
+            </div>
+          )}
 
           {product.is_physical && (
             <div className="space-y-3">
@@ -248,10 +292,15 @@ const PurchaseDialog = ({ product, open, onOpenChange, companyName }: PurchaseDi
             </div>
           )}
 
-          <Button onClick={handlePurchase} disabled={loading} className="w-full bg-gradient-purple text-primary-foreground font-display font-bold hover:opacity-90 glow-purple">
-            {loading ? "Traitement..." : `Payer ${product.price.toLocaleString()} ${product.currency || "FCFA"} depuis mon portefeuille`}
+          <Button onClick={handlePurchase} disabled={loading || (paymentMode === "wallet" && insufficientBalance)}
+            className="w-full bg-gradient-purple text-primary-foreground font-display font-bold hover:opacity-90 glow-purple">
+            {loading ? "Traitement..." : paymentMode === "wallet"
+              ? `Payer ${product.price.toLocaleString()} ${product.currency || "FCFA"} depuis mon portefeuille`
+              : `Commander — Paiement à la livraison`}
           </Button>
-          <p className="text-[10px] text-center text-muted-foreground">Le montant sera débité de votre portefeuille</p>
+          <p className="text-[10px] text-center text-muted-foreground">
+            {paymentMode === "wallet" ? "Le montant sera débité de votre portefeuille" : "Vous paierez le livreur à la réception"}
+          </p>
         </div>
       </DialogContent>
     </Dialog>
