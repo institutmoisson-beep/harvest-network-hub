@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Copy, Check, Share2 } from "lucide-react";
+import { Copy, Check, Share2, Truck } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -18,9 +18,12 @@ const DashboardProfile = () => {
   const [country, setCountry] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [saving, setSaving] = useState(false);
+  const [savingAddress, setSavingAddress] = useState(false);
   const [referralCode, setReferralCode] = useState("");
   const [copied, setCopied] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
+  const [addressId, setAddressId] = useState<string | null>(null);
+  const [deliveryAddress, setDeliveryAddress] = useState({ fullName: "", phone: "", country: "", city: "", addressLine: "", postalCode: "" });
 
   const [loading, setLoading] = useState(true);
 
@@ -30,7 +33,10 @@ const DashboardProfile = () => {
       if (!session) { navigate("/login"); return; }
       setUser(session.user);
 
-      const { data: prof } = await supabase.from("profiles").select("*").eq("id", session.user.id).single();
+      const [{ data: prof }, { data: addr }] = await Promise.all([
+        supabase.from("profiles").select("*").eq("id", session.user.id).single(),
+        supabase.from("shipping_addresses").select("*").eq("user_id", session.user.id).eq("is_default", true).maybeSingle(),
+      ]);
       if (prof) {
         setProfile(prof);
         setFirstName(prof.first_name);
@@ -38,6 +44,10 @@ const DashboardProfile = () => {
         setPhone(prof.phone || "");
         setCountry(prof.country || "");
         setReferralCode(prof.referral_code);
+      }
+      if (addr) {
+        setAddressId(addr.id);
+        setDeliveryAddress({ fullName: addr.full_name, phone: addr.phone, country: addr.country, city: addr.city, addressLine: addr.address_line, postalCode: addr.postal_code || "" });
       }
       setLoading(false);
     };
@@ -58,6 +68,36 @@ const DashboardProfile = () => {
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     if (error) toast.error(error.message);
     else { toast.success("Mot de passe mis à jour !"); setNewPassword(""); }
+  };
+
+  const handleAddressSave = async () => {
+    if (!user) return;
+    if (!deliveryAddress.fullName || !deliveryAddress.phone || !deliveryAddress.country || !deliveryAddress.city || !deliveryAddress.addressLine) {
+      toast.error("Remplissez tous les champs obligatoires de livraison");
+      return;
+    }
+    setSavingAddress(true);
+    await supabase.from("shipping_addresses").update({ is_default: false }).eq("user_id", user.id);
+    const payload = {
+      user_id: user.id,
+      full_name: deliveryAddress.fullName,
+      phone: deliveryAddress.phone,
+      country: deliveryAddress.country,
+      city: deliveryAddress.city,
+      address_line: deliveryAddress.addressLine,
+      postal_code: deliveryAddress.postalCode || null,
+      is_default: true,
+      updated_at: new Date().toISOString(),
+    };
+    const { data, error } = addressId
+      ? await supabase.from("shipping_addresses").update(payload).eq("id", addressId).select("id").single()
+      : await supabase.from("shipping_addresses").insert(payload).select("id").single();
+    setSavingAddress(false);
+    if (error) toast.error(error.message);
+    else {
+      setAddressId(data.id);
+      toast.success("Adresse de livraison enregistrée dans votre profil");
+    }
   };
 
   const referralLink = `${window.location.origin}/register?ref=${referralCode}`;
@@ -156,6 +196,23 @@ const DashboardProfile = () => {
         </h3>
         <Input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Nouveau mot de passe" className="bg-input border-border text-sm mb-3" />
         <Button onClick={handlePasswordChange} variant="outline" className="border-primary text-foreground hover:bg-primary/10">Mettre à jour</Button>
+      </div>
+
+      <div className="glass-card rounded-xl p-6 mt-6">
+        <h3 className="font-display text-sm font-bold mb-4 flex items-center gap-2">
+          <Truck size={16} className="text-primary" /> Adresse de livraison par défaut
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div><Label className="text-xs">Nom complet *</Label><Input value={deliveryAddress.fullName} onChange={e => setDeliveryAddress(p => ({ ...p, fullName: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
+          <div><Label className="text-xs">Téléphone *</Label><Input value={deliveryAddress.phone} onChange={e => setDeliveryAddress(p => ({ ...p, phone: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
+          <div><Label className="text-xs">Pays *</Label><Input value={deliveryAddress.country} onChange={e => setDeliveryAddress(p => ({ ...p, country: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
+          <div><Label className="text-xs">Ville *</Label><Input value={deliveryAddress.city} onChange={e => setDeliveryAddress(p => ({ ...p, city: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
+          <div className="sm:col-span-2"><Label className="text-xs">Adresse complète *</Label><Input value={deliveryAddress.addressLine} onChange={e => setDeliveryAddress(p => ({ ...p, addressLine: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
+          <div><Label className="text-xs">Code postal</Label><Input value={deliveryAddress.postalCode} onChange={e => setDeliveryAddress(p => ({ ...p, postalCode: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
+        </div>
+        <Button onClick={handleAddressSave} disabled={savingAddress} className="mt-4 bg-gradient-purple text-primary-foreground font-display font-bold hover:opacity-90">
+          <Save size={16} className="mr-2" /> {savingAddress ? "Enregistrement..." : "Enregistrer l'adresse"}
+        </Button>
       </div>
     </div>
   );
