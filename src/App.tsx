@@ -5,6 +5,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import PwaInstallBanner from "@/components/PwaInstallBanner";
+import VersionNotice from "@/components/VersionNotice";
 
 const Index = lazy(() => import("./pages/Index.tsx"));
 const Login = lazy(() => import("./pages/Login.tsx"));
@@ -26,6 +27,8 @@ const StaffPackManager = lazy(() => import("./pages/StaffPackManager.tsx"));
 const StaffFinancier = lazy(() => import("./pages/StaffFinancier.tsx"));
 const StaffPartnerManager = lazy(() => import("./pages/StaffPartnerManager.tsx"));
 const StaffCommunication = lazy(() => import("./pages/StaffCommunication.tsx"));
+const StaffCommerceManager = lazy(() => import("./pages/StaffCommerceManager.tsx"));
+const CommerceProducts = lazy(() => import("./pages/CommerceProducts.tsx"));
 const InstallApp = lazy(() => import("./pages/InstallApp.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
@@ -47,6 +50,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <PwaInstallBanner />
+        <VersionNotice />
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Index />} />
@@ -60,6 +64,7 @@ const App = () => (
             <Route path="/staff/finance" element={<StaffFinancier />} />
             <Route path="/staff/partners" element={<StaffPartnerManager />} />
             <Route path="/staff/communication" element={<StaffCommunication />} />
+            <Route path="/staff/commerce" element={<StaffCommerceManager />} />
             <Route path="/moissonneurs-pros" element={<MoissoneursPros />} />
             <Route path="/packs" element={<Packs />} />
             <Route path="/dashboard" element={<DashboardLayout />}>
@@ -70,6 +75,8 @@ const App = () => (
               <Route path="commissions" element={<DashboardCommissions />} />
               <Route path="packs" element={<DashboardPacks />} />
               <Route path="orders" element={<DashboardOrders />} />
+              <Route path="wholesale" element={<CommerceProducts kind="wholesale" />} />
+              <Route path="distribution" element={<CommerceProducts kind="distribution" />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

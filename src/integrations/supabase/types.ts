@@ -14,6 +14,125 @@ export type Database = {
   }
   public: {
     Tables: {
+      commerce_orders: {
+        Row: {
+          client_name: string | null
+          client_note: string | null
+          client_phone: string | null
+          commission_amount: number
+          created_at: string
+          id: string
+          payment_method: Database["public"]["Enums"]["commerce_payment_method"]
+          product_id: string
+          proposer_id: string | null
+          quantity: number
+          shipping_address_id: string | null
+          status: Database["public"]["Enums"]["commerce_order_status"]
+          total_price: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_name?: string | null
+          client_note?: string | null
+          client_phone?: string | null
+          commission_amount?: number
+          created_at?: string
+          id?: string
+          payment_method?: Database["public"]["Enums"]["commerce_payment_method"]
+          product_id: string
+          proposer_id?: string | null
+          quantity?: number
+          shipping_address_id?: string | null
+          status?: Database["public"]["Enums"]["commerce_order_status"]
+          total_price?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_name?: string | null
+          client_note?: string | null
+          client_phone?: string | null
+          commission_amount?: number
+          created_at?: string
+          id?: string
+          payment_method?: Database["public"]["Enums"]["commerce_payment_method"]
+          product_id?: string
+          proposer_id?: string | null
+          quantity?: number
+          shipping_address_id?: string | null
+          status?: Database["public"]["Enums"]["commerce_order_status"]
+          total_price?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commerce_orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "commerce_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commerce_products: {
+        Row: {
+          available_quantity: number | null
+          commission_percentage: number
+          created_at: string
+          created_by: string | null
+          currency: string
+          description: string
+          id: string
+          images: Json
+          is_active: boolean
+          kind: Database["public"]["Enums"]["commerce_product_kind"]
+          min_quantity: number
+          name: string
+          partner_name: string
+          price: number
+          pv_value: number
+          updated_at: string
+        }
+        Insert: {
+          available_quantity?: number | null
+          commission_percentage?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string
+          id?: string
+          images?: Json
+          is_active?: boolean
+          kind: Database["public"]["Enums"]["commerce_product_kind"]
+          min_quantity?: number
+          name: string
+          partner_name?: string
+          price?: number
+          pv_value?: number
+          updated_at?: string
+        }
+        Update: {
+          available_quantity?: number | null
+          commission_percentage?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          description?: string
+          id?: string
+          images?: Json
+          is_active?: boolean
+          kind?: Database["public"]["Enums"]["commerce_product_kind"]
+          min_quantity?: number
+          name?: string
+          partner_name?: string
+          price?: number
+          pv_value?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       commission_rates: {
         Row: {
           created_at: string
@@ -620,6 +739,31 @@ export type Database = {
         }
         Returns: boolean
       }
+      purchase_commerce_product: {
+        Args: {
+          _client_name?: string
+          _client_note?: string
+          _client_phone?: string
+          _payment_method: Database["public"]["Enums"]["commerce_payment_method"]
+          _product_id: string
+          _proposer_id?: string
+          _quantity: number
+          _shipping_address_id?: string
+        }
+        Returns: {
+          message: string
+          new_balance: number
+          order_id: string
+        }[]
+      }
+      purchase_pack_product: {
+        Args: { _product_id: string; _shipping_address_id?: string }
+        Returns: {
+          message: string
+          new_balance: number
+          order_id: string
+        }[]
+      }
     }
     Enums: {
       account_status: "active" | "suspended" | "paused"
@@ -642,6 +786,15 @@ export type Database = {
         | "sage_moissonneur"
         | "grand_moissonneur"
         | "guide_moissonneur"
+      commerce_order_status:
+        | "pending"
+        | "paid"
+        | "confirmed"
+        | "shipped"
+        | "delivered"
+        | "cancelled"
+      commerce_payment_method: "wallet" | "cash_on_delivery"
+      commerce_product_kind: "wholesale" | "distribution"
       order_status:
         | "pending"
         | "confirmed"
@@ -804,6 +957,16 @@ export const Constants = {
         "grand_moissonneur",
         "guide_moissonneur",
       ],
+      commerce_order_status: [
+        "pending",
+        "paid",
+        "confirmed",
+        "shipped",
+        "delivered",
+        "cancelled",
+      ],
+      commerce_payment_method: ["wallet", "cash_on_delivery"],
+      commerce_product_kind: ["wholesale", "distribution"],
       order_status: [
         "pending",
         "confirmed",

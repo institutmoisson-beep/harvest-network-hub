@@ -56,8 +56,9 @@ export const usePwaInstall = () => {
     await promptEvent.prompt();
     const choice = await promptEvent.userChoice;
 
+    setPromptEvent(null);
+
     if (choice.outcome === "accepted") {
-      setPromptEvent(null);
       return true;
     }
 

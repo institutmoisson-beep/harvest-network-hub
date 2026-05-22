@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Package, ShoppingBag, Check, ChevronLeft, ChevronRight, ImageIcon } from "lucide-react";
+import { Package, ShoppingBag, Check, ChevronLeft, ChevronRight, ImageIcon, Eye, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import PurchaseDialog from "@/components/PurchaseDialog";
 
@@ -67,6 +68,7 @@ const DashboardPacks = () => {
   const [isSystemActive, setIsSystemActive] = useState(false);
   const [selectedPack, setSelectedPack] = useState<Pack | null>(null);
   const [showPurchase, setShowPurchase] = useState(false);
+  const [detailPack, setDetailPack] = useState<Pack | null>(null);
   const [userOrders, setUserOrders] = useState<string[]>([]);
 
   useEffect(() => {
@@ -99,6 +101,17 @@ const DashboardPacks = () => {
   const handleBuy = (pack: Pack) => {
     setSelectedPack(pack);
     setShowPurchase(true);
+  };
+
+  const refreshAfterPurchase = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return;
+    const [profileRes, ordersRes] = await Promise.all([
+      supabase.from("profiles").select("is_system_active").eq("id", session.user.id).single(),
+      supabase.from("orders").select("product_id").eq("user_id", session.user.id).neq("status", "cancelled"),
+    ]);
+    if (profileRes.data) setIsSystemActive(profileRes.data.is_system_active);
+    if (ordersRes.data) setUserOrders(ordersRes.data.map((o: any) => o.product_id));
   };
 
   return (
@@ -136,7 +149,9 @@ const DashboardPacks = () => {
             const alreadyBought = userOrders.includes(pack.id);
             return (
               <div key={pack.id} className="glass-card rounded-2xl overflow-hidden hover:glow-purple transition-all duration-500 group">
-                <PackImageCarousel images={allImages} name={pack.name} />
+                <button type="button" className="block w-full text-left" onClick={() => setDetailPack(pack)}>
+                  <PackImageCarousel images={allImages} name={pack.name} />
+                </button>
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <h3 className="font-display text-sm font-bold">{pack.name}</h3>
@@ -152,10 +167,15 @@ const DashboardPacks = () => {
                     {alreadyBought && <Badge variant="outline" className="text-[10px]">Déjà acheté</Badge>}
                     <span className="text-[10px] text-muted-foreground">{companies[pack.company_id] || ""}</span>
                   </div>
-                  <Button size="sm" className="w-full bg-gradient-purple text-primary-foreground font-display text-xs hover:opacity-90 glow-purple"
-                    onClick={() => handleBuy(pack)}>
-                    <ShoppingBag size={14} className="mr-1" /> {alreadyBought ? "Racheter" : "Acheter"}
-                  </Button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button size="sm" variant="outline" className="font-display text-xs" onClick={() => setDetailPack(pack)}>
+                      <Eye size={14} className="mr-1" /> Détails
+                    </Button>
+                    <Button size="sm" className="bg-gradient-purple text-primary-foreground font-display text-xs hover:opacity-90 glow-purple"
+                      onClick={() => handleBuy(pack)}>
+                      <ShoppingBag size={14} className="mr-1" /> {alreadyBought ? "Racheter" : "Acheter"}
+                    </Button>
+                  </div>
                 </div>
               </div>
             );
@@ -173,9 +193,42 @@ const DashboardPacks = () => {
       <PurchaseDialog
         product={selectedPack}
         open={showPurchase}
-        onOpenChange={(open) => { setShowPurchase(open); if (!open) { window.location.reload(); } }}
+        onOpenChange={(open) => { setShowPurchase(open); if (!open) void refreshAfterPurchase(); }}
         companyName={selectedPack ? (companies[selectedPack.company_id] || "") : ""}
       />
+
+      <Dialog open={!!detailPack} onOpenChange={(open) => !open && setDetailPack(null)}>
+        <DialogContent className="max-w-2xl glass-card border-border max-h-[90vh] overflow-y-auto">
+          {detailPack && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="font-display text-gradient-gold flex items-center gap-2">
+                  <Package size={20} /> {detailPack.name}
+                </DialogTitle>
+                <DialogDescription>{companies[detailPack.company_id] || "Pack Institut Moisson"}</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="rounded-2xl overflow-hidden border border-border">
+                  <PackImageCarousel images={[detailPack.image_url, ...detailPack.images].filter(Boolean) as string[]} name={detailPack.name} />
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  {detailPack.activates_system && <Badge className="text-[10px] bg-green-600">Active le MLM</Badge>}
+                  {detailPack.is_physical && <Badge variant="outline" className="text-[10px]"><Truck size={10} className="mr-1" /> Livraison</Badge>}
+                  <Badge variant="outline" className="text-[10px]">{detailPack.sector || "Pack"}</Badge>
+                </div>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{detailPack.description || "Détails bientôt disponibles."}</p>
+                <div className="flex items-center justify-between rounded-xl bg-muted/40 p-4">
+                  <span className="text-xs text-muted-foreground">Prix du pack</span>
+                  <span className="font-display text-lg font-black text-primary">{detailPack.price.toLocaleString()} {detailPack.currency}</span>
+                </div>
+                <Button className="w-full bg-gradient-purple text-primary-foreground font-display hover:opacity-90 glow-purple" onClick={() => { setDetailPack(null); handleBuy(detailPack); }}>
+                  <ShoppingBag size={16} className="mr-2" /> Acheter ce pack
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
