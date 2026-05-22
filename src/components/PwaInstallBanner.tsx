@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Download, Smartphone, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,12 @@ import { usePwaInstall } from "@/hooks/usePwaInstall";
 const PwaInstallBanner = () => {
   const [hidden, setHidden] = useState(false);
   const { canInstall, isInstalled, isIos, promptInstall } = usePwaInstall();
+
+  useEffect(() => {
+    const dismissedAt = Number(localStorage.getItem("pwa-install-dismissed-at") || "0");
+    const oneDay = 24 * 60 * 60 * 1000;
+    if (dismissedAt && Date.now() - dismissedAt < oneDay) setHidden(true);
+  }, []);
 
   if (hidden || isInstalled || (!canInstall && !isIos)) return null;
 
@@ -46,7 +52,7 @@ const PwaInstallBanner = () => {
             </div>
           </div>
 
-          <button type="button" onClick={() => setHidden(true)} className="rounded-lg p-1 text-muted-foreground hover:bg-accent hover:text-accent-foreground">
+          <button type="button" onClick={() => { localStorage.setItem("pwa-install-dismissed-at", String(Date.now())); setHidden(true); }} className="rounded-lg p-1 text-muted-foreground hover:bg-accent hover:text-accent-foreground">
             <X size={14} />
           </button>
         </div>
