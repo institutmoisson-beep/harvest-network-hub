@@ -39,6 +39,7 @@ const PurchaseDialog = ({ product, open, onOpenChange, companyName }: PurchaseDi
 
   useEffect(() => {
     if (!open || !product) return;
+    setContractReady(null);
     const load = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -122,7 +123,6 @@ const PurchaseDialog = ({ product, open, onOpenChange, companyName }: PurchaseDi
       const { data: profile } = await supabase.from("profiles").select("first_name, last_name").eq("id", user.id).single();
       const memberName = profile ? `${profile.first_name} ${profile.last_name}` : "Membre";
       setContractReady({ memberName, productName: product.name, price: product.price, companyName });
-      onOpenChange(false);
     } catch (err: any) {
       toast.error(err.message || "Erreur lors de l'achat");
     } finally {
