@@ -33,6 +33,7 @@ const PurchaseDialog = ({ product, open, onOpenChange, companyName }: PurchaseDi
   const [useSaved, setUseSaved] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number>(0);
   const [paymentMode, setPaymentMode] = useState<"wallet" | "cod">("wallet");
+  const [contractReady, setContractReady] = useState<{ memberName: string; productName: string; price: number; companyName: string } | null>(null);
   const [form, setForm] = useState({ fullName: "", phone: "", country: "", city: "", addressLine: "", postalCode: "" });
   const update = (field: string, value: string) => setForm(p => ({ ...p, [field]: value }));
 
@@ -102,106 +103,31 @@ const PurchaseDialog = ({ product, open, onOpenChange, companyName }: PurchaseDi
       const { data: prodData } = await supabase.from("products").select("company_id, activates_system").eq("id", product.id).single();
       if (!prodData) throw new Error("Produit introuvable");
 
-      const orderStatus = paymentMode === "cod" ? "pending" : "pending";
-
-      // Create order
-      const { error: orderErr } = await supabase.from("orders").insert({
-        user_id: user.id, product_id: product.id, company_id: prodData.company_id,
-        shipping_address_id: shippingAddressId, total_price: product.price, status: orderStatus,
-      });
-      if (orderErr) throw orderErr;
-
       if (paymentMode === "wallet") {
-        // Debit wallet
-        const { data: wallet } = await supabase.from("wallets").select("*").eq("user_id", user.id).single();
-        if (!wallet) throw new Error("Portefeuille introuvable");
-        const newBalance = Number(wallet.balance) - product.price;
-        await supabase.from("wallets").update({ balance: newBalance, updated_at: new Date().toISOString() }).eq("id", wallet.id);
-
-        // Record wallet transaction
-        await supabase.from("wallet_transactions").insert({
-          user_id: user.id, type: "achat" as const, amount: product.price,
-          status: "approved" as const, notes: `Achat: ${product.name} (${companyName})`,
+        const { error: rpcError } = await (supabase as any).rpc("purchase_pack_product", {
+          _product_id: product.id,
+          _shipping_address_id: shippingAddressId,
         });
-
-        // Activate system if pack
-        if (prodData.activates_system) {
-          await supabase.from("profiles").update({ is_system_active: true }).eq("id", user.id);
-        }
-
-        // Pay commissions
-        await payCommissions(user.id, product.price, product.id);
-
+        if (rpcError) throw rpcError;
         toast.success("Achat effectué ! Portefeuille débité.");
       } else {
+        const { error: orderErr } = await supabase.from("orders").insert({
+          user_id: user.id, product_id: product.id, company_id: prodData.company_id,
+          shipping_address_id: shippingAddressId, total_price: product.price, status: "pending" as const,
+        });
+        if (orderErr) throw orderErr;
         toast.success("Commande enregistrée ! Paiement à la livraison.");
       }
 
-      // Contract download
       const { data: profile } = await supabase.from("profiles").select("first_name, last_name").eq("id", user.id).single();
       const memberName = profile ? `${profile.first_name} ${profile.last_name}` : "Membre";
-      downloadContract(memberName, product.name, product.price, companyName);
+      setContractReady({ memberName, productName: product.name, price: product.price, companyName });
       onOpenChange(false);
     } catch (err: any) {
       toast.error(err.message || "Erreur lors de l'achat");
     } finally {
       setLoading(false);
     }
-  };
-
-  const payCommissions = async (buyerId: string, amount: number, productId: string) => {
-    try {
-      const { data: rates } = await supabase.from("pack_commission_rates").select("*").eq("product_id", productId).order("level", { ascending: true });
-      if (!rates || rates.length === 0) return;
-
-      const rateMap = new Map<number, number>();
-      let maxConfiguredLevel = 0;
-      let lastPct = 0;
-      rates.forEach((r: any) => {
-        rateMap.set(r.level, Number(r.percentage));
-        if (r.level > maxConfiguredLevel) { maxConfiguredLevel = r.level; lastPct = Number(r.percentage); }
-      });
-
-      let currentUserId = buyerId;
-      let level = 0;
-      const MIN_PCT = 0.01;
-
-      while (true) {
-        level++;
-        const { data: profile } = await supabase.from("profiles").select("referred_by").eq("id", currentUserId).single();
-        if (!profile?.referred_by) break;
-        const sponsorId = profile.referred_by;
-
-        let pct: number;
-        if (rateMap.has(level)) { pct = rateMap.get(level)!; }
-        else if (maxConfiguredLevel > 0 && lastPct > MIN_PCT) {
-          const extraLevels = level - maxConfiguredLevel;
-          pct = lastPct / Math.pow(2, extraLevels);
-          if (pct < MIN_PCT) break;
-        } else break;
-
-        if (pct <= 0) { currentUserId = sponsorId; continue; }
-        const commission = (amount * pct) / 100;
-        if (commission < 1) { currentUserId = sponsorId; continue; }
-
-        const { data: sponsorWallet } = await supabase.from("wallets").select("*").eq("user_id", sponsorId).single();
-        if (sponsorWallet) {
-          await supabase.from("wallets").update({ balance: Number(sponsorWallet.balance) + commission, updated_at: new Date().toISOString() }).eq("id", sponsorWallet.id);
-        }
-
-        await supabase.from("wallet_transactions").insert({
-          user_id: sponsorId, type: "commission" as const, amount: commission,
-          status: "approved" as const, notes: `Commission niveau ${level} (${pct.toFixed(2)}%) sur achat de filleul`,
-        });
-
-        await supabase.from("commissions").insert({
-          user_id: sponsorId, source_user_id: buyerId, amount: commission,
-          level, description: `Commission niveau ${level} (${pct.toFixed(2)}%)`,
-        });
-
-        currentUserId = sponsorId;
-      }
-    } catch (err) { console.error("Error paying commissions:", err); }
   };
 
   if (!product) return null;
@@ -301,6 +227,16 @@ const PurchaseDialog = ({ product, open, onOpenChange, companyName }: PurchaseDi
           <p className="text-[10px] text-center text-muted-foreground">
             {paymentMode === "wallet" ? "Le montant sera débité de votre portefeuille" : "Vous paierez le livreur à la réception"}
           </p>
+          {contractReady && (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full text-xs"
+              onClick={() => downloadContract(contractReady.memberName, contractReady.productName, contractReady.price, contractReady.companyName)}
+            >
+              Télécharger mon contrat de garantie
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>
