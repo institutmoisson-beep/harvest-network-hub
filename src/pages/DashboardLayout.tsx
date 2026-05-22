@@ -4,12 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 import {
   LayoutDashboard, Users, Building2, Wallet, TrendingUp, UserCircle,
-  LogOut, Menu, X, ChevronRight, Shield, Package, DollarSign, MessageCircle, Handshake, Download, ShoppingBag
+  LogOut, Menu, X, ChevronRight, Shield, Package, DollarSign, MessageCircle, Handshake, Download, ShoppingBag, Boxes, PackageCheck
 } from "lucide-react";
 
 const baseMenuItems = [
   { icon: LayoutDashboard, label: "Tableau de Bord", path: "/dashboard" },
   { icon: Package, label: "Packs MLM", path: "/dashboard/packs" },
+  { icon: Boxes, label: "Produits en gros", path: "/dashboard/wholesale" },
+  { icon: PackageCheck, label: "Distribution", path: "/dashboard/distribution" },
   { icon: ShoppingBag, label: "Mes Commandes", path: "/dashboard/orders" },
   { icon: Users, label: "Mon Réseau", path: "/dashboard/network" },
   { icon: Building2, label: "Annuaire Stands", path: "/directory" },
@@ -19,12 +21,12 @@ const baseMenuItems = [
   { icon: UserCircle, label: "Mon Profil", path: "/dashboard/profile" },
 ];
 
-const roleMenuItems: Record<string, { icon: any; label: string; path: string }> = {
-  admin: { icon: Shield, label: "Administration", path: "/admin" },
-  pack_manager: { icon: Package, label: "Gestion Packs", path: "/staff/packs" },
-  financier: { icon: DollarSign, label: "Gestion Finance", path: "/staff/finance" },
-  partner_manager: { icon: Handshake, label: "Gestion Partenaires", path: "/staff/partners" },
-  communication: { icon: MessageCircle, label: "Communication", path: "/staff/communication" },
+const roleMenuItems: Record<string, { icon: any; label: string; path: string }[]> = {
+  admin: [{ icon: Shield, label: "Administration", path: "/admin" }, { icon: Boxes, label: "Gestion Commerce", path: "/staff/commerce" }],
+  pack_manager: [{ icon: Package, label: "Gestion Packs", path: "/staff/packs" }, { icon: Boxes, label: "Gestion Commerce", path: "/staff/commerce" }],
+  financier: [{ icon: DollarSign, label: "Gestion Finance", path: "/staff/finance" }, { icon: Boxes, label: "Gestion Commerce", path: "/staff/commerce" }],
+  partner_manager: [{ icon: Handshake, label: "Gestion Partenaires", path: "/staff/partners" }, { icon: Boxes, label: "Gestion Commerce", path: "/staff/commerce" }],
+  communication: [{ icon: MessageCircle, label: "Communication", path: "/staff/communication" }],
 };
 
 const DashboardLayout = () => {
@@ -43,8 +45,9 @@ const DashboardLayout = () => {
       const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", session.user.id);
       const extras: typeof baseMenuItems = [];
       roles?.forEach(r => {
-        const item = roleMenuItems[r.role];
-        if (item) extras.push(item);
+        roleMenuItems[r.role]?.forEach(item => {
+          if (!extras.some(existing => existing.path === item.path)) extras.push(item);
+        });
       });
       setMenuItems([...baseMenuItems, ...extras]);
       // Fetch profile
