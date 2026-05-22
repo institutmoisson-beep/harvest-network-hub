@@ -756,6 +756,14 @@ export type Database = {
           order_id: string
         }[]
       }
+      purchase_pack_product: {
+        Args: { _product_id: string; _shipping_address_id?: string }
+        Returns: {
+          message: string
+          new_balance: number
+          order_id: string
+        }[]
+      }
     }
     Enums: {
       account_status: "active" | "suspended" | "paused"
