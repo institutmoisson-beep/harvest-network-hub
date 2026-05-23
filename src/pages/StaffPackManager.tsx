@@ -11,7 +11,7 @@ import { ArrowLeft, Package, Plus, Edit2, Save, X, Trash2, Upload, ImagePlus } f
 import logo from "@/assets/logo.png";
 import { compressImages } from "@/utils/imageCompression";
 
-type Product = { id: string; name: string; price: number; company_id: string; description: string | null; image_url: string | null; is_active: boolean; is_physical: boolean; activates_system: boolean; currency: string; sector: string | null; images: string[] | null };
+type Product = { id: string; name: string; price: number; profit_amount: number; level1_commission_percentage: number; company_id: string; description: string | null; image_url: string | null; is_active: boolean; is_physical: boolean; activates_system: boolean; currency: string; sector: string | null; images: string[] | null };
 type Company = { id: string; name: string };
 
 const StaffPackManager = () => {
@@ -22,7 +22,7 @@ const StaffPackManager = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
-  const [form, setForm] = useState({ name: "", price: "", company_id: "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA", sector: "", images: [] as string[] });
+  const [form, setForm] = useState({ name: "", price: "", profit_amount: "", level1_commission_percentage: "", company_id: "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA", sector: "", images: [] as string[] });
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -51,10 +51,10 @@ const StaffPackManager = () => {
   const openForm = (p?: Product) => {
     if (p) {
       setEditing(p);
-      setForm({ name: p.name, price: String(p.price), company_id: p.company_id, description: p.description || "", image_url: p.image_url || "", is_physical: p.is_physical, activates_system: p.activates_system, currency: p.currency, sector: p.sector || "", images: Array.isArray(p.images) ? p.images : [] });
+      setForm({ name: p.name, price: String(p.price), profit_amount: String(p.profit_amount ?? ""), level1_commission_percentage: String(p.level1_commission_percentage ?? ""), company_id: p.company_id, description: p.description || "", image_url: p.image_url || "", is_physical: p.is_physical, activates_system: p.activates_system, currency: p.currency, sector: p.sector || "", images: Array.isArray(p.images) ? p.images : [] });
     } else {
       setEditing(null);
-      setForm({ name: "", price: "", company_id: companies[0]?.id || "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA", sector: "", images: [] });
+      setForm({ name: "", price: "", profit_amount: "", level1_commission_percentage: "", company_id: companies[0]?.id || "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA", sector: "", images: [] });
     }
     setShowForm(true);
   };
@@ -89,7 +89,7 @@ const StaffPackManager = () => {
 
   const save = async () => {
     if (!form.name.trim() || !form.price || !form.company_id) { toast.error("Nom, prix et entreprise requis"); return; }
-    const payload = { name: form.name, price: parseFloat(form.price), company_id: form.company_id, description: form.description, image_url: form.image_url || (form.images[0] || null), is_physical: form.is_physical, activates_system: form.activates_system, currency: form.currency, sector: form.sector, images: form.images, updated_at: new Date().toISOString() };
+    const payload = { name: form.name, price: parseFloat(form.price), profit_amount: parseFloat(form.profit_amount || "0"), level1_commission_percentage: parseFloat(form.level1_commission_percentage || "0"), company_id: form.company_id, description: form.description, image_url: form.image_url || (form.images[0] || null), is_physical: form.is_physical, activates_system: form.activates_system, currency: form.currency, sector: form.sector, images: form.images, updated_at: new Date().toISOString() };
     if (editing) {
       const { error } = await supabase.from("products").update(payload).eq("id", editing.id);
       if (error) toast.error(error.message);
@@ -138,6 +138,8 @@ const StaffPackManager = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div><Label className="text-xs">Nom *</Label><Input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
               <div><Label className="text-xs">Prix *</Label><Input type="number" value={form.price} onChange={e => setForm(p => ({ ...p, price: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
+              <div><Label className="text-xs">Bénéfice du pack *</Label><Input type="number" value={form.profit_amount} onChange={e => setForm(p => ({ ...p, profit_amount: e.target.value }))} className="mt-1 bg-input border-border text-sm" placeholder="Ex: 2000" /></div>
+              <div><Label className="text-xs">Commission niveau 1 (%)</Label><Input type="number" step="0.01" value={form.level1_commission_percentage} onChange={e => setForm(p => ({ ...p, level1_commission_percentage: e.target.value }))} className="mt-1 bg-input border-border text-sm" placeholder="Ex: 30" /></div>
               <div>
                 <Label className="text-xs">Entreprise *</Label>
                 <select value={form.company_id} onChange={e => setForm(p => ({ ...p, company_id: e.target.value }))} className="mt-1 w-full rounded-md bg-input border border-border text-sm p-2">
