@@ -683,9 +683,12 @@ const AdminDashboard = () => {
               {showProductForm && (
                 <div className="glass-card rounded-xl p-4 border-2 border-primary/30">
                   <h3 className="font-display text-sm font-bold mb-3">{editingProduct ? "Modifier" : "Nouveau"} Pack</h3>
+                  <p className="text-[10px] text-muted-foreground mb-3">💡 Définissez le <strong>bénéfice réel</strong> du pack et la commission du niveau 1. Exemple : prix 10 000 FCFA, bénéfice 2 000 FCFA, niveau 1 à 30 % = 600 FCFA pour le parrain direct. Les niveaux suivants sont divisés par 2 jusqu'à 0,01 %.</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div><Label className="text-xs">Nom *</Label><Input value={productForm.name} onChange={e => setProductForm(p => ({ ...p, name: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
                     <div><Label className="text-xs">Prix *</Label><Input type="number" value={productForm.price} onChange={e => setProductForm(p => ({ ...p, price: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
+                    <div><Label className="text-xs">Bénéfice du pack *</Label><Input type="number" value={productForm.profit_amount} onChange={e => setProductForm(p => ({ ...p, profit_amount: e.target.value }))} placeholder="Ex: 2000" className="mt-1 bg-input border-border text-sm" /></div>
+                    <div><Label className="text-xs">Commission niveau 1 (%) *</Label><Input type="number" step="0.01" value={productForm.level1_commission_percentage} onChange={e => setProductForm(p => ({ ...p, level1_commission_percentage: e.target.value }))} placeholder="Ex: 30" className="mt-1 bg-input border-border text-sm" /></div>
                     <div>
                       <Label className="text-xs">Entreprise *</Label>
                       <select value={productForm.company_id} onChange={e => setProductForm(p => ({ ...p, company_id: e.target.value }))}
@@ -774,6 +777,7 @@ const AdminDashboard = () => {
                         <div>
                           <p className="font-display text-sm font-bold">{p.name}</p>
                           <p className="text-xs text-muted-foreground">{comp?.name || "?"} • {Number(p.price).toLocaleString()} {p.currency}</p>
+                          <p className="text-[10px] text-primary mt-0.5">Bénéfice: {Number(p.profit_amount || 0).toLocaleString()} {p.currency} • Niv.1: {Number(p.level1_commission_percentage || 0)}% = {Math.round(Number(p.profit_amount || 0) * Number(p.level1_commission_percentage || 0) / 100).toLocaleString()} {p.currency}</p>
                           <div className="flex gap-1 mt-1">
                             {p.is_physical && <Badge variant="outline" className="text-[10px]">Physique</Badge>}
                             {p.activates_system && <Badge variant="outline" className="text-[10px]">Pack MLM</Badge>}
