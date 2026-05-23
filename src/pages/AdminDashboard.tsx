@@ -275,7 +275,10 @@ const AdminDashboard = () => {
 
   const updatePackMlmSettings = async (productId: string, field: "profit_amount" | "level1_commission_percentage", value: number) => {
     if (isNaN(value) || value < 0) { toast.error("Valeur invalide"); return; }
-    const { error } = await supabase.from("products").update({ [field]: value, updated_at: new Date().toISOString() }).eq("id", productId);
+    const payload = field === "profit_amount"
+      ? { profit_amount: value, updated_at: new Date().toISOString() }
+      : { level1_commission_percentage: value, updated_at: new Date().toISOString() };
+    const { error } = await supabase.from("products").update(payload).eq("id", productId);
     if (error) toast.error(error.message);
     else { toast.success(field === "profit_amount" ? "Bénéfice du pack mis à jour" : "Commission niveau 1 mise à jour"); loadAll(); }
   };
