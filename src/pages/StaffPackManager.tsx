@@ -135,6 +135,7 @@ const StaffPackManager = () => {
         {showForm && (
           <div className="glass-card rounded-xl p-4 border-2 border-primary/30">
             <h3 className="font-display text-sm font-bold mb-3">{editing ? "Modifier" : "Nouveau"} Pack</h3>
+            <p className="text-[10px] text-muted-foreground mb-3">💡 Les commissions MLM sont calculées sur le <strong>bénéfice</strong> du pack. La commission niveau 1 (%) s'applique au parrain direct, puis décroît de 50 % à chaque niveau jusqu'à 0,01 % (infini).</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div><Label className="text-xs">Nom *</Label><Input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
               <div><Label className="text-xs">Prix *</Label><Input type="number" value={form.price} onChange={e => setForm(p => ({ ...p, price: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
