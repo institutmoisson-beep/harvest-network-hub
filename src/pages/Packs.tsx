@@ -1,19 +1,22 @@
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Package, Search, Filter, ShoppingBag } from "lucide-react";
+import { Package, Search, Filter, ShoppingBag, Eye, Truck } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import PurchaseDialog from "@/components/PurchaseDialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface Pack {
   id: string;
   name: string;
   price: number;
   description: string | null;
+  profit_amount: number;
+  level1_commission_percentage: number;
   image_url: string | null;
   images: string[];
   is_physical: boolean;
@@ -32,6 +35,7 @@ const Packs = () => {
   const [loading, setLoading] = useState(true);
   const [selectedPack, setSelectedPack] = useState<Pack | null>(null);
   const [showPurchase, setShowPurchase] = useState(false);
+  const [detailPack, setDetailPack] = useState<Pack | null>(null);
 
   useEffect(() => {
     const load = async () => {
