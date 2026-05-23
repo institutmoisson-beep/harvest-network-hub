@@ -192,6 +192,48 @@ const Packs = () => {
         onOpenChange={setShowPurchase}
         companyName={selectedPack ? (companies[selectedPack.company_id] || "") : ""}
       />
+
+      <Dialog open={!!detailPack} onOpenChange={(open) => !open && setDetailPack(null)}>
+        <DialogContent className="max-w-2xl glass-card border-border max-h-[90vh] overflow-y-auto">
+          {detailPack && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="font-display text-gradient-gold flex items-center gap-2"><Package size={20} /> {detailPack.name}</DialogTitle>
+                <DialogDescription>{companies[detailPack.company_id] || "Pack Institut Moisson"}</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="h-56 rounded-2xl overflow-hidden border border-border bg-gradient-purple flex items-center justify-center">
+                  {(detailPack.image_url || detailPack.images[0]) ? <img src={detailPack.image_url || detailPack.images[0]} alt={detailPack.name} className="w-full h-full object-cover" /> : <Package size={48} className="text-primary-foreground/50" />}
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  {detailPack.activates_system && <Badge className="text-[10px] bg-green-600">Active le MLM</Badge>}
+                  {detailPack.is_physical && <Badge variant="outline" className="text-[10px]"><Truck size={10} className="mr-1" /> Livraison</Badge>}
+                  <Badge variant="outline" className="text-[10px]">{detailPack.sector || "Pack"}</Badge>
+                </div>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{detailPack.description || "Détails bientôt disponibles."}</p>
+                <div className="flex items-center justify-between rounded-xl bg-muted/40 p-4">
+                  <span className="text-xs text-muted-foreground">Prix du pack</span>
+                  <span className="font-display text-lg font-black text-primary">{detailPack.price.toLocaleString()} {detailPack.currency}</span>
+                </div>
+                {detailPack.activates_system && Number(detailPack.profit_amount || 0) > 0 && Number(detailPack.level1_commission_percentage || 0) > 0 && (
+                  <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 space-y-2">
+                    <p className="text-xs font-display font-bold text-primary">Plan MLM de ce pack</p>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div className="rounded-lg bg-background/60 p-2"><p className="text-[10px] text-muted-foreground">Bénéfice</p><p className="text-xs font-bold">{Number(detailPack.profit_amount).toLocaleString()} {detailPack.currency}</p></div>
+                      <div className="rounded-lg bg-background/60 p-2"><p className="text-[10px] text-muted-foreground">Niveau 1</p><p className="text-xs font-bold">{Number(detailPack.level1_commission_percentage)}%</p></div>
+                      <div className="rounded-lg bg-background/60 p-2"><p className="text-[10px] text-muted-foreground">Parrain</p><p className="text-xs font-bold">{Math.round(Number(detailPack.profit_amount) * Number(detailPack.level1_commission_percentage) / 100).toLocaleString()} {detailPack.currency}</p></div>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">Après le niveau 1, la commission décroît de 50 % à chaque niveau jusqu'à 0,01 %.</p>
+                  </div>
+                )}
+                <Button className="w-full bg-gradient-purple text-primary-foreground font-display hover:opacity-90 glow-purple" onClick={() => { setDetailPack(null); handleBuy(detailPack); }}>
+                  <ShoppingBag size={16} className="mr-2" /> Acheter ce pack avec mon portefeuille
+                </Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
