@@ -123,13 +123,13 @@ const Packs = () => {
                 const mainImage = pack.image_url || (pack.images.length > 0 ? pack.images[0] : null);
                 return (
                   <div key={pack.id} className="glass-card rounded-2xl overflow-hidden hover:glow-purple transition-all duration-500 group">
-                    <div className="h-48 bg-gradient-purple flex items-center justify-center overflow-hidden">
+                    <button type="button" className="h-48 w-full bg-gradient-purple flex items-center justify-center overflow-hidden" onClick={() => setDetailPack(pack)}>
                       {mainImage ? (
                         <img src={mainImage} alt={pack.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                       ) : (
                         <Package size={48} className="text-primary-foreground/50" />
                       )}
-                    </div>
+                    </button>
                     <div className="p-5">
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <h3 className="font-display text-sm font-bold">{pack.name}</h3>
@@ -161,10 +161,14 @@ const Packs = () => {
                           )}
                         </div>
                       )}
-                      <Button size="sm" className="w-full bg-gradient-purple text-primary-foreground font-display text-xs hover:opacity-90 glow-purple"
-                        onClick={() => handleBuy(pack)}>
-                        <ShoppingBag size={14} className="mr-1" /> Acheter ce Pack
-                      </Button>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button size="sm" variant="outline" className="font-display text-xs" onClick={() => setDetailPack(pack)}>
+                          <Eye size={14} className="mr-1" /> Détails
+                        </Button>
+                        <Button size="sm" className="bg-gradient-purple text-primary-foreground font-display text-xs hover:opacity-90 glow-purple" onClick={() => handleBuy(pack)}>
+                          <ShoppingBag size={14} className="mr-1" /> Acheter
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 );
