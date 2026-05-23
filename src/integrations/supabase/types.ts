@@ -449,8 +449,10 @@ export type Database = {
           images: Json | null
           is_active: boolean
           is_physical: boolean
+          level1_commission_percentage: number
           name: string
           price: number
+          profit_amount: number
           sector: string | null
           updated_at: string
         }
@@ -465,8 +467,10 @@ export type Database = {
           images?: Json | null
           is_active?: boolean
           is_physical?: boolean
+          level1_commission_percentage?: number
           name: string
           price?: number
+          profit_amount?: number
           sector?: string | null
           updated_at?: string
         }
@@ -481,8 +485,10 @@ export type Database = {
           images?: Json | null
           is_active?: boolean
           is_physical?: boolean
+          level1_commission_percentage?: number
           name?: string
           price?: number
+          profit_amount?: number
           sector?: string | null
           updated_at?: string
         }
