@@ -912,7 +912,7 @@ const AdminDashboard = () => {
           {/* ---- COMMISSION RATES PER PACK ---- */}
           <TabsContent value="commissions">
             <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">Configurez les commissions <strong>par pack</strong>. Sélectionnez un pack puis définissez les taux par niveau. Au-delà des niveaux configurés, le système applique une décroissance automatique.</p>
+              <p className="text-sm text-muted-foreground">Configurez le <strong>bénéfice</strong> et le <strong>taux niveau 1</strong> de chaque pack. Le système calcule ensuite automatiquement les niveaux infinis par décroissance.</p>
               <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs text-muted-foreground">
                 Le calcul actif utilise le bénéfice du pack et le taux niveau 1 enregistrés dans le pack. Exemple : bénéfice 2 000 FCFA × 30 % = 600 FCFA au parrain direct, puis 15 %, 7,5 %, 3,75 %… jusqu'à 0,01 %.
               </div>
@@ -934,7 +934,7 @@ const AdminDashboard = () => {
               {selectedPackForRates && (
                 <div className="glass-card rounded-xl p-4 space-y-3">
                   <h3 className="font-display text-sm font-bold">
-                    Taux de commission — {productsList.find(p => p.id === selectedPackForRates)?.name}
+                    Configuration MLM — {productsList.find(p => p.id === selectedPackForRates)?.name}
                   </h3>
                   {(() => {
                     const selected = productsList.find(p => p.id === selectedPackForRates);
@@ -948,29 +948,20 @@ const AdminDashboard = () => {
                     );
                   })()}
                   
-                  {(packRates[selectedPackForRates] || []).map(r => (
-                    <div key={r.id || r.level} className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-display font-bold min-w-[100px]">Niveau {r.level}</p>
-                      <div className="flex items-center gap-2">
-                        <Input type="number" step="0.1" defaultValue={r.percentage} className="w-20 bg-input border-border text-sm text-center"
-                          onBlur={e => { const v = parseFloat(e.target.value); if (!isNaN(v) && v !== r.percentage) savePackRate(selectedPackForRates, r.level, v); }} />
-                        <span className="text-xs text-muted-foreground">%</span>
-                        {r.id && <Button size="sm" variant="destructive" className="text-xs h-6 w-6 p-0" onClick={() => deletePackRate(r.id!, selectedPackForRates)}><Trash2 size={10} /></Button>}
+                  {(() => {
+                    const selected = productsList.find(p => p.id === selectedPackForRates);
+                    const profit = Number(selected?.profit_amount || 0);
+                    const basePct = Number(selected?.level1_commission_percentage || 0);
+                    return (
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 pt-2 border-t border-border">
+                        {[1, 2, 3, 4].map(level => {
+                          const pct = basePct / Math.pow(2, level - 1);
+                          return <div key={level} className="rounded-lg bg-muted/30 p-2 text-center"><p className="text-[10px] text-muted-foreground">Niveau {level}</p><p className="text-xs font-bold">{pct.toFixed(level === 1 ? 0 : 2)}%</p><p className="text-[10px] text-primary">{Math.round(profit * pct / 100).toLocaleString()} FCFA</p></div>;
+                        })}
                       </div>
-                    </div>
-                  ))}
-
-                  <div className="flex items-center gap-2 pt-2 border-t border-border">
-                    <Input type="number" placeholder="Niveau" value={newRateLevel} onChange={e => setNewRateLevel(e.target.value)} className="w-20 bg-input border-border text-sm text-center" />
-                    <Input type="number" step="0.1" placeholder="%" value={newRatePct} onChange={e => setNewRatePct(e.target.value)} className="w-20 bg-input border-border text-sm text-center" />
-                    <Button size="sm" className="bg-gradient-gold text-secondary-foreground font-display text-xs" onClick={() => addNewPackRate(selectedPackForRates)}>
-                      <Plus size={12} className="mr-1" /> Ajouter niveau
-                    </Button>
-                  </div>
-
-                  <p className="text-xs text-muted-foreground mt-2">
-                    💡 Au-delà du dernier niveau configuré, le système applique automatiquement une décroissance (÷2 par niveau supplémentaire) jusqu'à un minimum de 0.01%.
-                  </p>
+                    );
+                  })()}
+                  <p className="text-xs text-muted-foreground mt-2">💡 La décroissance continue automatiquement au-delà du niveau 4 jusqu'à 0,01 %.</p>
                 </div>
               )}
             </div>
