@@ -20,7 +20,7 @@ type Profile = { id: string; first_name: string; last_name: string; email: strin
 type Transaction = { id: string; user_id: string; type: string; amount: number; status: string; created_at: string; operator: string | null; transaction_ref: string | null; service: string | null; contact: string | null; withdrawal_address: string | null; notes: string | null; transaction_date: string | null; recipient_id?: string | null };
 type Company = { id: string; name: string; sector: string; country: string; description: string | null; logo_url: string | null; banner_url: string | null; website_url: string | null; is_active: boolean; contact_whatsapp?: string; contact_facebook?: string; contact_email?: string; image_url_2?: string };
 type Order = { id: string; user_id: string; product_id: string; company_id: string; quantity: number; total_price: number; status: string; created_at: string; shipping_address_id: string | null };
-type Product = { id: string; name: string; price: number; company_id: string; description: string | null; image_url: string | null; is_active: boolean; is_physical: boolean; activates_system: boolean; currency: string };
+type Product = { id: string; name: string; price: number; profit_amount: number; level1_commission_percentage: number; company_id: string; description: string | null; image_url: string | null; is_active: boolean; is_physical: boolean; activates_system: boolean; currency: string; sector?: string | null; images?: string[] | null };
 type PaymentMethod = { id: string; label: string; type: string; value: string; is_active: boolean };
 type CommissionRate = { id: string; level: number; percentage: number };
 type Sector = { id: string; name: string };
@@ -71,7 +71,7 @@ const AdminDashboard = () => {
 
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [productForm, setProductForm] = useState({ name: "", price: "", company_id: "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA", sector: "", images: [] as string[] });
+  const [productForm, setProductForm] = useState({ name: "", price: "", profit_amount: "", level1_commission_percentage: "", company_id: "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA", sector: "", images: [] as string[] });
   const [imageUrlInput, setImageUrlInput] = useState("");
 
   const [showPmForm, setShowPmForm] = useState(false);
@@ -239,10 +239,10 @@ const AdminDashboard = () => {
   const openProductForm = (product?: Product) => {
     if (product) {
       setEditingProduct(product);
-      setProductForm({ name: product.name, price: String(product.price), company_id: product.company_id, description: product.description || "", image_url: product.image_url || "", is_physical: product.is_physical, activates_system: product.activates_system, currency: product.currency, sector: (product as any).sector || "", images: Array.isArray((product as any).images) ? (product as any).images : [] });
+      setProductForm({ name: product.name, price: String(product.price), profit_amount: String(product.profit_amount ?? 0), level1_commission_percentage: String(product.level1_commission_percentage ?? 0), company_id: product.company_id, description: product.description || "", image_url: product.image_url || "", is_physical: product.is_physical, activates_system: product.activates_system, currency: product.currency, sector: (product as any).sector || "", images: Array.isArray((product as any).images) ? (product as any).images : [] });
     } else {
       setEditingProduct(null);
-      setProductForm({ name: "", price: "", company_id: companies[0]?.id || "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA", sector: "", images: [] });
+      setProductForm({ name: "", price: "", profit_amount: "", level1_commission_percentage: "", company_id: companies[0]?.id || "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA", sector: "", images: [] });
     }
     setImageUrlInput("");
     setShowProductForm(true);
@@ -250,7 +250,8 @@ const AdminDashboard = () => {
 
   const saveProduct = async () => {
     if (!productForm.name.trim() || !productForm.price || !productForm.company_id) { toast.error("Nom, prix et entreprise requis"); return; }
-    const payload = { name: productForm.name, price: parseFloat(productForm.price), company_id: productForm.company_id, description: productForm.description, image_url: productForm.image_url || null, is_physical: productForm.is_physical, activates_system: productForm.activates_system, currency: productForm.currency, sector: productForm.sector, images: productForm.images, updated_at: new Date().toISOString() };
+    if (productForm.activates_system && (!productForm.profit_amount || !productForm.level1_commission_percentage)) { toast.error("Pour un pack MLM, indiquez le bénéfice du pack et la commission niveau 1"); return; }
+    const payload = { name: productForm.name, price: parseFloat(productForm.price), profit_amount: parseFloat(productForm.profit_amount || "0"), level1_commission_percentage: parseFloat(productForm.level1_commission_percentage || "0"), company_id: productForm.company_id, description: productForm.description, image_url: productForm.image_url || null, is_physical: productForm.is_physical, activates_system: productForm.activates_system, currency: productForm.currency, sector: productForm.sector, images: productForm.images, updated_at: new Date().toISOString() };
     if (editingProduct) {
       const { error } = await supabase.from("products").update(payload).eq("id", editingProduct.id);
       if (error) toast.error(error.message);
@@ -271,6 +272,16 @@ const AdminDashboard = () => {
   const toggleProductActive = async (p: Product) => {
     await supabase.from("products").update({ is_active: !p.is_active }).eq("id", p.id);
     loadAll();
+  };
+
+  const updatePackMlmSettings = async (productId: string, field: "profit_amount" | "level1_commission_percentage", value: number) => {
+    if (isNaN(value) || value < 0) { toast.error("Valeur invalide"); return; }
+    const payload = field === "profit_amount"
+      ? { profit_amount: value, updated_at: new Date().toISOString() }
+      : { level1_commission_percentage: value, updated_at: new Date().toISOString() };
+    const { error } = await supabase.from("products").update(payload).eq("id", productId);
+    if (error) toast.error(error.message);
+    else { toast.success(field === "profit_amount" ? "Bénéfice du pack mis à jour" : "Commission niveau 1 mise à jour"); loadAll(); }
   };
 
   // Payment Method CRUD
@@ -683,9 +694,12 @@ const AdminDashboard = () => {
               {showProductForm && (
                 <div className="glass-card rounded-xl p-4 border-2 border-primary/30">
                   <h3 className="font-display text-sm font-bold mb-3">{editingProduct ? "Modifier" : "Nouveau"} Pack</h3>
+                  <p className="text-[10px] text-muted-foreground mb-3">💡 Définissez le <strong>bénéfice réel</strong> du pack et la commission du niveau 1. Exemple : prix 10 000 FCFA, bénéfice 2 000 FCFA, niveau 1 à 30 % = 600 FCFA pour le parrain direct. Les niveaux suivants sont divisés par 2 jusqu'à 0,01 %.</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div><Label className="text-xs">Nom *</Label><Input value={productForm.name} onChange={e => setProductForm(p => ({ ...p, name: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
                     <div><Label className="text-xs">Prix *</Label><Input type="number" value={productForm.price} onChange={e => setProductForm(p => ({ ...p, price: e.target.value }))} className="mt-1 bg-input border-border text-sm" /></div>
+                    <div><Label className="text-xs">Bénéfice du pack *</Label><Input type="number" value={productForm.profit_amount} onChange={e => setProductForm(p => ({ ...p, profit_amount: e.target.value }))} placeholder="Ex: 2000" className="mt-1 bg-input border-border text-sm" /></div>
+                    <div><Label className="text-xs">Commission niveau 1 (%) *</Label><Input type="number" step="0.01" value={productForm.level1_commission_percentage} onChange={e => setProductForm(p => ({ ...p, level1_commission_percentage: e.target.value }))} placeholder="Ex: 30" className="mt-1 bg-input border-border text-sm" /></div>
                     <div>
                       <Label className="text-xs">Entreprise *</Label>
                       <select value={productForm.company_id} onChange={e => setProductForm(p => ({ ...p, company_id: e.target.value }))}
@@ -774,6 +788,7 @@ const AdminDashboard = () => {
                         <div>
                           <p className="font-display text-sm font-bold">{p.name}</p>
                           <p className="text-xs text-muted-foreground">{comp?.name || "?"} • {Number(p.price).toLocaleString()} {p.currency}</p>
+                          <p className="text-[10px] text-primary mt-0.5">Bénéfice: {Number(p.profit_amount || 0).toLocaleString()} {p.currency} • Niv.1: {Number(p.level1_commission_percentage || 0)}% = {Math.round(Number(p.profit_amount || 0) * Number(p.level1_commission_percentage || 0) / 100).toLocaleString()} {p.currency}</p>
                           <div className="flex gap-1 mt-1">
                             {p.is_physical && <Badge variant="outline" className="text-[10px]">Physique</Badge>}
                             {p.activates_system && <Badge variant="outline" className="text-[10px]">Pack MLM</Badge>}
@@ -898,7 +913,10 @@ const AdminDashboard = () => {
           {/* ---- COMMISSION RATES PER PACK ---- */}
           <TabsContent value="commissions">
             <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">Configurez les commissions <strong>par pack</strong>. Sélectionnez un pack puis définissez les taux par niveau. Au-delà des niveaux configurés, le système applique une décroissance automatique.</p>
+              <p className="text-sm text-muted-foreground">Configurez le <strong>bénéfice</strong> et le <strong>taux niveau 1</strong> de chaque pack. Le système calcule ensuite automatiquement les niveaux infinis par décroissance.</p>
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs text-muted-foreground">
+                Le calcul actif utilise le bénéfice du pack et le taux niveau 1 enregistrés dans le pack. Exemple : bénéfice 2 000 FCFA × 30 % = 600 FCFA au parrain direct, puis 15 %, 7,5 %, 3,75 %… jusqu'à 0,01 %.
+              </div>
               
               <div className="glass-card rounded-xl p-4">
                 <Label className="text-xs font-bold">Sélectionner un pack</Label>
@@ -917,32 +935,34 @@ const AdminDashboard = () => {
               {selectedPackForRates && (
                 <div className="glass-card rounded-xl p-4 space-y-3">
                   <h3 className="font-display text-sm font-bold">
-                    Taux de commission — {productsList.find(p => p.id === selectedPackForRates)?.name}
+                    Configuration MLM — {productsList.find(p => p.id === selectedPackForRates)?.name}
                   </h3>
-                  
-                  {(packRates[selectedPackForRates] || []).map(r => (
-                    <div key={r.id || r.level} className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-display font-bold min-w-[100px]">Niveau {r.level}</p>
-                      <div className="flex items-center gap-2">
-                        <Input type="number" step="0.1" defaultValue={r.percentage} className="w-20 bg-input border-border text-sm text-center"
-                          onBlur={e => { const v = parseFloat(e.target.value); if (!isNaN(v) && v !== r.percentage) savePackRate(selectedPackForRates, r.level, v); }} />
-                        <span className="text-xs text-muted-foreground">%</span>
-                        {r.id && <Button size="sm" variant="destructive" className="text-xs h-6 w-6 p-0" onClick={() => deletePackRate(r.id!, selectedPackForRates)}><Trash2 size={10} /></Button>}
+                  {(() => {
+                    const selected = productsList.find(p => p.id === selectedPackForRates);
+                    if (!selected) return null;
+                    return (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 rounded-xl bg-muted/30 p-3">
+                        <div><Label className="text-[10px]">Bénéfice du pack</Label><Input type="number" defaultValue={selected.profit_amount || 0} onBlur={e => updatePackMlmSettings(selected.id, "profit_amount", parseFloat(e.target.value))} className="mt-1 bg-input border-border text-sm" /></div>
+                        <div><Label className="text-[10px]">Commission niveau 1 (%)</Label><Input type="number" step="0.01" defaultValue={selected.level1_commission_percentage || 0} onBlur={e => updatePackMlmSettings(selected.id, "level1_commission_percentage", parseFloat(e.target.value))} className="mt-1 bg-input border-border text-sm" /></div>
+                        <div className="rounded-lg bg-background/60 p-2"><p className="text-[10px] text-muted-foreground">Montant niveau 1</p><p className="text-sm font-display font-bold text-primary">{Math.round(Number(selected.profit_amount || 0) * Number(selected.level1_commission_percentage || 0) / 100).toLocaleString()} {selected.currency}</p></div>
                       </div>
-                    </div>
-                  ))}
-
-                  <div className="flex items-center gap-2 pt-2 border-t border-border">
-                    <Input type="number" placeholder="Niveau" value={newRateLevel} onChange={e => setNewRateLevel(e.target.value)} className="w-20 bg-input border-border text-sm text-center" />
-                    <Input type="number" step="0.1" placeholder="%" value={newRatePct} onChange={e => setNewRatePct(e.target.value)} className="w-20 bg-input border-border text-sm text-center" />
-                    <Button size="sm" className="bg-gradient-gold text-secondary-foreground font-display text-xs" onClick={() => addNewPackRate(selectedPackForRates)}>
-                      <Plus size={12} className="mr-1" /> Ajouter niveau
-                    </Button>
-                  </div>
-
-                  <p className="text-xs text-muted-foreground mt-2">
-                    💡 Au-delà du dernier niveau configuré, le système applique automatiquement une décroissance (÷2 par niveau supplémentaire) jusqu'à un minimum de 0.01%.
-                  </p>
+                    );
+                  })()}
+                  
+                  {(() => {
+                    const selected = productsList.find(p => p.id === selectedPackForRates);
+                    const profit = Number(selected?.profit_amount || 0);
+                    const basePct = Number(selected?.level1_commission_percentage || 0);
+                    return (
+                      <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 pt-2 border-t border-border">
+                        {[1, 2, 3, 4].map(level => {
+                          const pct = basePct / Math.pow(2, level - 1);
+                          return <div key={level} className="rounded-lg bg-muted/30 p-2 text-center"><p className="text-[10px] text-muted-foreground">Niveau {level}</p><p className="text-xs font-bold">{pct.toFixed(level === 1 ? 0 : 2)}%</p><p className="text-[10px] text-primary">{Math.round(profit * pct / 100).toLocaleString()} FCFA</p></div>;
+                        })}
+                      </div>
+                    );
+                  })()}
+                  <p className="text-xs text-muted-foreground mt-2">💡 La décroissance continue automatiquement au-delà du niveau 4 jusqu'à 0,01 %.</p>
                 </div>
               )}
             </div>

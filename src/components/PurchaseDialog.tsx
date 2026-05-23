@@ -13,6 +13,8 @@ interface Product {
   id: string;
   name: string;
   price: number;
+  profit_amount?: number;
+  level1_commission_percentage?: number;
   is_physical: boolean;
   activates_system?: boolean;
   image_url?: string;
@@ -154,6 +156,14 @@ const PurchaseDialog = ({ product, open, onOpenChange, companyName }: PurchaseDi
             </div>
             <span className="font-display text-sm font-bold text-primary">{product.price.toLocaleString()} {product.currency || "FCFA"}</span>
           </div>
+
+          {product.activates_system && Number(product.profit_amount || 0) > 0 && Number(product.level1_commission_percentage || 0) > 0 && (
+            <div className="p-3 rounded-xl border border-primary/20 bg-primary/5 text-xs space-y-1">
+              <p className="font-display font-bold text-primary">Commission calculée sur le bénéfice</p>
+              <p className="text-muted-foreground">Bénéfice: {Number(product.profit_amount).toLocaleString()} {product.currency || "FCFA"} • Niveau 1: {Number(product.level1_commission_percentage)}% = {Math.round(Number(product.profit_amount) * Number(product.level1_commission_percentage) / 100).toLocaleString()} {product.currency || "FCFA"}</p>
+              <p className="text-[10px] text-muted-foreground">Les niveaux suivants décroissent de 50 % jusqu'à 0,01 %.</p>
+            </div>
+          )}
 
           {/* Wallet balance info */}
           <div className={`p-3 rounded-xl text-xs ${insufficientBalance ? "bg-destructive/10 border border-destructive/30" : "bg-green-500/10 border border-green-500/30"}`}>

@@ -89,6 +89,7 @@ const StaffPackManager = () => {
 
   const save = async () => {
     if (!form.name.trim() || !form.price || !form.company_id) { toast.error("Nom, prix et entreprise requis"); return; }
+    if (form.activates_system && (!form.profit_amount || !form.level1_commission_percentage)) { toast.error("Pour un pack MLM, indiquez le bénéfice du pack et la commission niveau 1"); return; }
     const payload = { name: form.name, price: parseFloat(form.price), profit_amount: parseFloat(form.profit_amount || "0"), level1_commission_percentage: parseFloat(form.level1_commission_percentage || "0"), company_id: form.company_id, description: form.description, image_url: form.image_url || (form.images[0] || null), is_physical: form.is_physical, activates_system: form.activates_system, currency: form.currency, sector: form.sector, images: form.images, updated_at: new Date().toISOString() };
     if (editing) {
       const { error } = await supabase.from("products").update(payload).eq("id", editing.id);
@@ -205,6 +206,7 @@ const StaffPackManager = () => {
                   <div>
                     <p className="font-display text-sm font-bold">{p.name}</p>
                     <p className="text-xs text-muted-foreground">{comp?.name || "?"} • {Number(p.price).toLocaleString()} {p.currency}</p>
+                    <p className="text-[10px] text-primary mt-0.5">Bénéfice: {Number(p.profit_amount || 0).toLocaleString()} {p.currency} • Niv.1: {Number(p.level1_commission_percentage || 0)}% = {Math.round(Number(p.profit_amount || 0) * Number(p.level1_commission_percentage || 0) / 100).toLocaleString()} {p.currency}</p>
                     <div className="flex gap-1 mt-1">
                       {p.is_physical && <Badge variant="outline" className="text-[10px]">Physique</Badge>}
                       {p.activates_system && <Badge variant="outline" className="text-[10px]">MLM</Badge>}
