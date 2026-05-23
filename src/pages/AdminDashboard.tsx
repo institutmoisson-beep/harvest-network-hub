@@ -20,7 +20,7 @@ type Profile = { id: string; first_name: string; last_name: string; email: strin
 type Transaction = { id: string; user_id: string; type: string; amount: number; status: string; created_at: string; operator: string | null; transaction_ref: string | null; service: string | null; contact: string | null; withdrawal_address: string | null; notes: string | null; transaction_date: string | null; recipient_id?: string | null };
 type Company = { id: string; name: string; sector: string; country: string; description: string | null; logo_url: string | null; banner_url: string | null; website_url: string | null; is_active: boolean; contact_whatsapp?: string; contact_facebook?: string; contact_email?: string; image_url_2?: string };
 type Order = { id: string; user_id: string; product_id: string; company_id: string; quantity: number; total_price: number; status: string; created_at: string; shipping_address_id: string | null };
-type Product = { id: string; name: string; price: number; company_id: string; description: string | null; image_url: string | null; is_active: boolean; is_physical: boolean; activates_system: boolean; currency: string };
+type Product = { id: string; name: string; price: number; profit_amount: number; level1_commission_percentage: number; company_id: string; description: string | null; image_url: string | null; is_active: boolean; is_physical: boolean; activates_system: boolean; currency: string; sector?: string | null; images?: string[] | null };
 type PaymentMethod = { id: string; label: string; type: string; value: string; is_active: boolean };
 type CommissionRate = { id: string; level: number; percentage: number };
 type Sector = { id: string; name: string };
@@ -71,7 +71,7 @@ const AdminDashboard = () => {
 
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [productForm, setProductForm] = useState({ name: "", price: "", company_id: "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA", sector: "", images: [] as string[] });
+  const [productForm, setProductForm] = useState({ name: "", price: "", profit_amount: "", level1_commission_percentage: "", company_id: "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA", sector: "", images: [] as string[] });
   const [imageUrlInput, setImageUrlInput] = useState("");
 
   const [showPmForm, setShowPmForm] = useState(false);
@@ -239,10 +239,10 @@ const AdminDashboard = () => {
   const openProductForm = (product?: Product) => {
     if (product) {
       setEditingProduct(product);
-      setProductForm({ name: product.name, price: String(product.price), company_id: product.company_id, description: product.description || "", image_url: product.image_url || "", is_physical: product.is_physical, activates_system: product.activates_system, currency: product.currency, sector: (product as any).sector || "", images: Array.isArray((product as any).images) ? (product as any).images : [] });
+      setProductForm({ name: product.name, price: String(product.price), profit_amount: String(product.profit_amount ?? 0), level1_commission_percentage: String(product.level1_commission_percentage ?? 0), company_id: product.company_id, description: product.description || "", image_url: product.image_url || "", is_physical: product.is_physical, activates_system: product.activates_system, currency: product.currency, sector: (product as any).sector || "", images: Array.isArray((product as any).images) ? (product as any).images : [] });
     } else {
       setEditingProduct(null);
-      setProductForm({ name: "", price: "", company_id: companies[0]?.id || "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA", sector: "", images: [] });
+      setProductForm({ name: "", price: "", profit_amount: "", level1_commission_percentage: "", company_id: companies[0]?.id || "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA", sector: "", images: [] });
     }
     setImageUrlInput("");
     setShowProductForm(true);
@@ -250,7 +250,7 @@ const AdminDashboard = () => {
 
   const saveProduct = async () => {
     if (!productForm.name.trim() || !productForm.price || !productForm.company_id) { toast.error("Nom, prix et entreprise requis"); return; }
-    const payload = { name: productForm.name, price: parseFloat(productForm.price), company_id: productForm.company_id, description: productForm.description, image_url: productForm.image_url || null, is_physical: productForm.is_physical, activates_system: productForm.activates_system, currency: productForm.currency, sector: productForm.sector, images: productForm.images, updated_at: new Date().toISOString() };
+    const payload = { name: productForm.name, price: parseFloat(productForm.price), profit_amount: parseFloat(productForm.profit_amount || "0"), level1_commission_percentage: parseFloat(productForm.level1_commission_percentage || "0"), company_id: productForm.company_id, description: productForm.description, image_url: productForm.image_url || null, is_physical: productForm.is_physical, activates_system: productForm.activates_system, currency: productForm.currency, sector: productForm.sector, images: productForm.images, updated_at: new Date().toISOString() };
     if (editingProduct) {
       const { error } = await supabase.from("products").update(payload).eq("id", editingProduct.id);
       if (error) toast.error(error.message);
