@@ -913,6 +913,9 @@ const AdminDashboard = () => {
           <TabsContent value="commissions">
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">Configurez les commissions <strong>par pack</strong>. Sélectionnez un pack puis définissez les taux par niveau. Au-delà des niveaux configurés, le système applique une décroissance automatique.</p>
+              <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs text-muted-foreground">
+                Le calcul actif utilise le bénéfice du pack et le taux niveau 1 enregistrés dans le pack. Exemple : bénéfice 2 000 FCFA × 30 % = 600 FCFA au parrain direct, puis 15 %, 7,5 %, 3,75 %… jusqu'à 0,01 %.
+              </div>
               
               <div className="glass-card rounded-xl p-4">
                 <Label className="text-xs font-bold">Sélectionner un pack</Label>
@@ -933,6 +936,17 @@ const AdminDashboard = () => {
                   <h3 className="font-display text-sm font-bold">
                     Taux de commission — {productsList.find(p => p.id === selectedPackForRates)?.name}
                   </h3>
+                  {(() => {
+                    const selected = productsList.find(p => p.id === selectedPackForRates);
+                    if (!selected) return null;
+                    return (
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 rounded-xl bg-muted/30 p-3">
+                        <div><Label className="text-[10px]">Bénéfice du pack</Label><Input type="number" defaultValue={selected.profit_amount || 0} onBlur={e => updatePackMlmSettings(selected.id, "profit_amount", parseFloat(e.target.value))} className="mt-1 bg-input border-border text-sm" /></div>
+                        <div><Label className="text-[10px]">Commission niveau 1 (%)</Label><Input type="number" step="0.01" defaultValue={selected.level1_commission_percentage || 0} onBlur={e => updatePackMlmSettings(selected.id, "level1_commission_percentage", parseFloat(e.target.value))} className="mt-1 bg-input border-border text-sm" /></div>
+                        <div className="rounded-lg bg-background/60 p-2"><p className="text-[10px] text-muted-foreground">Montant niveau 1</p><p className="text-sm font-display font-bold text-primary">{Math.round(Number(selected.profit_amount || 0) * Number(selected.level1_commission_percentage || 0) / 100).toLocaleString()} {selected.currency}</p></div>
+                      </div>
+                    );
+                  })()}
                   
                   {(packRates[selectedPackForRates] || []).map(r => (
                     <div key={r.id || r.level} className="flex items-center justify-between gap-3">
