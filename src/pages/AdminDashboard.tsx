@@ -250,6 +250,7 @@ const AdminDashboard = () => {
 
   const saveProduct = async () => {
     if (!productForm.name.trim() || !productForm.price || !productForm.company_id) { toast.error("Nom, prix et entreprise requis"); return; }
+    if (productForm.activates_system && (!productForm.profit_amount || !productForm.level1_commission_percentage)) { toast.error("Pour un pack MLM, indiquez le bénéfice du pack et la commission niveau 1"); return; }
     const payload = { name: productForm.name, price: parseFloat(productForm.price), profit_amount: parseFloat(productForm.profit_amount || "0"), level1_commission_percentage: parseFloat(productForm.level1_commission_percentage || "0"), company_id: productForm.company_id, description: productForm.description, image_url: productForm.image_url || null, is_physical: productForm.is_physical, activates_system: productForm.activates_system, currency: productForm.currency, sector: productForm.sector, images: productForm.images, updated_at: new Date().toISOString() };
     if (editingProduct) {
       const { error } = await supabase.from("products").update(payload).eq("id", editingProduct.id);
