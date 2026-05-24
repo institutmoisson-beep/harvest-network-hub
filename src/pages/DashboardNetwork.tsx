@@ -49,7 +49,7 @@ const DashboardNetwork = () => {
 
     // Get all member profiles
     const memberIds = downline.map((d: any) => d.member_id);
-    const { data: profiles } = await supabase.from("profiles").select("id, first_name, last_name, referral_code, career_level, is_system_active").in("id", memberIds);
+    const { data: profiles } = await supabase.rpc("get_public_profiles", { _ids: memberIds });
     const profileMap: Record<string, any> = {};
     profiles?.forEach((p: any) => { profileMap[p.id] = p; });
 
