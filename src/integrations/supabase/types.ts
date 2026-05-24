@@ -198,6 +198,57 @@ export type Database = {
           },
         ]
       }
+      community_fund: {
+        Row: {
+          balance: number
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      community_fund_transactions: {
+        Row: {
+          admin_id: string | null
+          amount: number
+          created_at: string
+          emergency_id: string | null
+          id: string
+          reason: string | null
+          type: Database["public"]["Enums"]["fund_tx_type"]
+          user_id: string | null
+        }
+        Insert: {
+          admin_id?: string | null
+          amount: number
+          created_at?: string
+          emergency_id?: string | null
+          id?: string
+          reason?: string | null
+          type: Database["public"]["Enums"]["fund_tx_type"]
+          user_id?: string | null
+        }
+        Update: {
+          admin_id?: string | null
+          amount?: number
+          created_at?: string
+          emergency_id?: string | null
+          id?: string
+          reason?: string | null
+          type?: Database["public"]["Enums"]["fund_tx_type"]
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
           banner_url: string | null
@@ -251,6 +302,80 @@ export type Database = {
           website_url?: string | null
         }
         Relationships: []
+      }
+      emergencies: {
+        Row: {
+          admin_note: string | null
+          amount_requested: number | null
+          created_at: string
+          description: string
+          frequency: Database["public"]["Enums"]["emergency_frequency"]
+          id: string
+          status: Database["public"]["Enums"]["emergency_status"]
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          amount_requested?: number | null
+          created_at?: string
+          description: string
+          frequency?: Database["public"]["Enums"]["emergency_frequency"]
+          id?: string
+          status?: Database["public"]["Enums"]["emergency_status"]
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          amount_requested?: number | null
+          created_at?: string
+          description?: string
+          frequency?: Database["public"]["Enums"]["emergency_frequency"]
+          id?: string
+          status?: Database["public"]["Enums"]["emergency_status"]
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      emergency_messages: {
+        Row: {
+          content: string
+          created_at: string
+          emergency_id: string
+          id: string
+          is_admin: boolean
+          sender_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          emergency_id: string
+          id?: string
+          is_admin?: boolean
+          sender_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          emergency_id?: string
+          id?: string
+          is_admin?: boolean
+          sender_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emergency_messages_emergency_id_fkey"
+            columns: ["emergency_id"]
+            isOneToOne: false
+            referencedRelation: "emergencies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       network: {
         Row: {
@@ -728,6 +853,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      contribute_to_fund: {
+        Args: { _amount: number }
+        Returns: {
+          new_fund_balance: number
+          new_wallet_balance: number
+        }[]
+      }
       find_profile_by_code: {
         Args: { _code: string }
         Returns: {
@@ -768,6 +900,23 @@ export type Database = {
         }
         Returns: boolean
       }
+      list_emergencies_for_admin: {
+        Args: never
+        Returns: {
+          admin_note: string
+          amount_requested: number
+          created_at: string
+          description: string
+          first_name: string
+          frequency: Database["public"]["Enums"]["emergency_frequency"]
+          id: string
+          last_name: string
+          referral_code: string
+          status: Database["public"]["Enums"]["emergency_status"]
+          title: string
+          user_id: string
+        }[]
+      }
       list_pros_directory: {
         Args: never
         Returns: {
@@ -807,6 +956,12 @@ export type Database = {
           order_id: string
         }[]
       }
+      withdraw_from_fund: {
+        Args: { _amount: number; _emergency_id?: string; _reason: string }
+        Returns: {
+          new_fund_balance: number
+        }[]
+      }
     }
     Enums: {
       account_status: "active" | "suspended" | "paused"
@@ -838,6 +993,14 @@ export type Database = {
         | "cancelled"
       commerce_payment_method: "wallet" | "cash_on_delivery"
       commerce_product_kind: "wholesale" | "distribution"
+      emergency_frequency:
+        | "ponctuelle"
+        | "recurrente"
+        | "urgente_critique"
+        | "quotidienne"
+        | "hebdomadaire"
+      emergency_status: "open" | "in_progress" | "resolved" | "rejected"
+      fund_tx_type: "contribution" | "withdrawal"
       order_status:
         | "pending"
         | "confirmed"
@@ -1010,6 +1173,15 @@ export const Constants = {
       ],
       commerce_payment_method: ["wallet", "cash_on_delivery"],
       commerce_product_kind: ["wholesale", "distribution"],
+      emergency_frequency: [
+        "ponctuelle",
+        "recurrente",
+        "urgente_critique",
+        "quotidienne",
+        "hebdomadaire",
+      ],
+      emergency_status: ["open", "in_progress", "resolved", "rejected"],
+      fund_tx_type: ["contribution", "withdrawal"],
       order_status: [
         "pending",
         "confirmed",

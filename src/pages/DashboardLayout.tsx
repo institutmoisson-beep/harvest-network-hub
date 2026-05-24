@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 import {
   LayoutDashboard, Users, Building2, Wallet, TrendingUp, UserCircle,
-  LogOut, Menu, X, ChevronRight, Shield, Package, DollarSign, MessageCircle, Handshake, Download, ShoppingBag, Boxes, PackageCheck
+  LogOut, Menu, X, ChevronRight, Shield, Package, DollarSign, MessageCircle, Handshake, Download, ShoppingBag, Boxes, PackageCheck, HeartHandshake, Siren
 } from "lucide-react";
 
 const baseMenuItems = [
@@ -16,13 +16,19 @@ const baseMenuItems = [
   { icon: Users, label: "Mon Réseau", path: "/dashboard/network" },
   { icon: Building2, label: "Annuaire Stands", path: "/directory" },
   { icon: Wallet, label: "Portefeuille", path: "/dashboard/wallet" },
+  { icon: HeartHandshake, label: "Fonds Communautaire", path: "/dashboard/fonds" },
+  { icon: Siren, label: "Mes Urgences", path: "/dashboard/urgences" },
   { icon: Download, label: "Télécharger l'app", path: "/telecharger-app" },
   { icon: TrendingUp, label: "Commissions", path: "/dashboard/commissions" },
   { icon: UserCircle, label: "Mon Profil", path: "/dashboard/profile" },
 ];
 
 const roleMenuItems: Record<string, { icon: any; label: string; path: string }[]> = {
-  admin: [{ icon: Shield, label: "Administration", path: "/admin" }, { icon: Boxes, label: "Gestion Commerce", path: "/staff/commerce" }],
+  admin: [
+    { icon: Shield, label: "Administration", path: "/admin" },
+    { icon: Boxes, label: "Gestion Commerce", path: "/staff/commerce" },
+    { icon: Siren, label: "Centre d'urgences", path: "/admin/urgences" },
+  ],
   pack_manager: [{ icon: Package, label: "Gestion Packs", path: "/staff/packs" }, { icon: Boxes, label: "Gestion Commerce", path: "/staff/commerce" }],
   financier: [{ icon: DollarSign, label: "Gestion Finance", path: "/staff/finance" }, { icon: Boxes, label: "Gestion Commerce", path: "/staff/commerce" }],
   partner_manager: [{ icon: Handshake, label: "Gestion Partenaires", path: "/staff/partners" }, { icon: Boxes, label: "Gestion Commerce", path: "/staff/commerce" }],
