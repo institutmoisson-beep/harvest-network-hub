@@ -20,7 +20,7 @@ const DashboardCommissions = () => {
 
         const sourceIds = [...new Set(data.map(c => c.source_user_id).filter(Boolean))];
         if (sourceIds.length > 0) {
-          const { data: profs } = await supabase.from("profiles").select("id, first_name, last_name, referral_code").in("id", sourceIds);
+          const { data: profs } = await supabase.rpc("get_public_profiles", { _ids: sourceIds });
           const pMap: Record<string, any> = {};
           profs?.forEach(p => { pMap[p.id] = p; });
           setProfiles(pMap);
