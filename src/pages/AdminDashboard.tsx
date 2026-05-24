@@ -15,6 +15,7 @@ import {
   Eye, DollarSign, Star, Tags, Shield, Search, ChevronDown, ChevronUp
 } from "lucide-react";
 import logo from "@/assets/logo.png";
+import { compressImage } from "@/utils/imageCompression";
 
 type Profile = { id: string; first_name: string; last_name: string; email: string; phone: string; country: string; referral_code: string; career_level: string; account_status: string; is_system_active: boolean; created_at: string };
 type Transaction = { id: string; user_id: string; type: string; amount: number; status: string; created_at: string; operator: string | null; transaction_ref: string | null; service: string | null; contact: string | null; withdrawal_address: string | null; notes: string | null; transaction_date: string | null; recipient_id?: string | null };
@@ -635,11 +636,11 @@ const AdminDashboard = () => {
                         {companyForm[field] && <img src={companyForm[field]} alt={label} className="w-full h-20 rounded-lg object-cover border border-border" />}
                         <Input value={companyForm[field]} onChange={e => setCompanyForm(p => ({ ...p, [field]: e.target.value }))} placeholder="URL..." className="bg-input border-border text-xs" />
                         <input type="file" accept="image/*" className="text-[10px] w-full" onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          const ext = file.name.split('.').pop();
-                          const path = `companies/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-                          const { error } = await supabase.storage.from("company-images").upload(path, file);
+                          const raw = e.target.files?.[0];
+                          if (!raw) return;
+                          const file = await compressImage(raw);
+                          const path = `companies/${Date.now()}_${Math.random().toString(36).slice(2)}.webp`;
+                          const { error } = await supabase.storage.from("company-images").upload(path, file, { cacheControl: "31536000", upsert: false });
                           if (error) { toast.error(`Erreur upload: ${error.message}`); return; }
                           const { data: urlData } = supabase.storage.from("company-images").getPublicUrl(path);
                           setCompanyForm(p => ({ ...p, [field]: urlData.publicUrl }));
@@ -757,10 +758,10 @@ const AdminDashboard = () => {
                       <input type="file" accept="image/*" multiple className="mt-1 text-xs" onChange={async (e) => {
                         const files = e.target.files;
                         if (!files) return;
-                        for (const file of Array.from(files)) {
-                          const ext = file.name.split('.').pop();
-                          const path = `packs/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-                          const { error } = await supabase.storage.from("pack-images").upload(path, file);
+                        for (const raw of Array.from(files)) {
+                          const file = await compressImage(raw);
+                          const path = `packs/${Date.now()}_${Math.random().toString(36).slice(2)}.webp`;
+                          const { error } = await supabase.storage.from("pack-images").upload(path, file, { cacheControl: "31536000", upsert: false });
                           if (error) { toast.error(`Erreur upload: ${error.message}`); continue; }
                           const { data: urlData } = supabase.storage.from("pack-images").getPublicUrl(path);
                           setProductForm(p => ({ ...p, images: [...p.images, urlData.publicUrl] }));
