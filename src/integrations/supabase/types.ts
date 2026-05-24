@@ -562,13 +562,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "profiles_referred_by_fkey"
-            columns: ["referred_by"]
-            isOneToOne: false
-            referencedRelation: "pros_directory"
-            referencedColumns: ["id"]
-          },
         ]
       }
       sectors: {
@@ -732,42 +725,7 @@ export type Database = {
       }
     }
     Views: {
-      pros_directory: {
-        Row: {
-          avatar_url: string | null
-          career_level: Database["public"]["Enums"]["career_level"] | null
-          country: string | null
-          email: string | null
-          first_name: string | null
-          id: string | null
-          last_name: string | null
-          phone: string | null
-          referral_code: string | null
-        }
-        Insert: {
-          avatar_url?: string | null
-          career_level?: Database["public"]["Enums"]["career_level"] | null
-          country?: string | null
-          email?: string | null
-          first_name?: string | null
-          id?: string | null
-          last_name?: string | null
-          phone?: string | null
-          referral_code?: string | null
-        }
-        Update: {
-          avatar_url?: string | null
-          career_level?: Database["public"]["Enums"]["career_level"] | null
-          country?: string | null
-          email?: string | null
-          first_name?: string | null
-          id?: string | null
-          last_name?: string | null
-          phone?: string | null
-          referral_code?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       find_profile_by_code: {
@@ -809,6 +767,20 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      list_pros_directory: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          career_level: Database["public"]["Enums"]["career_level"]
+          country: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          phone: string
+          referral_code: string
+        }[]
       }
       purchase_commerce_product: {
         Args: {
