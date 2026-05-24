@@ -7,12 +7,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import logo from "@/assets/logo.png";
 import { Eye, EyeOff, UserPlus } from "lucide-react";
+import MathCaptcha from "@/components/MathCaptcha";
 
 const Register = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [showPw, setShowPw] = useState(false);
+  const [captchaOk, setCaptchaOk] = useState(false);
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
@@ -28,6 +30,10 @@ const Register = () => {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!captchaOk) {
+      toast.error("Veuillez résoudre le calcul anti-robot");
+      return;
+    }
     if (form.password !== form.confirmPassword) {
       toast.error("Les mots de passe ne correspondent pas");
       return;
@@ -139,7 +145,9 @@ const Register = () => {
                 className="mt-1 bg-input border-border text-sm" />
             </div>
 
-            <Button type="submit" disabled={loading}
+            <MathCaptcha onValidChange={setCaptchaOk} />
+
+            <Button type="submit" disabled={loading || !captchaOk}
               className="w-full bg-gradient-gold text-secondary-foreground font-display font-bold hover:opacity-90 glow-gold mt-2">
               {loading ? "Inscription..." : <><UserPlus size={16} className="mr-2" /> S'inscrire</>}
             </Button>
