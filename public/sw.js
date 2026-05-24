@@ -1,4 +1,4 @@
-const CACHE_NAME = "moisson-v4";
+const CACHE_NAME = "moisson-v5";
 const PRECACHE = ["/", "/index.html", "/manifest.json", "/icon-192x192.png", "/icon-512x512.png", "/apple-touch-icon.png", "/favicon.png"];
 
 self.addEventListener("install", (e) => {
