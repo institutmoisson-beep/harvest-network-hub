@@ -14,11 +14,7 @@ const MoissoneursPros = () => {
 
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("id, first_name, last_name, email, phone, country, referral_code, career_level, avatar_url, is_pro_visible")
-        .eq("is_pro_visible", true)
-        .eq("account_status", "active");
+      const { data } = await supabase.rpc("list_pros_directory");
       setPros(data || []);
       setLoading(false);
     };

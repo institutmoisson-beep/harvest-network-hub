@@ -29,18 +29,16 @@ const Login = () => {
 
     // If identifier looks like a MSN code, find the email
     if (identifier.toUpperCase().startsWith("MSN") && !identifier.includes("@")) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("email")
-        .eq("referral_code", identifier.toUpperCase())
-        .single();
+      const { data: foundEmail } = await supabase.rpc("get_email_by_referral_code", {
+        _code: identifier.toUpperCase(),
+      });
 
-      if (!profile?.email) {
+      if (!foundEmail) {
         toast.error("Code Moissonneur introuvable");
         setLoading(false);
         return;
       }
-      email = profile.email;
+      email = foundEmail as string;
     }
 
     const { error } = await supabase.auth.signInWithPassword({ email, password });

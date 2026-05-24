@@ -728,6 +728,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      find_profile_by_code: {
+        Args: { _code: string }
+        Returns: {
+          first_name: string
+          id: string
+          last_name: string
+          referral_code: string
+        }[]
+      }
       get_downline: {
         Args: { _user_id: string }
         Returns: {
@@ -738,12 +747,40 @@ export type Database = {
           tree_depth: number
         }[]
       }
+      get_email_by_referral_code: { Args: { _code: string }; Returns: string }
+      get_public_profiles: {
+        Args: { _ids: string[] }
+        Returns: {
+          avatar_url: string
+          career_level: Database["public"]["Enums"]["career_level"]
+          country: string
+          first_name: string
+          id: string
+          is_system_active: boolean
+          last_name: string
+          referral_code: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      list_pros_directory: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          career_level: Database["public"]["Enums"]["career_level"]
+          country: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          phone: string
+          referral_code: string
+        }[]
       }
       purchase_commerce_product: {
         Args: {
