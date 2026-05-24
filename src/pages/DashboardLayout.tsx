@@ -38,11 +38,17 @@ const DashboardLayout = () => {
   const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
-    const setupUser = async (session: any) => {
-      if (!session) { navigate("/login"); return; }
-      setUser(session.user);
-      // Fetch roles
-      const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", session.user.id);
+    let cancelled = false;
+    let loadedFor: string | null = null;
+
+    const loadExtras = async (uid: string) => {
+      if (loadedFor === uid) return;
+      loadedFor = uid;
+      const [{ data: roles }, { data: prof }] = await Promise.all([
+        supabase.from("user_roles").select("role").eq("user_id", uid),
+        supabase.from("profiles").select("first_name, last_name, career_level").eq("id", uid).maybeSingle(),
+      ]);
+      if (cancelled) return;
       const extras: typeof baseMenuItems = [];
       roles?.forEach(r => {
         roleMenuItems[r.role]?.forEach(item => {
@@ -50,14 +56,19 @@ const DashboardLayout = () => {
         });
       });
       setMenuItems([...baseMenuItems, ...extras]);
-      // Fetch profile
-      const { data: prof } = await supabase.from("profiles").select("first_name, last_name, career_level").eq("id", session.user.id).single();
       if (prof) setProfile(prof);
     };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => setupUser(session));
-    supabase.auth.getSession().then(({ data: { session } }) => setupUser(session));
-    return () => subscription.unsubscribe();
+    const handleSession = (session: any) => {
+      if (!session) { navigate("/login"); return; }
+      setUser(session.user);
+      // Defer Supabase calls outside the auth callback to avoid deadlocks
+      setTimeout(() => { if (!cancelled) loadExtras(session.user.id); }, 0);
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => handleSession(session));
+    supabase.auth.getSession().then(({ data: { session } }) => handleSession(session));
+    return () => { cancelled = true; subscription.unsubscribe(); };
   }, [navigate]);
 
   const handleLogout = async () => {
