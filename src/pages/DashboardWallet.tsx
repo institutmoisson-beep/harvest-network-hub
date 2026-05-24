@@ -46,7 +46,7 @@ const DashboardWallet = () => {
       const senderIds = [...new Set(txRes.data.filter((t: any) => t.type === "transfert").map((t: any) => t.user_id))];
       const allIds = [...new Set([...recipientIds, ...senderIds])];
       if (allIds.length > 0) {
-        const { data: profs } = await supabase.from("profiles").select("id, first_name, last_name, referral_code").in("id", allIds);
+        const { data: profs } = await supabase.rpc("get_public_profiles", { _ids: allIds });
         const pMap: Record<string, any> = {};
         profs?.forEach((p: any) => { pMap[p.id] = p; });
         setProfiles(pMap);
@@ -68,8 +68,8 @@ const DashboardWallet = () => {
     setRecipientFound(null);
     if (code.length < 4) return;
     setSearchingRecipient(true);
-    const { data } = await supabase.from("profiles").select("id, first_name, last_name, referral_code").eq("referral_code", code.toUpperCase()).maybeSingle();
-    setRecipientFound(data);
+    const { data } = await supabase.rpc("find_profile_by_code", { _code: code.toUpperCase() });
+    setRecipientFound(Array.isArray(data) && data.length > 0 ? data[0] : null);
     setSearchingRecipient(false);
   };
 
