@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import logo from "@/assets/logo.png";
 import { Eye, EyeOff, LogIn } from "lucide-react";
+import MathCaptcha from "@/components/MathCaptcha";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -14,9 +15,14 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [captchaOk, setCaptchaOk] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!captchaOk) {
+      toast.error("Veuillez résoudre le calcul anti-robot");
+      return;
+    }
     setLoading(true);
 
     let email = identifier;
@@ -77,7 +83,9 @@ const Login = () => {
               </div>
             </div>
 
-            <Button type="submit" disabled={loading}
+            <MathCaptcha onValidChange={setCaptchaOk} />
+
+            <Button type="submit" disabled={loading || !captchaOk}
               className="w-full bg-gradient-purple font-display font-bold hover:opacity-90 glow-purple">
               {loading ? "Connexion..." : <><LogIn size={16} className="mr-2" /> Se Connecter</>}
             </Button>
