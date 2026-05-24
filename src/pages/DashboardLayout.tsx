@@ -24,7 +24,11 @@ const baseMenuItems = [
 ];
 
 const roleMenuItems: Record<string, { icon: any; label: string; path: string }[]> = {
-  admin: [{ icon: Shield, label: "Administration", path: "/admin" }, { icon: Boxes, label: "Gestion Commerce", path: "/staff/commerce" }],
+  admin: [
+    { icon: Shield, label: "Administration", path: "/admin" },
+    { icon: Boxes, label: "Gestion Commerce", path: "/staff/commerce" },
+    { icon: Siren, label: "Centre d'urgences", path: "/admin/urgences" },
+  ],
   pack_manager: [{ icon: Package, label: "Gestion Packs", path: "/staff/packs" }, { icon: Boxes, label: "Gestion Commerce", path: "/staff/commerce" }],
   financier: [{ icon: DollarSign, label: "Gestion Finance", path: "/staff/finance" }, { icon: Boxes, label: "Gestion Commerce", path: "/staff/commerce" }],
   partner_manager: [{ icon: Handshake, label: "Gestion Partenaires", path: "/staff/partners" }, { icon: Boxes, label: "Gestion Commerce", path: "/staff/commerce" }],
