@@ -29,6 +29,9 @@ const StaffPartnerManager = lazy(() => import("./pages/StaffPartnerManager.tsx")
 const StaffCommunication = lazy(() => import("./pages/StaffCommunication.tsx"));
 const StaffCommerceManager = lazy(() => import("./pages/StaffCommerceManager.tsx"));
 const CommerceProducts = lazy(() => import("./pages/CommerceProducts.tsx"));
+const CommunityFund = lazy(() => import("./pages/CommunityFund.tsx"));
+const Emergencies = lazy(() => import("./pages/Emergencies.tsx"));
+const AdminEmergencies = lazy(() => import("./pages/AdminEmergencies.tsx"));
 const InstallApp = lazy(() => import("./pages/InstallApp.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
@@ -65,6 +68,7 @@ const App = () => (
             <Route path="/staff/partners" element={<StaffPartnerManager />} />
             <Route path="/staff/communication" element={<StaffCommunication />} />
             <Route path="/staff/commerce" element={<StaffCommerceManager />} />
+            <Route path="/admin/urgences" element={<AdminEmergencies />} />
             <Route path="/moissonneurs-pros" element={<MoissoneursPros />} />
             <Route path="/packs" element={<Packs />} />
             <Route path="/dashboard" element={<DashboardLayout />}>
@@ -77,6 +81,8 @@ const App = () => (
               <Route path="orders" element={<DashboardOrders />} />
               <Route path="wholesale" element={<CommerceProducts kind="wholesale" />} />
               <Route path="distribution" element={<CommerceProducts kind="distribution" />} />
+              <Route path="fonds" element={<CommunityFund />} />
+              <Route path="urgences" element={<Emergencies />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
