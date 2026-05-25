@@ -53,7 +53,8 @@ const Index = () => {
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover" width={1920} height={1080} />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-background/60 to-background" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-background/55 to-background" />
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
 
         <div className="relative z-10 container mx-auto px-4 text-center pt-20">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 bg-primary/10 mb-6">
@@ -61,7 +62,7 @@ const Index = () => {
             <span className="text-xs font-display uppercase tracking-widest text-primary">Bienvenue chez les Moissonneurs</span>
           </div>
 
-          <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-black mb-6 leading-tight">
+          <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-black mb-6 leading-tight animate-float">
             <span className="text-gradient-gold">Institut</span>{" "}
             <span className="text-gradient-purple">Moisson</span>
           </h1>
@@ -70,8 +71,8 @@ const Index = () => {
             Rejoignez la communauté des Moissonneurs. Ensemble, nous créons, finançons et récoltons le meilleur de demain.
           </p>
           <p className="text-sm text-muted-foreground max-w-xl mx-auto mb-8">
-            Une grande famille universelle de visionnaires — spirituels, scientifiques, penseurs, informaticiens.
-            Nous bâtissons ensemble, nous n'abandonnons jamais l'autre.
+            Une grande famille universelle de visionnaires — créateurs, bâtisseurs, penseurs et professionnels.
+            Ici, la solidarité devient une force concrète et personne n'avance seul.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -128,13 +129,13 @@ const Index = () => {
           <div className="text-center mb-14">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-secondary/30 bg-secondary/10 mb-4">
               <HeartHandshake size={14} className="text-secondary" />
-              <span className="text-xs font-display uppercase tracking-widest text-secondary">Histoires Vraies</span>
+              <span className="text-xs font-display uppercase tracking-widest text-secondary">Élans de Solidarité</span>
             </div>
             <h2 className="font-display text-3xl md:text-5xl font-bold mb-4">
               Personne n'est laissé <span className="text-gradient-gold">pour compte</span>
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Chaque jour, des Moissonneurs s'entraident, mutualisent leurs ressources et créent des opportunités ensemble. Voici quelques-unes de leurs histoires.
+              Chaque jour, des Moissonneurs s'entraident, mutualisent leurs ressources et créent des opportunités ensemble. C'est une culture vivante, visible et inspirante.
             </p>
           </div>
 
@@ -186,7 +187,7 @@ const Index = () => {
                 {[
                   { icon: HeartHandshake, t: "Fonds Communautaire", d: "Chaque Moissonneur contribue selon ses moyens. Le fonds soutient ceux qui en ont besoin, en toute transparence." },
                   { icon: Siren, t: "Cellule d'Urgence", d: "Un problème ? Décris ton urgence. Un administrateur discute avec toi et débloque une aide directement depuis le fonds." },
-                  { icon: TrendingUp, t: "Croissance Partagée", d: "Tes commissions, ta carrière, ton réseau — tout grandit ensemble grâce au plan binaire & unilevel infini." },
+                  { icon: Sparkles, t: "Rayonnement Collectif", d: "Chaque membre apporte sa lumière, reçoit du soutien et participe à une dynamique qui valorise les talents de tous." },
                 ].map((p, i) => (
                   <div key={i} className="flex gap-4 group">
                     <div className="shrink-0 w-12 h-12 rounded-xl bg-gradient-purple flex items-center justify-center group-hover:scale-110 transition-transform glow-purple">
