@@ -53,13 +53,16 @@ const CommunityFund = () => {
   const contribute = async () => {
     const amt = parseFloat(amount);
     if (!amt || amt <= 0) { toast.error("Montant invalide"); return; }
-    if (amt > walletBalance) { toast.error("Solde portefeuille insuffisant"); return; }
     setSubmitting(true);
-    const { error } = await supabase.rpc("contribute_to_fund", { _amount: amt });
+    const { data, error } = await supabase.rpc("contribute_to_fund", { _amount: amt });
     setSubmitting(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(error.message || "Erreur lors de la contribution"); return; }
     toast.success(`Merci pour votre contribution de ${amt.toLocaleString()} FCFA !`);
     setOpen(false); setAmount("");
+    if (data && data[0]) {
+      setWalletBalance(Number(data[0].new_wallet_balance));
+      setFundBalance(Number(data[0].new_fund_balance));
+    }
     load();
   };
 
