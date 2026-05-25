@@ -3,7 +3,11 @@ import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import heroBg from "@/assets/hero-bg.jpg";
-import { Wheat, Users, TrendingUp, Shield, Sparkles, Globe, ArrowRight, Heart, Handshake, Lightbulb } from "lucide-react";
+import storyUnity from "@/assets/story-unity.jpg";
+import storyCollab from "@/assets/story-collab.jpg";
+import storyHands from "@/assets/story-hands.jpg";
+import storySuccess from "@/assets/story-success.jpg";
+import { Wheat, Users, TrendingUp, Shield, Sparkles, Globe, ArrowRight, Heart, Handshake, Lightbulb, HeartHandshake, Siren, Quote } from "lucide-react";
 
 const values = [
   { icon: Handshake, title: "Solidarité Universelle", desc: "Nous sommes une famille. Les Moissonneurs s'entraident en toute circonstance et ne laissent jamais personne derrière." },
@@ -18,6 +22,27 @@ const testimonials = [
   { name: "Aminata K.", country: "Côte d'Ivoire", text: "Les Moissonneurs m'ont donné la force de créer mon avenir. Une famille extraordinaire !", icon: "🌍" },
   { name: "Ousmane D.", country: "Sénégal", text: "Grâce à l'Institut Moisson, j'ai pu développer mon réseau et générer des revenus stables.", icon: "🌾" },
   { name: "Fatou B.", country: "Cameroun", text: "L'entraide ici est réelle. On ne marche jamais seul quand on est Moissonneur.", icon: "✨" },
+];
+
+const stories = [
+  {
+    img: storyHands,
+    tag: "Solidarité",
+    title: "Quand un Moissonneur tombe, dix le relèvent",
+    text: "Marie a perdu son emploi du jour au lendemain. En 48h, la communauté a mobilisé le Fonds Communautaire pour couvrir le loyer de sa famille. Aujourd'hui, elle dirige son propre stand.",
+  },
+  {
+    img: storyCollab,
+    tag: "Mutualisation",
+    title: "Cinq idées, un seul projet financé ensemble",
+    text: "À Abidjan, cinq jeunes Moissonneurs ont mis en commun leurs compétences et leurs portefeuilles pour lancer une boutique commune. Le réseau a fait tourner la machine.",
+  },
+  {
+    img: storyUnity,
+    tag: "Opportunités",
+    title: "Une famille universelle, sans frontières",
+    text: "Du Sénégal au Cameroun, de Paris à Montréal — les Moissonneurs créent des ponts, échangent des contrats, ouvrent les portes les uns aux autres.",
+  },
 ];
 
 const Index = () => {
@@ -92,6 +117,94 @@ const Index = () => {
                 <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Stories of mutual aid */}
+      <section className="py-24 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-primary/5 to-background" />
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="text-center mb-14">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-secondary/30 bg-secondary/10 mb-4">
+              <HeartHandshake size={14} className="text-secondary" />
+              <span className="text-xs font-display uppercase tracking-widest text-secondary">Histoires Vraies</span>
+            </div>
+            <h2 className="font-display text-3xl md:text-5xl font-bold mb-4">
+              Personne n'est laissé <span className="text-gradient-gold">pour compte</span>
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Chaque jour, des Moissonneurs s'entraident, mutualisent leurs ressources et créent des opportunités ensemble. Voici quelques-unes de leurs histoires.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {stories.map((s, i) => (
+              <article key={i} className="group relative glass-card rounded-3xl overflow-hidden hover:glow-purple transition-all duration-500 hover:-translate-y-1">
+                <div className="relative aspect-[4/3] overflow-hidden">
+                  <img src={s.img} alt={s.title} loading="lazy" width={1280} height={832}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+                  <span className="absolute top-4 left-4 px-3 py-1 rounded-full text-[10px] font-display uppercase tracking-widest bg-secondary/90 text-secondary-foreground">
+                    {s.tag}
+                  </span>
+                </div>
+                <div className="p-6">
+                  <h3 className="font-display text-lg font-bold mb-2 leading-snug">{s.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{s.text}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Mutual aid pillars */}
+      <section className="py-24 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-purple opacity-[0.07]" />
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            <div className="relative">
+              <div className="absolute -inset-4 bg-gradient-gold opacity-20 blur-3xl rounded-full" />
+              <img src={storySuccess} alt="Moissonneuse" loading="lazy" width={1024} height={1024}
+                className="relative rounded-3xl shadow-2xl w-full object-cover" />
+              <div className="absolute -bottom-6 -right-6 glass-card rounded-2xl p-4 max-w-[220px] hidden md:block">
+                <p className="font-display text-2xl font-black text-gradient-gold">+12 000</p>
+                <p className="text-xs text-muted-foreground">Moissonneurs unis à travers le monde</p>
+              </div>
+            </div>
+
+            <div>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 bg-primary/10 mb-4">
+                <Sparkles size={14} className="text-primary" />
+                <span className="text-xs font-display uppercase tracking-widest text-primary">Notre Promesse</span>
+              </div>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-6 leading-tight">
+                On fait <span className="text-gradient-purple">rayonner</span> nos membres
+              </h2>
+              <div className="space-y-5">
+                {[
+                  { icon: HeartHandshake, t: "Fonds Communautaire", d: "Chaque Moissonneur contribue selon ses moyens. Le fonds soutient ceux qui en ont besoin, en toute transparence." },
+                  { icon: Siren, t: "Cellule d'Urgence", d: "Un problème ? Décris ton urgence. Un administrateur discute avec toi et débloque une aide directement depuis le fonds." },
+                  { icon: TrendingUp, t: "Croissance Partagée", d: "Tes commissions, ta carrière, ton réseau — tout grandit ensemble grâce au plan binaire & unilevel infini." },
+                ].map((p, i) => (
+                  <div key={i} className="flex gap-4 group">
+                    <div className="shrink-0 w-12 h-12 rounded-xl bg-gradient-purple flex items-center justify-center group-hover:scale-110 transition-transform glow-purple">
+                      <p.icon size={20} className="text-primary-foreground" />
+                    </div>
+                    <div>
+                      <h3 className="font-display text-base font-bold mb-1">{p.t}</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{p.d}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <Link to="/register" className="inline-block mt-8">
+                <Button size="lg" className="bg-gradient-gold text-secondary-foreground font-display font-bold hover:opacity-90 glow-gold">
+                  Rejoindre la famille <ArrowRight className="ml-2" size={18} />
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
