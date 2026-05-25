@@ -7,21 +7,21 @@ import storyUnity from "@/assets/story-unity.jpg";
 import storyCollab from "@/assets/story-collab.jpg";
 import storyHands from "@/assets/story-hands.jpg";
 import storySuccess from "@/assets/story-success.jpg";
-import { Wheat, Users, TrendingUp, Shield, Sparkles, Globe, ArrowRight, Heart, Handshake, Lightbulb, HeartHandshake, Siren, Quote } from "lucide-react";
+import { Wheat, Users, Shield, Sparkles, Globe, ArrowRight, Heart, Handshake, Lightbulb, HeartHandshake, Siren } from "lucide-react";
 
 const values = [
   { icon: Handshake, title: "Solidarité Universelle", desc: "Nous sommes une famille. Les Moissonneurs s'entraident en toute circonstance et ne laissent jamais personne derrière." },
-  { icon: Users, title: "Réseau Puissant", desc: "Double système binaire & unilevel pour maximiser vos gains à travers un réseau solide et infini." },
-  { icon: Heart, title: "Communauté Unie", desc: "Spirituels, scientifiques, penseurs, informaticiens — tous unis pour créer et financer ensemble." },
-  { icon: Lightbulb, title: "Innovation & Vision", desc: "Nous finançons des projets ambitieux, créons des activités ensemble pour un avenir meilleur." },
+  { icon: Users, title: "Alliance Mondiale", desc: "Des membres connectés partout dans le monde pour partager des ressources, ouvrir des portes et bâtir ensemble." },
+  { icon: Heart, title: "Communauté Unie", desc: "Spirituels, scientifiques, penseurs, entrepreneurs et informaticiens — tous rassemblés autour d'une même vision." },
+  { icon: Lightbulb, title: "Opportunités Partagées", desc: "Nous transformons les idées en actions concrètes grâce à la mutualisation des talents, des moyens et des contacts." },
   { icon: Shield, title: "Wallet Sécurisé", desc: "Gérez vos fonds en toute sécurité avec recharges, retraits et historique complet." },
-  { icon: Globe, title: "Stands Partenaires", desc: "Accédez aux entreprises partenaires, achetez leurs produits et activez votre système." },
+  { icon: Globe, title: "Écosystème Vivant", desc: "Découvrez des partenaires, des services, des projets et des opportunités pensés pour faire rayonner les membres." },
 ];
 
 const testimonials = [
-  { name: "Aminata K.", country: "Côte d'Ivoire", text: "Les Moissonneurs m'ont donné la force de créer mon avenir. Une famille extraordinaire !", icon: "🌍" },
-  { name: "Ousmane D.", country: "Sénégal", text: "Grâce à l'Institut Moisson, j'ai pu développer mon réseau et générer des revenus stables.", icon: "🌾" },
-  { name: "Fatou B.", country: "Cameroun", text: "L'entraide ici est réelle. On ne marche jamais seul quand on est Moissonneur.", icon: "✨" },
+  { name: "Aminata K.", country: "Moissonneuse du monde", text: "Les Moissonneurs m'ont donné la force de créer mon avenir. Une famille extraordinaire !", icon: "🌍" },
+  { name: "Ousmane D.", country: "Moissonneur du monde", text: "Grâce à l'Institut Moisson, j'ai rencontré des personnes fiables et découvert de nouvelles opportunités.", icon: "🌾" },
+  { name: "Fatou B.", country: "Moissonneuse du monde", text: "L'entraide ici est réelle. On ne marche jamais seul quand on est Moissonneur.", icon: "✨" },
 ];
 
 const stories = [
@@ -35,13 +35,13 @@ const stories = [
     img: storyCollab,
     tag: "Mutualisation",
     title: "Cinq idées, un seul projet financé ensemble",
-    text: "À Abidjan, cinq jeunes Moissonneurs ont mis en commun leurs compétences et leurs portefeuilles pour lancer une boutique commune. Le réseau a fait tourner la machine.",
+    text: "Aux quatre coins du monde, des Moissonneurs mettent en commun leurs compétences et leurs portefeuilles pour lancer des projets qui créent de la valeur.",
   },
   {
     img: storyUnity,
     tag: "Opportunités",
     title: "Une famille universelle, sans frontières",
-    text: "Du Sénégal au Cameroun, de Paris à Montréal — les Moissonneurs créent des ponts, échangent des contrats, ouvrent les portes les uns aux autres.",
+    text: "Les Moissonneurs du monde entier créent des ponts, échangent des contacts, partagent des contrats et ouvrent les portes les uns aux autres.",
   },
 ];
 
@@ -53,7 +53,8 @@ const Index = () => {
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover" width={1920} height={1080} />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-background/60 to-background" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-background/55 to-background" />
+        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent" />
 
         <div className="relative z-10 container mx-auto px-4 text-center pt-20">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 bg-primary/10 mb-6">
@@ -61,7 +62,7 @@ const Index = () => {
             <span className="text-xs font-display uppercase tracking-widest text-primary">Bienvenue chez les Moissonneurs</span>
           </div>
 
-          <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-black mb-6 leading-tight">
+          <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-black mb-6 leading-tight animate-float">
             <span className="text-gradient-gold">Institut</span>{" "}
             <span className="text-gradient-purple">Moisson</span>
           </h1>
@@ -70,8 +71,8 @@ const Index = () => {
             Rejoignez la communauté des Moissonneurs. Ensemble, nous créons, finançons et récoltons le meilleur de demain.
           </p>
           <p className="text-sm text-muted-foreground max-w-xl mx-auto mb-8">
-            Une grande famille universelle de visionnaires — spirituels, scientifiques, penseurs, informaticiens.
-            Nous bâtissons ensemble, nous n'abandonnons jamais l'autre.
+            Une grande famille universelle de visionnaires — créateurs, bâtisseurs, penseurs et professionnels.
+            Ici, la solidarité devient une force concrète et personne n'avance seul.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -128,13 +129,13 @@ const Index = () => {
           <div className="text-center mb-14">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-secondary/30 bg-secondary/10 mb-4">
               <HeartHandshake size={14} className="text-secondary" />
-              <span className="text-xs font-display uppercase tracking-widest text-secondary">Histoires Vraies</span>
+              <span className="text-xs font-display uppercase tracking-widest text-secondary">Élans de Solidarité</span>
             </div>
             <h2 className="font-display text-3xl md:text-5xl font-bold mb-4">
               Personne n'est laissé <span className="text-gradient-gold">pour compte</span>
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Chaque jour, des Moissonneurs s'entraident, mutualisent leurs ressources et créent des opportunités ensemble. Voici quelques-unes de leurs histoires.
+              Chaque jour, des Moissonneurs s'entraident, mutualisent leurs ressources et créent des opportunités ensemble. C'est une culture vivante, visible et inspirante.
             </p>
           </div>
 
@@ -186,7 +187,7 @@ const Index = () => {
                 {[
                   { icon: HeartHandshake, t: "Fonds Communautaire", d: "Chaque Moissonneur contribue selon ses moyens. Le fonds soutient ceux qui en ont besoin, en toute transparence." },
                   { icon: Siren, t: "Cellule d'Urgence", d: "Un problème ? Décris ton urgence. Un administrateur discute avec toi et débloque une aide directement depuis le fonds." },
-                  { icon: TrendingUp, t: "Croissance Partagée", d: "Tes commissions, ta carrière, ton réseau — tout grandit ensemble grâce au plan binaire & unilevel infini." },
+                  { icon: Sparkles, t: "Rayonnement Collectif", d: "Chaque membre apporte sa lumière, reçoit du soutien et participe à une dynamique qui valorise les talents de tous." },
                 ].map((p, i) => (
                   <div key={i} className="flex gap-4 group">
                     <div className="shrink-0 w-12 h-12 rounded-xl bg-gradient-purple flex items-center justify-center group-hover:scale-110 transition-transform glow-purple">
