@@ -7,20 +7,20 @@ import storyUnity from "@/assets/story-unity.jpg";
 import storyCollab from "@/assets/story-collab.jpg";
 import storyHands from "@/assets/story-hands.jpg";
 import storySuccess from "@/assets/story-success.jpg";
-import { Wheat, Users, TrendingUp, Shield, Sparkles, Globe, ArrowRight, Heart, Handshake, Lightbulb, HeartHandshake, Siren, Quote } from "lucide-react";
+import { Wheat, Users, Shield, Sparkles, Globe, ArrowRight, Heart, Handshake, Lightbulb, HeartHandshake, Siren } from "lucide-react";
 
 const values = [
   { icon: Handshake, title: "Solidarité Universelle", desc: "Nous sommes une famille. Les Moissonneurs s'entraident en toute circonstance et ne laissent jamais personne derrière." },
-  { icon: Users, title: "Réseau Puissant", desc: "Double système binaire & unilevel pour maximiser vos gains à travers un réseau solide et infini." },
-  { icon: Heart, title: "Communauté Unie", desc: "Spirituels, scientifiques, penseurs, informaticiens — tous unis pour créer et financer ensemble." },
-  { icon: Lightbulb, title: "Innovation & Vision", desc: "Nous finançons des projets ambitieux, créons des activités ensemble pour un avenir meilleur." },
+  { icon: Users, title: "Alliance Mondiale", desc: "Des membres connectés partout dans le monde pour partager des ressources, ouvrir des portes et bâtir ensemble." },
+  { icon: Heart, title: "Communauté Unie", desc: "Spirituels, scientifiques, penseurs, entrepreneurs et informaticiens — tous rassemblés autour d'une même vision." },
+  { icon: Lightbulb, title: "Opportunités Partagées", desc: "Nous transformons les idées en actions concrètes grâce à la mutualisation des talents, des moyens et des contacts." },
   { icon: Shield, title: "Wallet Sécurisé", desc: "Gérez vos fonds en toute sécurité avec recharges, retraits et historique complet." },
-  { icon: Globe, title: "Stands Partenaires", desc: "Accédez aux entreprises partenaires, achetez leurs produits et activez votre système." },
+  { icon: Globe, title: "Écosystème Vivant", desc: "Découvrez des partenaires, des services, des projets et des opportunités pensés pour faire rayonner les membres." },
 ];
 
 const testimonials = [
   { name: "Aminata K.", country: "Côte d'Ivoire", text: "Les Moissonneurs m'ont donné la force de créer mon avenir. Une famille extraordinaire !", icon: "🌍" },
-  { name: "Ousmane D.", country: "Sénégal", text: "Grâce à l'Institut Moisson, j'ai pu développer mon réseau et générer des revenus stables.", icon: "🌾" },
+  { name: "Ousmane D.", country: "Moissonneur du monde", text: "Grâce à l'Institut Moisson, j'ai rencontré des personnes fiables et découvert de nouvelles opportunités.", icon: "🌾" },
   { name: "Fatou B.", country: "Cameroun", text: "L'entraide ici est réelle. On ne marche jamais seul quand on est Moissonneur.", icon: "✨" },
 ];
 
@@ -35,13 +35,13 @@ const stories = [
     img: storyCollab,
     tag: "Mutualisation",
     title: "Cinq idées, un seul projet financé ensemble",
-    text: "À Abidjan, cinq jeunes Moissonneurs ont mis en commun leurs compétences et leurs portefeuilles pour lancer une boutique commune. Le réseau a fait tourner la machine.",
+    text: "Aux quatre coins du monde, des Moissonneurs mettent en commun leurs compétences et leurs portefeuilles pour lancer des projets qui créent de la valeur.",
   },
   {
     img: storyUnity,
     tag: "Opportunités",
     title: "Une famille universelle, sans frontières",
-    text: "Du Sénégal au Cameroun, de Paris à Montréal — les Moissonneurs créent des ponts, échangent des contrats, ouvrent les portes les uns aux autres.",
+    text: "Les Moissonneurs du monde entier créent des ponts, échangent des contacts, partagent des contrats et ouvrent les portes les uns aux autres.",
   },
 ];
 
