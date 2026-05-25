@@ -19,9 +19,9 @@ const values = [
 ];
 
 const testimonials = [
-  { name: "Aminata K.", country: "Côte d'Ivoire", text: "Les Moissonneurs m'ont donné la force de créer mon avenir. Une famille extraordinaire !", icon: "🌍" },
+  { name: "Aminata K.", country: "Moissonneuse du monde", text: "Les Moissonneurs m'ont donné la force de créer mon avenir. Une famille extraordinaire !", icon: "🌍" },
   { name: "Ousmane D.", country: "Moissonneur du monde", text: "Grâce à l'Institut Moisson, j'ai rencontré des personnes fiables et découvert de nouvelles opportunités.", icon: "🌾" },
-  { name: "Fatou B.", country: "Cameroun", text: "L'entraide ici est réelle. On ne marche jamais seul quand on est Moissonneur.", icon: "✨" },
+  { name: "Fatou B.", country: "Moissonneuse du monde", text: "L'entraide ici est réelle. On ne marche jamais seul quand on est Moissonneur.", icon: "✨" },
 ];
 
 const stories = [
