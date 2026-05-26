@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Wallet, ArrowUpRight, ArrowDownLeft, Clock, Copy, ExternalLink, Check, Send, Globe, UserCheck } from "lucide-react";
+import { Wallet, ArrowUpRight, ArrowDownLeft, Clock, Copy, ExternalLink, Check, Send, Globe, UserCheck, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,8 +26,26 @@ const DashboardWallet = () => {
   const [recipientFound, setRecipientFound] = useState<any>(null);
   const [searchingRecipient, setSearchingRecipient] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [search, setSearch] = useState("");
+  const [visibleCount, setVisibleCount] = useState(20);
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => {
+    let active = true;
+    let channel: any;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || !active) return;
+      await loadData();
+      channel = supabase
+        .channel(`wallet-${user.id}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "wallets", filter: `user_id=eq.${user.id}` },
+            () => { loadData(); })
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "wallet_transactions", filter: `user_id=eq.${user.id}` },
+            () => { loadData(); })
+        .subscribe();
+    })();
+    return () => { active = false; if (channel) supabase.removeChannel(channel); };
+  }, []);
 
   const loadData = async () => {
     setLoading(true);
@@ -74,48 +92,26 @@ const DashboardWallet = () => {
   };
 
   const handleTransfer = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
     if (!recipientFound) { toast.error("Destinataire introuvable"); return; }
-    if (recipientFound.id === user.id) { toast.error("Vous ne pouvez pas vous envoyer de l'argent"); return; }
     const amount = parseFloat(transferForm.amount);
     if (!amount || amount <= 0) { toast.error("Montant invalide"); return; }
-    if (amount > balance) { toast.error("Solde insuffisant"); return; }
-
     setSubmitting(true);
     try {
-      // Debit sender wallet
-      const { data: senderWallet } = await supabase.from("wallets").select("*").eq("user_id", user.id).single();
-      if (!senderWallet) throw new Error("Portefeuille introuvable");
-      await supabase.from("wallets").update({ balance: Number(senderWallet.balance) - amount, updated_at: new Date().toISOString() }).eq("id", senderWallet.id);
-
-      // Credit recipient wallet
-      const { data: recipientWallet } = await supabase.from("wallets").select("*").eq("user_id", recipientFound.id).single();
-      if (recipientWallet) {
-        await supabase.from("wallets").update({ balance: Number(recipientWallet.balance) + amount, updated_at: new Date().toISOString() }).eq("id", recipientWallet.id);
-      }
-
-      // Record sender transaction (debit)
-      await supabase.from("wallet_transactions").insert({
-        user_id: user.id, type: "transfert" as any, amount,
-        status: "approved" as const, recipient_id: recipientFound.id,
-        notes: transferForm.notes || `Transfert à ${recipientFound.first_name} ${recipientFound.last_name} (${recipientFound.referral_code})`,
+      const { data, error } = await supabase.rpc("transfer_to_user", {
+        _recipient_code: recipientFound.referral_code,
+        _amount: amount,
+        _note: transferForm.notes || null,
       });
-
-      // Record recipient transaction (credit) 
-      await supabase.from("wallet_transactions").insert({
-        user_id: recipientFound.id, type: "transfert" as any, amount,
-        status: "approved" as const, recipient_id: user.id,
-        notes: `Transfert reçu`,
-      });
-
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : data;
+      if (row?.new_balance != null) setBalance(Number(row.new_balance));
       toast.success(`${amount.toLocaleString()} FCFA envoyés à ${recipientFound.first_name}`);
       setTransferOpen(false);
       setTransferForm({ amount: "", recipientCode: "", notes: "" });
       setRecipientFound(null);
       loadData();
     } catch (err: any) {
-      toast.error(err.message || "Erreur");
+      toast.error(err.message || "Erreur lors du transfert");
     } finally {
       setSubmitting(false);
     }
