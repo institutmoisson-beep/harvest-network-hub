@@ -196,19 +196,41 @@ const DashboardWallet = () => {
 
       {/* Transactions */}
       <div className="glass-card rounded-xl p-6">
-        <h3 className="font-display text-sm font-bold mb-4 flex items-center gap-2">
-          <Clock size={16} className="text-muted-foreground" /> Historique
-        </h3>
+        <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+          <h3 className="font-display text-sm font-bold flex items-center gap-2">
+            <Clock size={16} className="text-muted-foreground" /> Historique
+          </h3>
+          <div className="relative flex-1 min-w-[180px] max-w-xs ml-auto">
+            <Search size={14} className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input value={search} onChange={e => { setSearch(e.target.value); setVisibleCount(20); }}
+              placeholder="Rechercher (type, note, montant)..." className="pl-7 h-8 text-xs bg-input border-border" />
+          </div>
+        </div>
         {transactions.length === 0 ? (
           <div className="text-center py-10 text-muted-foreground">
             <Wallet size={40} className="mx-auto mb-3 opacity-20" />
             <p className="text-sm">Aucune transaction</p>
           </div>
         ) : (
+          (() => {
+            const q = search.trim().toLowerCase();
+            const filtered = q
+              ? transactions.filter(tx => {
+                  const hay = `${tx.type} ${tx.status} ${tx.notes || ""} ${tx.operator || ""} ${tx.amount}`.toLowerCase();
+                  return hay.includes(q);
+                })
+              : transactions;
+            const shown = filtered.slice(0, visibleCount);
+            return (
           <div className="space-y-3">
-            {transactions.map(tx => {
+            {shown.length === 0 && (
+              <p className="text-xs text-center text-muted-foreground py-6">Aucun résultat</p>
+            )}
+            {shown.map(tx => {
               const isIncomingTransfer = tx.type === "transfert" && tx.notes?.startsWith("Transfert reçu");
               const recipientProfile = tx.recipient_id ? profiles[tx.recipient_id] : null;
+              const d = new Date(tx.created_at);
+              const shortDate = `${String(d.getDate()).padStart(2,"0")}/${String(d.getMonth()+1).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
               return (
                 <div key={tx.id} className="flex items-center justify-between p-3 rounded-xl bg-muted/30">
                   <div>
@@ -220,7 +242,7 @@ const DashboardWallet = () => {
                           : `À: ${recipientProfile ? `${recipientProfile.first_name} ${recipientProfile.last_name}` : "Utilisateur"}`}
                       </p>
                     )}
-                    <p className="text-xs text-muted-foreground">{new Date(tx.created_at).toLocaleDateString("fr-FR")}{tx.operator && ` • ${tx.operator}`}</p>
+                    <p className="text-xs text-muted-foreground">{shortDate}{tx.operator && ` • ${tx.operator}`}</p>
                   </div>
                   <div className="text-right">
                     <p className={`text-sm font-bold ${tx.type === "recharge" || tx.type === "commission" || isIncomingTransfer ? "text-green-400" : "text-red-400"}`}>
@@ -234,7 +256,15 @@ const DashboardWallet = () => {
                 </div>
               );
             })}
+            {filtered.length > visibleCount && (
+              <Button variant="outline" size="sm" className="w-full text-xs"
+                onClick={() => setVisibleCount(c => c + 20)}>
+                Afficher plus ({filtered.length - visibleCount} restantes)
+              </Button>
+            )}
           </div>
+            );
+          })()
         )}
       </div>
 
