@@ -1,8 +1,11 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { Users, GitBranch, ZoomIn, ZoomOut, RotateCcw, ChevronDown, ChevronRight } from "lucide-react";
+import { Users, GitBranch, ZoomIn, ZoomOut, RotateCcw, ChevronDown, ChevronRight, List, ArrowLeftRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 type TreeNode = {
   id: string;
@@ -25,11 +28,27 @@ const DashboardNetwork = () => {
   const [dragging, setDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [loading, setLoading] = useState(true);
+  const [referrals, setReferrals] = useState<any[]>([]);
+  const [refSearch, setRefSearch] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadNetwork();
+    loadReferrals();
   }, []);
+
+  const loadReferrals = async () => {
+    const { data } = await supabase.rpc("list_my_referrals");
+    if (data) setReferrals(data);
+  };
+
+  const moveReferral = async (memberId: string, newPosition: "left" | "right") => {
+    const { error } = await supabase.rpc("move_referral_position", { _member_id: memberId, _new_position: newPosition });
+    if (error) return toast.error(error.message);
+    toast.success(`Repositionné en branche ${newPosition === "left" ? "gauche" : "droite"}`);
+    loadNetwork();
+    loadReferrals();
+  };
 
   const loadNetwork = async () => {
     setLoading(true);
@@ -132,7 +151,13 @@ const DashboardNetwork = () => {
         </div>
       </div>
 
-      {/* Zoomable Tree */}
+      <Tabs defaultValue="tree" className="w-full">
+        <TabsList className="mb-4">
+          <TabsTrigger value="tree"><GitBranch size={14} className="mr-2" /> Arbre</TabsTrigger>
+          <TabsTrigger value="list"><List size={14} className="mr-2" /> Mes Filleuls ({referrals.length})</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="tree">
       <div className="glass-card rounded-xl p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-display text-sm font-bold flex items-center gap-2">
@@ -182,6 +207,55 @@ const DashboardNetwork = () => {
           </div>
         </div>
       </div>
+        </TabsContent>
+
+        <TabsContent value="list">
+          <div className="glass-card rounded-xl p-6">
+            <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+              <h3 className="font-display text-sm font-bold flex items-center gap-2">
+                <List size={16} className="text-secondary" /> Liste de mes filleuls directs
+              </h3>
+              <Input value={refSearch} onChange={e => setRefSearch(e.target.value)}
+                placeholder="Rechercher nom, code, pays..." className="max-w-xs h-8 text-xs bg-input border-border" />
+            </div>
+            {referrals.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">Aucun filleul direct pour l'instant</p>
+            ) : (
+              <div className="space-y-2">
+                {referrals
+                  .filter(r => {
+                    const q = refSearch.trim().toLowerCase();
+                    if (!q) return true;
+                    return `${r.first_name} ${r.last_name} ${r.referral_code} ${r.country || ""}`.toLowerCase().includes(q);
+                  })
+                  .map(r => (
+                  <div key={r.member_id} className="flex items-center justify-between gap-3 p-3 rounded-lg bg-muted/30 flex-wrap">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-display font-bold truncate">{r.first_name} {r.last_name}</p>
+                      <p className="text-xs text-muted-foreground font-mono">{r.referral_code}</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {r.country || "—"} · {r.phone || "Pas de téléphone"} · {new Date(r.joined_at).toLocaleDateString("fr-FR")}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={r.is_system_active ? "default" : "outline"} className="text-[10px]">
+                        {r.is_system_active ? "Actif" : "Inactif"}
+                      </Badge>
+                      <Badge variant="outline" className="text-[10px]">
+                        {r.branch_position === "left" ? "Gauche" : "Droite"}
+                      </Badge>
+                      <Button size="sm" variant="outline" className="h-7 text-[10px] gap-1"
+                        onClick={() => moveReferral(r.member_id, r.branch_position === "left" ? "right" : "left")}>
+                        <ArrowLeftRight size={12} /> Repositionner
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
