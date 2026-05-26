@@ -917,6 +917,21 @@ export type Database = {
           user_id: string
         }[]
       }
+      list_my_referrals: {
+        Args: never
+        Returns: {
+          branch_position: string
+          career_level: Database["public"]["Enums"]["career_level"]
+          country: string
+          first_name: string
+          is_system_active: boolean
+          joined_at: string
+          last_name: string
+          member_id: string
+          phone: string
+          referral_code: string
+        }[]
+      }
       list_pros_directory: {
         Args: never
         Returns: {
@@ -930,6 +945,10 @@ export type Database = {
           phone: string
           referral_code: string
         }[]
+      }
+      move_referral_position: {
+        Args: { _member_id: string; _new_position: string }
+        Returns: undefined
       }
       purchase_commerce_product: {
         Args: {
@@ -954,6 +973,13 @@ export type Database = {
           message: string
           new_balance: number
           order_id: string
+        }[]
+      }
+      transfer_to_user: {
+        Args: { _amount: number; _note?: string; _recipient_code: string }
+        Returns: {
+          new_balance: number
+          recipient_name: string
         }[]
       }
       withdraw_from_fund: {
