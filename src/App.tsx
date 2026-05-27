@@ -32,6 +32,13 @@ const CommerceProducts = lazy(() => import("./pages/CommerceProducts.tsx"));
 const CommunityFund = lazy(() => import("./pages/CommunityFund.tsx"));
 const Emergencies = lazy(() => import("./pages/Emergencies.tsx"));
 const AdminEmergencies = lazy(() => import("./pages/AdminEmergencies.tsx"));
+const AdminRoles = lazy(() => import("./pages/AdminRoles.tsx"));
+const AdminRelays = lazy(() => import("./pages/AdminRelays.tsx"));
+const StaffHR = lazy(() => import("./pages/StaffHR.tsx"));
+const StaffDelivery = lazy(() => import("./pages/StaffDelivery.tsx"));
+const StaffCountry = lazy(() => import("./pages/StaffCountry.tsx"));
+const StaffCity = lazy(() => import("./pages/StaffCity.tsx"));
+const StaffZone = lazy(() => import("./pages/StaffZone.tsx"));
 const InstallApp = lazy(() => import("./pages/InstallApp.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
@@ -69,6 +76,14 @@ const App = () => (
             <Route path="/staff/communication" element={<StaffCommunication />} />
             <Route path="/staff/commerce" element={<StaffCommerceManager />} />
             <Route path="/admin/urgences" element={<AdminEmergencies />} />
+            <Route path="/admin/roles" element={<AdminRoles />} />
+            <Route path="/admin/relays" element={<AdminRelays />} />
+            <Route path="/staff/hr" element={<StaffHR />} />
+            <Route path="/staff/delivery" element={<StaffDelivery />} />
+            <Route path="/staff/country" element={<StaffCountry />} />
+            <Route path="/staff/city" element={<StaffCity />} />
+            <Route path="/staff/zone" element={<StaffZone />} />
+            <Route path="/staff/emergency" element={<AdminEmergencies />} />
             <Route path="/moissonneurs-pros" element={<MoissoneursPros />} />
             <Route path="/packs" element={<Packs />} />
             <Route path="/dashboard" element={<DashboardLayout />}>
