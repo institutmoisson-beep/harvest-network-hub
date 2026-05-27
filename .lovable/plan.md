@@ -1,97 +1,65 @@
-## Vue d'ensemble
+## Phase 2 — Relais de livraison + rôles étendus
 
-Cette demande couvre 6 chantiers majeurs. Vu l'ampleur, je propose de la livrer en **3 phases** pour garder la qualité et la stabilité. Confirme la priorité avant que je commence.
+### 1. Base de données
 
----
+**Nouveaux enums:**
+- Étendre `app_role` avec: `zone_harvester`, `city_harvester`, `country_harvester`, `emergency_admin`, `hr_manager`, `delivery_manager`
+- Étendre `account_status` avec: `blocked` (suspended existe déjà)
+- Nouveau enum `delivery_status`: `en_preparation`, `en_route_relais`, `disponible_au_relais`, `recupere`
 
-## Phase 1 — Fondations critiques (bugs bloquants + UX wallet + réseau)
+**Nouvelles tables:**
 
-### 1.1 Correction du transfert P2P entre portefeuilles
-- Créer une fonction RPC `transfer_to_user(_recipient_code, _amount, _note)` `SECURITY DEFINER` qui:
-  - Verrouille les deux portefeuilles (`FOR UPDATE`) dans un ordre déterministe (anti-deadlock)
-  - Débite l'émetteur, crédite le destinataire, crée **deux** lignes `wallet_transactions` (sortie + entrée) liées
-  - Renvoie les nouveaux soldes pour mise à jour UI immédiate
-- Brancher Supabase Realtime sur `wallets` et `wallet_transactions` pour rafraîchir automatiquement les soldes des deux côtés
-- Retirer toute logique de transfert côté client qui fait deux `update` séparés
+`relay_points` — nom, type (boutique/maquis/autre), pays, ville, adresse, téléphone, responsable, manager_id (uuid nullable), is_active
+- RLS: lecture publique des actifs ; admin + country_harvester du pays peuvent gérer
 
-### 1.2 Portefeuille : recherche + format compact
-- Barre de recherche dans l'historique (filtre par type, statut, note, montant, date)
-- Format de date court (`dd/MM HH:mm`) au lieu de l'heure longue
-- Tri par défaut: transactions récentes en haut, pagination/scroll
+`role_assignments` — user_id, role, country (nullable), city (nullable), assigned_by, assigned_at
+- RLS: admin manage tout ; user lit ses propres assignations
 
-### 1.3 Réseau : arbre + liste détaillée
-- Arbre généalogique strict par parrainage (déjà via `get_downline`, vérifier l'ordre G/D)
-- Nouvel onglet **"Liste de mes filleuls"** avec: nom, code MSN, pays, ville, date d'inscription, statut actif, niveau
-- Fonction admin/parrain `move_referral_position(_member_id, _new_parent_id, _position)` pour repositionner un filleul dans sa branche (réservé admin + parrain direct, avec vérification que la cible reste dans sa descendance)
+**Modifications:**
+- `orders` + `commerce_orders` : ajout `relay_point_id uuid`, `delivery_status delivery_status default 'en_preparation'`
+- Index: `relay_points(country, city, is_active)`, `orders(relay_point_id)`, `commerce_orders(relay_point_id)`
 
----
+**RPC sécurisées:**
+- `assign_role(_user_id, _role, _country, _city)` — admin seulement, insère dans `user_roles` + `role_assignments`
+- `revoke_role(_user_id, _role)` — admin seulement
+- `update_delivery_status(_order_id, _kind, _status)` — admin/delivery_manager + scope géographique
+- `set_account_status(_user_id, _status)` — admin/hr_manager + scope géographique respecté
+- `list_relay_points(_country, _city)` — lecture publique active
+- Helper `has_geo_scope(_uid, _country, _city)` security definer
 
-## Phase 2 — Système de relais de livraison + rôles étendus
+### 2. UI
 
-### 2.1 Points de relais
-- Nouvelles tables:
-  - `relay_points` (nom, type [boutique/maquis/autre], pays, ville, adresse, téléphone, responsable, actif, manager_id)
-  - Ajout colonne `relay_point_id` sur `orders` et `commerce_orders`
-- RLS:
-  - Lecture publique des points actifs
-  - Gestion par admin + Moissonneur Pays/Zone du pays concerné
-- UI:
-  - Dans le checkout des packs et du commerce: sélection cascade Pays → Ville → Point de relais
-  - Statuts de livraison: `en_preparation` → `en_route_relais` → `disponible_au_relais` → `recupere`
-  - Notification à l'utilisateur quand statut = `disponible_au_relais`
+**Checkout (PurchaseDialog + CommerceProducts):**
+- Cascade Pays → Ville → Point de relais (chargé depuis `list_relay_points`)
+- Option "Livraison à domicile" (adresse) vs "Retrait en point de relais"
+- Affichage statut livraison dans `DashboardOrders`
 
-### 2.2 Nouveaux rôles + dashboards dédiés
-Ajout au enum `app_role`:
-- `zone_harvester`, `city_harvester`, `country_harvester`
-- `emergency_admin`, `hr_manager`, `delivery_manager`
-(les rôles `financier`, `pack_manager`, `partner_manager`, `communication`, `admin` existent déjà)
+**Nouveaux dashboards staff:**
+- `/staff/country` — `StaffCountry.tsx` : users de son pays, commandes, relais (CRUD), blocage
+- `/staff/city` — `StaffCity.tsx` : users de sa ville, commandes, urgences
+- `/staff/zone` — `StaffZone.tsx` : agrégation multi-pays/villes assignés
+- `/staff/hr` — `StaffHR.tsx` : liste users, suspendre/bloquer/débloquer
+- `/staff/delivery` — `StaffDelivery.tsx` : commandes à expédier, mise à jour statut, marquer disponible
+- `/staff/emergency` — alias vers `AdminEmergencies` avec scope
 
-Nouvelle table `role_assignments` pour scoper les rôles géographiques:
-- `user_id`, `role`, `country` (nullable), `city` (nullable), `assigned_by`, `assigned_at`
+**Admin:**
+- `/admin/roles` — `AdminRoles.tsx` : recherche utilisateur par code MSN, attribution rôle + pays/ville, liste assignations actives, révocation
+- `/admin/relays` — `AdminRelays.tsx` : CRUD complet des points de relais
 
-Dashboards créés (un par rôle, scope géographique respecté):
-- `/staff/zone` — Moissonneur de Zone (multi pays/villes assignés)
-- `/staff/country` — Moissonneur de Pays (users, soldes, commandes, relais, blocage)
-- `/staff/city` — Moissonneur de Ville (users, commandes, urgences, blocage)
-- `/staff/emergency` — Admin urgences (vue + chat, déjà partiellement présent)
-- `/staff/hr` — RH (CRUD users: suspendre, bloquer, débloquer, supprimer)
-- `/staff/delivery` — Livraison (commandes à livrer, relais, marquer disponible)
+**Sidebar (`DashboardLayout`):**
+- Ajout des entrées par rôle (zone_harvester, country_harvester, city_harvester, hr_manager, delivery_manager, emergency_admin)
+- Ajout liens admin "Gestion Rôles" et "Points de relais"
 
-Interface admin `/admin/roles` pour assigner/retirer un rôle à un utilisateur avec scope pays/ville.
+**Routes (`App.tsx`):**
+- 6 nouvelles routes staff + 2 routes admin
 
-Actions de blocage: nouvelle valeur `account_status` `blocked`, `suspended` (déjà partiellement) + fonction RPC sécurisée qui vérifie le scope géographique du rôle.
+### 3. Sécurité
 
----
+- Toute écriture passe par RPC `SECURITY DEFINER` avec vérification `has_role` + `has_geo_scope`
+- GRANT explicite sur les nouvelles tables (anon: select sur relay_points actifs ; authenticated: select + crud via RPC)
+- RLS strict : pas de bypass côté client
 
-## Phase 3 — Canal de diffusion administrateur
+### Hors scope (Phase 3)
+- Canal de diffusion (broadcast_messages) — sera traité ensuite
 
-### 3.1 Tables
-- `broadcast_messages` (sender_id, content, image_url, link_url, link_label, sent_at)
-- `broadcast_reads` (message_id, user_id, read_at) — détecte les non-lus
-
-### 3.2 Fonctionnalités
-- Composition admin: texte + image (upload bucket `broadcast-images` avec compression auto via `imageCompression.ts` existant) + lien (Zoom, etc.)
-- Boîte canal utilisateur `/dashboard/canal` : liste chronologique, message non-lu badgé
-- **Point rouge** sur l'icône "Canal" dans la sidebar quand au moins un message non-lu
-- Realtime sur `broadcast_messages` pour notification instantanée
-- Historique complet consultable
-
----
-
-## Notes techniques (résilience & scalabilité)
-
-- Toutes les opérations financières/critiques passent par des RPC `SECURITY DEFINER` avec `FOR UPDATE` pour éviter les race conditions
-- Index ajoutés sur: `wallet_transactions(user_id, created_at desc)`, `wallet_transactions(recipient_id)`, `orders(relay_point_id)`, `relay_points(country, city, is_active)`, `broadcast_reads(user_id, message_id)`
-- Pagination systématique côté client (50 lignes/page) pour ne jamais charger la table entière
-- Compression image automatique déjà en place — réutilisée pour le canal
-
----
-
-## Question importante
-
-Vu l'ampleur (≈ 8 nouvelles tables, ≈ 12 nouvelles pages/dashboards, ≈ 10 RPC), je recommande de **livrer Phase 1 d'abord** (corrige les bugs bloquants que tes utilisateurs voient déjà), puis Phase 2 et Phase 3 dans des messages suivants.
-
-**Confirme stp:**
-- (A) Je fais la Phase 1 maintenant, puis on enchaîne sur 2 et 3
-- (B) Je fais tout d'un coup (plus long, risque d'erreurs plus élevé)
-- (C) Tu veux modifier l'ordre des priorités
+Confirme et je lance la migration + le code.

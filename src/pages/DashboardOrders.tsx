@@ -93,6 +93,14 @@ const DashboardOrders = () => {
                       </Badge>
                       <span className="font-display text-xs font-bold text-primary">{Number(order.total_price).toLocaleString()} {product?.currency || "FCFA"}</span>
                     </div>
+                    {order.delivery_status && order.delivery_status !== "en_preparation" && (
+                      <Badge variant="outline" className="text-[10px] mt-1">
+                        <Truck size={10} className="mr-1" />
+                        {order.delivery_status === "en_route_relais" && "En route vers le relais"}
+                        {order.delivery_status === "disponible_au_relais" && "✅ Disponible au relais"}
+                        {order.delivery_status === "recupere" && "Récupéré"}
+                      </Badge>
+                    )}
 
                     {/* Confirm delivery button for shipped orders */}
                     {order.status === "shipped" && !rating && (

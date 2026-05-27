@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 import {
   LayoutDashboard, Users, Building2, Wallet, TrendingUp, UserCircle,
-  LogOut, Menu, X, ChevronRight, Shield, Package, DollarSign, MessageCircle, Handshake, Download, ShoppingBag, Boxes, PackageCheck, HeartHandshake, Siren
+  LogOut, Menu, X, ChevronRight, Shield, Package, DollarSign, MessageCircle, Handshake, Download, ShoppingBag, Boxes, PackageCheck, HeartHandshake, Siren, MapPin, Truck, Globe, Globe2
 } from "lucide-react";
 
 const baseMenuItems = [
@@ -28,11 +28,21 @@ const roleMenuItems: Record<string, { icon: any; label: string; path: string }[]
     { icon: Shield, label: "Administration", path: "/admin" },
     { icon: Boxes, label: "Gestion Commerce", path: "/staff/commerce" },
     { icon: Siren, label: "Centre d'urgences", path: "/admin/urgences" },
+    { icon: Shield, label: "Gestion des rôles", path: "/admin/roles" },
+    { icon: MapPin, label: "Points de relais", path: "/admin/relays" },
+    { icon: Users, label: "Ressources Humaines", path: "/staff/hr" },
+    { icon: Truck, label: "Gestion Livraison", path: "/staff/delivery" },
   ],
   pack_manager: [{ icon: Package, label: "Gestion Packs", path: "/staff/packs" }, { icon: Boxes, label: "Gestion Commerce", path: "/staff/commerce" }],
   financier: [{ icon: DollarSign, label: "Gestion Finance", path: "/staff/finance" }, { icon: Boxes, label: "Gestion Commerce", path: "/staff/commerce" }],
   partner_manager: [{ icon: Handshake, label: "Gestion Partenaires", path: "/staff/partners" }, { icon: Boxes, label: "Gestion Commerce", path: "/staff/commerce" }],
   communication: [{ icon: MessageCircle, label: "Communication", path: "/staff/communication" }],
+  zone_harvester: [{ icon: Globe2, label: "Moissonneur de Zone", path: "/staff/zone" }],
+  country_harvester: [{ icon: Globe, label: "Moissonneur de Pays", path: "/staff/country" }],
+  city_harvester: [{ icon: MapPin, label: "Moissonneur de Ville", path: "/staff/city" }],
+  emergency_admin: [{ icon: Siren, label: "Centre d'urgences", path: "/admin/urgences" }],
+  hr_manager: [{ icon: Users, label: "Ressources Humaines", path: "/staff/hr" }],
+  delivery_manager: [{ icon: Truck, label: "Gestion Livraison", path: "/staff/delivery" }, { icon: MapPin, label: "Points de relais", path: "/admin/relays" }],
 };
 
 const DashboardLayout = () => {

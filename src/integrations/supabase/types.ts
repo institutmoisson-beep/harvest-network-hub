@@ -21,11 +21,13 @@ export type Database = {
           client_phone: string | null
           commission_amount: number
           created_at: string
+          delivery_status: Database["public"]["Enums"]["delivery_status"]
           id: string
           payment_method: Database["public"]["Enums"]["commerce_payment_method"]
           product_id: string
           proposer_id: string | null
           quantity: number
+          relay_point_id: string | null
           shipping_address_id: string | null
           status: Database["public"]["Enums"]["commerce_order_status"]
           total_price: number
@@ -38,11 +40,13 @@ export type Database = {
           client_phone?: string | null
           commission_amount?: number
           created_at?: string
+          delivery_status?: Database["public"]["Enums"]["delivery_status"]
           id?: string
           payment_method?: Database["public"]["Enums"]["commerce_payment_method"]
           product_id: string
           proposer_id?: string | null
           quantity?: number
+          relay_point_id?: string | null
           shipping_address_id?: string | null
           status?: Database["public"]["Enums"]["commerce_order_status"]
           total_price?: number
@@ -55,11 +59,13 @@ export type Database = {
           client_phone?: string | null
           commission_amount?: number
           created_at?: string
+          delivery_status?: Database["public"]["Enums"]["delivery_status"]
           id?: string
           payment_method?: Database["public"]["Enums"]["commerce_payment_method"]
           product_id?: string
           proposer_id?: string | null
           quantity?: number
+          relay_point_id?: string | null
           shipping_address_id?: string | null
           status?: Database["public"]["Enums"]["commerce_order_status"]
           total_price?: number
@@ -446,9 +452,11 @@ export type Database = {
         Row: {
           company_id: string
           created_at: string
+          delivery_status: Database["public"]["Enums"]["delivery_status"]
           id: string
           product_id: string
           quantity: number
+          relay_point_id: string | null
           shipping_address_id: string | null
           status: Database["public"]["Enums"]["order_status"]
           total_price: number
@@ -458,9 +466,11 @@ export type Database = {
         Insert: {
           company_id: string
           created_at?: string
+          delivery_status?: Database["public"]["Enums"]["delivery_status"]
           id?: string
           product_id: string
           quantity?: number
+          relay_point_id?: string | null
           shipping_address_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total_price: number
@@ -470,9 +480,11 @@ export type Database = {
         Update: {
           company_id?: string
           created_at?: string
+          delivery_status?: Database["public"]["Enums"]["delivery_status"]
           id?: string
           product_id?: string
           quantity?: number
+          relay_point_id?: string | null
           shipping_address_id?: string | null
           status?: Database["public"]["Enums"]["order_status"]
           total_price?: number
@@ -689,6 +701,81 @@ export type Database = {
           },
         ]
       }
+      relay_points: {
+        Row: {
+          address: string
+          city: string
+          country: string
+          created_at: string
+          id: string
+          is_active: boolean
+          manager_id: string | null
+          name: string
+          phone: string | null
+          responsible_name: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          city: string
+          country: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          manager_id?: string | null
+          name: string
+          phone?: string | null
+          responsible_name?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          city?: string
+          country?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          manager_id?: string | null
+          name?: string
+          phone?: string | null
+          responsible_name?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      role_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          city: string | null
+          country: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          city?: string | null
+          country?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          city?: string | null
+          country?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       sectors: {
         Row: {
           created_at: string
@@ -853,6 +940,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      assign_role: {
+        Args: {
+          _city?: string
+          _country?: string
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: undefined
+      }
       contribute_to_fund: {
         Args: { _amount: number }
         Returns: {
@@ -892,6 +988,10 @@ export type Database = {
           last_name: string
           referral_code: string
         }[]
+      }
+      has_geo_scope: {
+        Args: { _city: string; _country: string; _uid: string }
+        Returns: boolean
       }
       has_role: {
         Args: {
@@ -946,6 +1046,58 @@ export type Database = {
           referral_code: string
         }[]
       }
+      list_relay_points: {
+        Args: { _city?: string; _country?: string }
+        Returns: {
+          address: string
+          city: string
+          country: string
+          created_at: string
+          id: string
+          is_active: boolean
+          manager_id: string | null
+          name: string
+          phone: string | null
+          responsible_name: string | null
+          type: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "relay_points"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      list_role_assignments: {
+        Args: never
+        Returns: {
+          assigned_at: string
+          city: string
+          country: string
+          first_name: string
+          id: string
+          last_name: string
+          referral_code: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }[]
+      }
+      list_users_for_staff: {
+        Args: { _country?: string }
+        Returns: {
+          account_status: Database["public"]["Enums"]["account_status"]
+          country: string
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          is_system_active: boolean
+          last_name: string
+          phone: string
+          referral_code: string
+        }[]
+      }
       move_referral_position: {
         Args: { _member_id: string; _new_position: string }
         Returns: undefined
@@ -975,12 +1127,34 @@ export type Database = {
           order_id: string
         }[]
       }
+      revoke_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: undefined
+      }
+      set_account_status: {
+        Args: {
+          _status: Database["public"]["Enums"]["account_status"]
+          _user_id: string
+        }
+        Returns: undefined
+      }
       transfer_to_user: {
         Args: { _amount: number; _note?: string; _recipient_code: string }
         Returns: {
           new_balance: number
           recipient_name: string
         }[]
+      }
+      update_delivery_status: {
+        Args: {
+          _kind: string
+          _order_id: string
+          _status: Database["public"]["Enums"]["delivery_status"]
+        }
+        Returns: undefined
       }
       withdraw_from_fund: {
         Args: { _amount: number; _emergency_id?: string; _reason: string }
@@ -990,7 +1164,7 @@ export type Database = {
       }
     }
     Enums: {
-      account_status: "active" | "suspended" | "paused"
+      account_status: "active" | "suspended" | "paused" | "blocked"
       app_role:
         | "admin"
         | "moderator"
@@ -999,6 +1173,12 @@ export type Database = {
         | "financier"
         | "partner_manager"
         | "communication"
+        | "zone_harvester"
+        | "city_harvester"
+        | "country_harvester"
+        | "emergency_admin"
+        | "hr_manager"
+        | "delivery_manager"
       career_level:
         | "semeur"
         | "cultivateur"
@@ -1019,6 +1199,11 @@ export type Database = {
         | "cancelled"
       commerce_payment_method: "wallet" | "cash_on_delivery"
       commerce_product_kind: "wholesale" | "distribution"
+      delivery_status:
+        | "en_preparation"
+        | "en_route_relais"
+        | "disponible_au_relais"
+        | "recupere"
       emergency_frequency:
         | "ponctuelle"
         | "recurrente"
@@ -1167,7 +1352,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      account_status: ["active", "suspended", "paused"],
+      account_status: ["active", "suspended", "paused", "blocked"],
       app_role: [
         "admin",
         "moderator",
@@ -1176,6 +1361,12 @@ export const Constants = {
         "financier",
         "partner_manager",
         "communication",
+        "zone_harvester",
+        "city_harvester",
+        "country_harvester",
+        "emergency_admin",
+        "hr_manager",
+        "delivery_manager",
       ],
       career_level: [
         "semeur",
@@ -1199,6 +1390,12 @@ export const Constants = {
       ],
       commerce_payment_method: ["wallet", "cash_on_delivery"],
       commerce_product_kind: ["wholesale", "distribution"],
+      delivery_status: [
+        "en_preparation",
+        "en_route_relais",
+        "disponible_au_relais",
+        "recupere",
+      ],
       emergency_frequency: [
         "ponctuelle",
         "recurrente",
