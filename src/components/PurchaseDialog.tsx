@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ShoppingBag, Truck, CreditCard, Banknote } from "lucide-react";
 import { downloadContract } from "@/utils/generateContract";
+import RelayPointSelector from "@/components/RelayPointSelector";
 
 interface Product {
   id: string;
@@ -37,6 +38,7 @@ const PurchaseDialog = ({ product, open, onOpenChange, companyName }: PurchaseDi
   const [paymentMode, setPaymentMode] = useState<"wallet" | "cod">("wallet");
   const [contractReady, setContractReady] = useState<{ memberName: string; productName: string; price: number; companyName: string } | null>(null);
   const [form, setForm] = useState({ fullName: "", phone: "", country: "", city: "", addressLine: "", postalCode: "" });
+  const [relayPointId, setRelayPointId] = useState<string | null>(null);
   const update = (field: string, value: string) => setForm(p => ({ ...p, [field]: value }));
 
   useEffect(() => {
@@ -112,11 +114,16 @@ const PurchaseDialog = ({ product, open, onOpenChange, companyName }: PurchaseDi
           _shipping_address_id: shippingAddressId,
         });
         if (rpcError) throw rpcError;
+        if (relayPointId) {
+          await (supabase as any).from("orders").update({ relay_point_id: relayPointId })
+            .eq("user_id", user.id).eq("product_id", product.id);
+        }
         toast.success("Achat effectué ! Portefeuille débité.");
       } else {
-        const { error: orderErr } = await supabase.from("orders").insert({
+        const { error: orderErr } = await (supabase as any).from("orders").insert({
           user_id: user.id, product_id: product.id, company_id: prodData.company_id,
-          shipping_address_id: shippingAddressId, total_price: product.price, status: "pending" as const,
+          shipping_address_id: shippingAddressId, total_price: product.price, status: "pending",
+          relay_point_id: relayPointId,
         });
         if (orderErr) throw orderErr;
         toast.success("Commande enregistrée ! Paiement à la livraison.");
@@ -225,6 +232,7 @@ const PurchaseDialog = ({ product, open, onOpenChange, companyName }: PurchaseDi
                 <div><Label className="text-xs">Ville *</Label><Input value={form.city} onChange={e => update("city", e.target.value)} disabled={useSaved} className="mt-1 text-sm bg-input border-border" /></div>
               </div>
               <div><Label className="text-xs">Adresse complète *</Label><Input value={form.addressLine} onChange={e => update("addressLine", e.target.value)} disabled={useSaved} placeholder="Rue, quartier..." className="mt-1 text-sm bg-input border-border" /></div>
+              <RelayPointSelector country={form.country} city={form.city} value={relayPointId} onChange={setRelayPointId} />
             </div>
           )}
 
