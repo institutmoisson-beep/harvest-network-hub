@@ -990,7 +990,7 @@ export type Database = {
       }
     }
     Enums: {
-      account_status: "active" | "suspended" | "paused"
+      account_status: "active" | "suspended" | "paused" | "blocked"
       app_role:
         | "admin"
         | "moderator"
@@ -999,6 +999,12 @@ export type Database = {
         | "financier"
         | "partner_manager"
         | "communication"
+        | "zone_harvester"
+        | "city_harvester"
+        | "country_harvester"
+        | "emergency_admin"
+        | "hr_manager"
+        | "delivery_manager"
       career_level:
         | "semeur"
         | "cultivateur"
@@ -1019,6 +1025,11 @@ export type Database = {
         | "cancelled"
       commerce_payment_method: "wallet" | "cash_on_delivery"
       commerce_product_kind: "wholesale" | "distribution"
+      delivery_status:
+        | "en_preparation"
+        | "en_route_relais"
+        | "disponible_au_relais"
+        | "recupere"
       emergency_frequency:
         | "ponctuelle"
         | "recurrente"
@@ -1167,7 +1178,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      account_status: ["active", "suspended", "paused"],
+      account_status: ["active", "suspended", "paused", "blocked"],
       app_role: [
         "admin",
         "moderator",
@@ -1176,6 +1187,12 @@ export const Constants = {
         "financier",
         "partner_manager",
         "communication",
+        "zone_harvester",
+        "city_harvester",
+        "country_harvester",
+        "emergency_admin",
+        "hr_manager",
+        "delivery_manager",
       ],
       career_level: [
         "semeur",
@@ -1199,6 +1216,12 @@ export const Constants = {
       ],
       commerce_payment_method: ["wallet", "cash_on_delivery"],
       commerce_product_kind: ["wholesale", "distribution"],
+      delivery_status: [
+        "en_preparation",
+        "en_route_relais",
+        "disponible_au_relais",
+        "recupere",
+      ],
       emergency_frequency: [
         "ponctuelle",
         "recurrente",
