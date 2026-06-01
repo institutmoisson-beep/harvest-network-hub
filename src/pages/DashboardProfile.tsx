@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { UserCircle, Save, Key } from "lucide-react";
+import { FileText, ScrollText, BookOpen } from "lucide-react";
+import { downloadAdhesionContract, downloadStatutes, downloadReglement, MemberInfo } from "@/utils/generateLegalDocs";
 
 const DashboardProfile = () => {
   const navigate = useNavigate();
@@ -24,6 +26,8 @@ const DashboardProfile = () => {
   const [copiedLink, setCopiedLink] = useState(false);
   const [addressId, setAddressId] = useState<string | null>(null);
   const [deliveryAddress, setDeliveryAddress] = useState({ fullName: "", phone: "", country: "", city: "", addressLine: "", postalCode: "" });
+  const [packName, setPackName] = useState<string>("Pack d'adhésion");
+  const [acceptDocs, setAcceptDocs] = useState(false);
 
   const [loading, setLoading] = useState(true);
 
@@ -49,6 +53,16 @@ const DashboardProfile = () => {
         setAddressId(addr.id);
         setDeliveryAddress({ fullName: addr.full_name, phone: addr.phone, country: addr.country, city: addr.city, addressLine: addr.address_line, postalCode: addr.postal_code || "" });
       }
+      if (prof?.contract_signed_at) setAcceptDocs(true);
+      const { data: firstOrder } = await supabase
+        .from("orders")
+        .select("products(name)")
+        .eq("user_id", session.user.id)
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      const pn = (firstOrder as any)?.products?.name;
+      if (pn) setPackName(pn);
       setLoading(false);
     };
     load();
@@ -101,6 +115,25 @@ const DashboardProfile = () => {
   };
 
   const referralLink = `${window.location.origin}/register?ref=${referralCode}`;
+
+  const memberInfo: MemberInfo = {
+    fullName: `${firstName} ${lastName}`.trim() || "Moissonneur",
+    userId: user?.id || "",
+    email: user?.email || "",
+    packName,
+    registrationDate: profile?.created_at ? new Date(profile.created_at).toLocaleString("fr-FR") : new Date().toLocaleString("fr-FR"),
+    referralCode,
+  };
+
+  const signAndDownload = async (kind: "adhesion" | "statutes" | "reglement") => {
+    if (!acceptDocs) { toast.error("Cochez la case d'acceptation d'abord"); return; }
+    if (!profile?.contract_signed_at) {
+      await supabase.from("profiles").update({ contract_signed_at: new Date().toISOString() }).eq("id", user.id);
+    }
+    if (kind === "adhesion") downloadAdhesionContract(memberInfo);
+    if (kind === "statutes") downloadStatutes(memberInfo);
+    if (kind === "reglement") downloadReglement(memberInfo);
+  };
 
   const shareWhatsApp = () => {
     window.open(`https://wa.me/?text=${encodeURIComponent(`Rejoins les Moissonneurs ! Inscris-toi avec mon code ${referralCode} 🌾\n${referralLink}`)}`, "_blank");
@@ -214,6 +247,37 @@ const DashboardProfile = () => {
           <Save size={16} className="mr-2" /> {savingAddress ? "Enregistrement..." : "Enregistrer l'adresse"}
         </Button>
       </div>
+
+      {profile?.is_system_active && (
+        <div className="glass-card rounded-xl p-6 mt-6">
+          <h3 className="font-display text-sm font-bold mb-4 flex items-center gap-2">
+            <FileText size={16} className="text-primary" /> 📜 Documents Officiels
+          </h3>
+          <p className="text-xs text-muted-foreground mb-4">
+            Téléchargez et conservez vos documents officiels remplis avec vos informations.
+          </p>
+          <label className="flex items-start gap-2 mb-4 p-3 rounded-lg bg-primary/5 border border-primary/20 cursor-pointer">
+            <input type="checkbox" checked={acceptDocs} onChange={e => setAcceptDocs(e.target.checked)} className="mt-1" />
+            <span className="text-xs">
+              Je reconnais avoir lu et j'accepte le <strong>Contrat d'Adhésion</strong>, les <strong>Statuts</strong> et le <strong>Règlement Intérieur</strong> de l'Institut Moisson. Cette acceptation vaut signature électronique.
+            </span>
+          </label>
+          {profile?.contract_signed_at && (
+            <p className="text-xs text-green-600 mb-3">✓ Signé électroniquement le {new Date(profile.contract_signed_at).toLocaleString("fr-FR")}</p>
+          )}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <Button onClick={() => signAndDownload("adhesion")} className="bg-gradient-purple text-primary-foreground font-display font-bold hover:opacity-90 text-xs">
+              <FileText size={14} className="mr-1" /> Contrat d'Adhésion
+            </Button>
+            <Button onClick={() => signAndDownload("statutes")} variant="outline" className="border-primary text-foreground hover:bg-primary/10 text-xs">
+              <ScrollText size={14} className="mr-1" /> Statuts
+            </Button>
+            <Button onClick={() => signAndDownload("reglement")} variant="outline" className="border-primary text-foreground hover:bg-primary/10 text-xs">
+              <BookOpen size={14} className="mr-1" /> Règlement Intérieur
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
