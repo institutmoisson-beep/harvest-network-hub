@@ -1179,6 +1179,7 @@ export type Database = {
         | "emergency_admin"
         | "hr_manager"
         | "delivery_manager"
+        | "career_manager"
       career_level:
         | "semeur"
         | "cultivateur"
@@ -1367,6 +1368,7 @@ export const Constants = {
         "emergency_admin",
         "hr_manager",
         "delivery_manager",
+        "career_manager",
       ],
       career_level: [
         "semeur",
