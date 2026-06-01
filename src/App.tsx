@@ -39,6 +39,8 @@ const StaffDelivery = lazy(() => import("./pages/StaffDelivery.tsx"));
 const StaffCountry = lazy(() => import("./pages/StaffCountry.tsx"));
 const StaffCity = lazy(() => import("./pages/StaffCity.tsx"));
 const StaffZone = lazy(() => import("./pages/StaffZone.tsx"));
+const DashboardChannel = lazy(() => import("./pages/DashboardChannel.tsx"));
+const AdminBroadcasts = lazy(() => import("./pages/AdminBroadcasts.tsx"));
 const InstallApp = lazy(() => import("./pages/InstallApp.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
@@ -84,6 +86,7 @@ const App = () => (
             <Route path="/staff/city" element={<StaffCity />} />
             <Route path="/staff/zone" element={<StaffZone />} />
             <Route path="/staff/emergency" element={<AdminEmergencies />} />
+            <Route path="/admin/broadcasts" element={<AdminBroadcasts />} />
             <Route path="/moissonneurs-pros" element={<MoissoneursPros />} />
             <Route path="/packs" element={<Packs />} />
             <Route path="/dashboard" element={<DashboardLayout />}>
@@ -98,6 +101,7 @@ const App = () => (
               <Route path="distribution" element={<CommerceProducts kind="distribution" />} />
               <Route path="fonds" element={<CommunityFund />} />
               <Route path="urgences" element={<Emergencies />} />
+              <Route path="canal" element={<DashboardChannel />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
