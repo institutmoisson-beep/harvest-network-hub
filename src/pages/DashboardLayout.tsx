@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 import {
   LayoutDashboard, Users, Building2, Wallet, TrendingUp, UserCircle,
-  LogOut, Menu, X, ChevronRight, Shield, Package, DollarSign, MessageCircle, Handshake, Download, ShoppingBag, Boxes, PackageCheck, HeartHandshake, Siren, MapPin, Truck, Globe, Globe2
+  LogOut, Menu, X, ChevronRight, Shield, Package, DollarSign, MessageCircle, Handshake, Download, ShoppingBag, Boxes, PackageCheck, HeartHandshake, Siren, MapPin, Truck, Globe, Globe2, Radio
 } from "lucide-react";
 
 const baseMenuItems = [
@@ -18,6 +18,7 @@ const baseMenuItems = [
   { icon: Wallet, label: "Portefeuille", path: "/dashboard/wallet" },
   { icon: HeartHandshake, label: "Fonds Communautaire", path: "/dashboard/fonds" },
   { icon: Siren, label: "Mes Urgences", path: "/dashboard/urgences" },
+  { icon: Radio, label: "Canal Communauté", path: "/dashboard/canal" },
   { icon: Download, label: "Télécharger l'app", path: "/telecharger-app" },
   { icon: TrendingUp, label: "Commissions", path: "/dashboard/commissions" },
   { icon: UserCircle, label: "Mon Profil", path: "/dashboard/profile" },
@@ -26,6 +27,7 @@ const baseMenuItems = [
 const roleMenuItems: Record<string, { icon: any; label: string; path: string }[]> = {
   admin: [
     { icon: Shield, label: "Administration", path: "/admin" },
+    { icon: Radio, label: "Canal de diffusion", path: "/admin/broadcasts" },
     { icon: Boxes, label: "Gestion Commerce", path: "/staff/commerce" },
     { icon: Siren, label: "Centre d'urgences", path: "/admin/urgences" },
     { icon: Shield, label: "Gestion des rôles", path: "/admin/roles" },
@@ -52,6 +54,7 @@ const DashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [menuItems, setMenuItems] = useState(baseMenuItems);
   const [profile, setProfile] = useState<any>(null);
+  const [unread, setUnread] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -60,11 +63,13 @@ const DashboardLayout = () => {
     const loadExtras = async (uid: string) => {
       if (loadedFor === uid) return;
       loadedFor = uid;
-      const [{ data: roles }, { data: prof }] = await Promise.all([
+      const [{ data: roles }, { data: prof }, { data: unreadCount }] = await Promise.all([
         supabase.from("user_roles").select("role").eq("user_id", uid),
         supabase.from("profiles").select("first_name, last_name, career_level").eq("id", uid).maybeSingle(),
+        (supabase as any).rpc("count_unread_broadcasts"),
       ]);
       if (cancelled) return;
+      setUnread(typeof unreadCount === "number" ? unreadCount : 0);
       const extras: typeof baseMenuItems = [];
       roles?.forEach(r => {
         roleMenuItems[r.role]?.forEach(item => {
@@ -107,11 +112,13 @@ const DashboardLayout = () => {
         <nav className="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-140px)]">
           {menuItems.map((item) => {
             const active = location.pathname === item.path;
+            const showBadge = item.path === "/dashboard/canal" && unread > 0;
             return (
               <Link key={item.path} to={item.path} onClick={() => setSidebarOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors group ${active ? "bg-primary/20 text-foreground" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}>
                 <item.icon size={18} className={active ? "text-primary" : "group-hover:text-primary transition-colors"} />
                 {item.label}
+                {showBadge && <span className="ml-auto w-5 h-5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center animate-pulse">{unread}</span>}
                 <ChevronRight size={14} className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity" />
               </Link>
             );
