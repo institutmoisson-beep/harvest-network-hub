@@ -14,6 +14,138 @@ export type Database = {
   }
   public: {
     Tables: {
+      broadcast_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          image_url: string | null
+          link_label: string | null
+          link_url: string | null
+          sender_id: string
+          target_user_id: string | null
+          title: string
+        }
+        Insert: {
+          content?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          link_label?: string | null
+          link_url?: string | null
+          sender_id: string
+          target_user_id?: string | null
+          title: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          link_label?: string | null
+          link_url?: string | null
+          sender_id?: string
+          target_user_id?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
+      broadcast_reads: {
+        Row: {
+          message_id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          message_id: string
+          read_at?: string
+          user_id: string
+        }
+        Update: {
+          message_id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      career_bonus_payouts: {
+        Row: {
+          amount: number
+          grade_id: string | null
+          id: string
+          notes: string | null
+          paid_at: string
+          paid_by: string | null
+          period: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          grade_id?: string | null
+          id?: string
+          notes?: string | null
+          paid_at?: string
+          paid_by?: string | null
+          period: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          grade_id?: string | null
+          id?: string
+          notes?: string | null
+          paid_at?: string
+          paid_by?: string | null
+          period?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      career_grades: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          min_active_referrals: number
+          min_downline_size: number
+          min_revenue: number
+          monthly_bonus: number
+          name: string
+          updated_at: string
+          weekly_bonus: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          min_active_referrals?: number
+          min_downline_size?: number
+          min_revenue?: number
+          monthly_bonus?: number
+          name: string
+          updated_at?: string
+          weekly_bonus?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          min_active_referrals?: number
+          min_downline_size?: number
+          min_revenue?: number
+          monthly_bonus?: number
+          name?: string
+          updated_at?: string
+          weekly_bonus?: number
+        }
+        Relationships: []
+      }
       commerce_orders: {
         Row: {
           client_name: string | null
@@ -644,6 +776,7 @@ export type Database = {
           account_status: Database["public"]["Enums"]["account_status"]
           avatar_url: string | null
           career_level: Database["public"]["Enums"]["career_level"]
+          contract_signed_at: string | null
           country: string | null
           created_at: string
           email: string | null
@@ -661,6 +794,7 @@ export type Database = {
           account_status?: Database["public"]["Enums"]["account_status"]
           avatar_url?: string | null
           career_level?: Database["public"]["Enums"]["career_level"]
+          contract_signed_at?: string | null
           country?: string | null
           created_at?: string
           email?: string | null
@@ -678,6 +812,7 @@ export type Database = {
           account_status?: Database["public"]["Enums"]["account_status"]
           avatar_url?: string | null
           career_level?: Database["public"]["Enums"]["career_level"]
+          contract_signed_at?: string | null
           country?: string | null
           created_at?: string
           email?: string | null
@@ -836,6 +971,47 @@ export type Database = {
         }
         Relationships: []
       }
+      user_career_overrides: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          custom_monthly_bonus: number | null
+          custom_weekly_bonus: number | null
+          grade_id: string | null
+          id: string
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          custom_monthly_bonus?: number | null
+          custom_weekly_bonus?: number | null
+          grade_id?: string | null
+          id?: string
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          custom_monthly_bonus?: number | null
+          custom_weekly_bonus?: number | null
+          grade_id?: string | null
+          id?: string
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_career_overrides_grade_id_fkey"
+            columns: ["grade_id"]
+            isOneToOne: false
+            referencedRelation: "career_grades"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -940,6 +1116,41 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_delete_grade: { Args: { _id: string }; Returns: undefined }
+      admin_pay_career_bonus: {
+        Args: {
+          _amount: number
+          _notes?: string
+          _period: string
+          _user_id: string
+        }
+        Returns: undefined
+      }
+      admin_set_user_grade: {
+        Args: {
+          _grade_id: string
+          _monthly: number
+          _notes: string
+          _user_id: string
+          _weekly: number
+        }
+        Returns: undefined
+      }
+      admin_upsert_grade: {
+        Args: {
+          _description: string
+          _display_order: number
+          _id: string
+          _is_active: boolean
+          _min_active_referrals: number
+          _min_downline_size: number
+          _min_revenue: number
+          _monthly_bonus: number
+          _name: string
+          _weekly_bonus: number
+        }
+        Returns: string
+      }
       assign_role: {
         Args: {
           _city?: string
@@ -955,6 +1166,18 @@ export type Database = {
           new_fund_balance: number
           new_wallet_balance: number
         }[]
+      }
+      count_unread_broadcasts: { Args: never; Returns: number }
+      create_broadcast: {
+        Args: {
+          _content: string
+          _image_url?: string
+          _link_label?: string
+          _link_url?: string
+          _target_user_id?: string
+          _title: string
+        }
+        Returns: string
       }
       find_profile_by_code: {
         Args: { _code: string }
@@ -1015,6 +1238,20 @@ export type Database = {
           status: Database["public"]["Enums"]["emergency_status"]
           title: string
           user_id: string
+        }[]
+      }
+      list_my_broadcasts: {
+        Args: never
+        Returns: {
+          content: string
+          created_at: string
+          id: string
+          image_url: string
+          is_read: boolean
+          link_label: string
+          link_url: string
+          target_user_id: string
+          title: string
         }[]
       }
       list_my_referrals: {
@@ -1083,6 +1320,23 @@ export type Database = {
           user_id: string
         }[]
       }
+      list_users_for_career: {
+        Args: never
+        Returns: {
+          active_referrals: number
+          country: string
+          downline_size: number
+          first_name: string
+          grade_id: string
+          grade_name: string
+          last_name: string
+          monthly_bonus: number
+          referral_code: string
+          total_revenue: number
+          user_id: string
+          weekly_bonus: number
+        }[]
+      }
       list_users_for_staff: {
         Args: { _country?: string }
         Returns: {
@@ -1098,6 +1352,7 @@ export type Database = {
           referral_code: string
         }[]
       }
+      mark_broadcast_read: { Args: { _message_id: string }; Returns: undefined }
       move_referral_position: {
         Args: { _member_id: string; _new_position: string }
         Returns: undefined
