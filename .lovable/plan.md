@@ -1,65 +1,64 @@
-## Phase 2 — Relais de livraison + rôles étendus
+# Phase 3 — Canal, Contrats légaux, Plans de carrière
 
-### 1. Base de données
+## 1. Canal de diffusion (broadcast + DM admin)
 
-**Nouveaux enums:**
-- Étendre `app_role` avec: `zone_harvester`, `city_harvester`, `country_harvester`, `emergency_admin`, `hr_manager`, `delivery_manager`
-- Étendre `account_status` avec: `blocked` (suspended existe déjà)
-- Nouveau enum `delivery_status`: `en_preparation`, `en_route_relais`, `disponible_au_relais`, `recupere`
+### Base de données
+- `broadcast_messages` : `id`, `sender_id`, `target_user_id` (nullable = canal général), `title`, `content`, `image_url`, `link_url`, `link_label`, `created_at`
+- `broadcast_reads` : `message_id`, `user_id`, `read_at` (PK composite) — pour le point rouge "non lu"
+- RLS : INSERT réservé admin ; SELECT pour tous si `target_user_id IS NULL` OR `target_user_id = auth.uid()` OR admin
+- Realtime activé sur `broadcast_messages`
 
-**Nouvelles tables:**
+### RPC
+- `mark_broadcast_read(_message_id)` — marque comme lu
+- `count_unread_broadcasts()` — retourne nombre non lu pour badge
+- `list_my_broadcasts()` — broadcasts visibles + flag `is_read`
 
-`relay_points` — nom, type (boutique/maquis/autre), pays, ville, adresse, téléphone, responsable, manager_id (uuid nullable), is_active
-- RLS: lecture publique des actifs ; admin + country_harvester du pays peuvent gérer
+### UI
+- `/dashboard/channel` (`DashboardChannel.tsx`) : boîte canal utilisateur, liste chrono, images affichées, liens cliquables (Zoom, etc.), marque comme lu au scroll/clic
+- `/admin/broadcasts` (`AdminBroadcasts.tsx`) : composer (titre, contenu, image upload, lien + label), sélecteur destinataire (canal général OU recherche utilisateur par MSN/nom), historique envoyés
+- Sidebar : badge rouge sur "Canal" si `count_unread_broadcasts > 0`
+- Upload images dans bucket `broadcast-media` (public, compression WebP)
 
-`role_assignments` — user_id, role, country (nullable), city (nullable), assigned_by, assigned_at
-- RLS: admin manage tout ; user lit ses propres assignations
+## 2. Contrats légaux téléchargeables
 
-**Modifications:**
-- `orders` + `commerce_orders` : ajout `relay_point_id uuid`, `delivery_status delivery_status default 'en_preparation'`
-- Index: `relay_points(country, city, is_active)`, `orders(relay_point_id)`, `commerce_orders(relay_point_id)`
+### 3 documents PDF générés côté client (templates HTML → print/PDF)
+- **Contrat d'Adhésion Communautaire** — rempli avec : nom complet, user ID, email, pack souscrit, date d'adhésion, code MSN ; signature électronique = empreinte SHA + ID + horodatage
+- **Statuts de l'Organisation** — document fixe avec en-tête utilisateur
+- **Règlement Intérieur** — idem
 
-**RPC sécurisées:**
-- `assign_role(_user_id, _role, _country, _city)` — admin seulement, insère dans `user_roles` + `role_assignments`
-- `revoke_role(_user_id, _role)` — admin seulement
-- `update_delivery_status(_order_id, _kind, _status)` — admin/delivery_manager + scope géographique
-- `set_account_status(_user_id, _status)` — admin/hr_manager + scope géographique respecté
-- `list_relay_points(_country, _city)` — lecture publique active
-- Helper `has_geo_scope(_uid, _country, _city)` security definer
+### Implémentation
+- `src/utils/generateAdhesionContract.ts` — template HTML complet du contrat (5 articles + signature)
+- `src/utils/generateStatutes.ts` + `src/utils/generateReglement.ts`
+- Visibilité **uniquement après achat d'un pack qui active le MLM** (`profiles.is_system_active = true`)
+- Nouveau bloc dans `DashboardProfile.tsx` : "📜 Documents Officiels" avec 3 cartes téléchargeables + case "J'ai lu et j'accepte" (stockée dans `profiles.contract_signed_at`)
+- Migration : `profiles.contract_signed_at timestamptz nullable`
 
-### 2. UI
+## 3. Plans de carrière dynamiques (per-user + MLM grades)
 
-**Checkout (PurchaseDialog + CommerceProducts):**
-- Cascade Pays → Ville → Point de relais (chargé depuis `list_relay_points`)
-- Option "Livraison à domicile" (adresse) vs "Retrait en point de relais"
-- Affichage statut livraison dans `DashboardOrders`
+### Base de données
+- `career_grades` : `id`, `name`, `description`, `min_revenue` (CA cumulé pack/commerce), `min_active_referrals`, `min_downline_size`, `weekly_bonus`, `monthly_bonus`, `display_order`, `is_active`
+- `user_career_overrides` : `id`, `user_id`, `grade_id` (nullable = auto), `custom_weekly_bonus`, `custom_monthly_bonus`, `notes`, `assigned_by`, `assigned_at` — pour l'attribution manuelle d'un grade et bonus à un user
+- `career_bonus_payouts` : `id`, `user_id`, `grade_id`, `amount`, `period` ('weekly'|'monthly'), `period_start`, `period_end`, `paid_at`, `paid_by` — historique
 
-**Nouveaux dashboards staff:**
-- `/staff/country` — `StaffCountry.tsx` : users de son pays, commandes, relais (CRUD), blocage
-- `/staff/city` — `StaffCity.tsx` : users de sa ville, commandes, urgences
-- `/staff/zone` — `StaffZone.tsx` : agrégation multi-pays/villes assignés
-- `/staff/hr` — `StaffHR.tsx` : liste users, suspendre/bloquer/débloquer
-- `/staff/delivery` — `StaffDelivery.tsx` : commandes à expédier, mise à jour statut, marquer disponible
-- `/staff/emergency` — alias vers `AdminEmergencies` avec scope
+### RPC
+- `admin_upsert_grade(...)` / `admin_delete_grade(_id)` — admin + career_manager
+- `admin_set_user_grade(_user_id, _grade_id, _weekly, _monthly, _notes)` — override manuel
+- `admin_pay_career_bonus(_user_id, _amount, _period)` — crédite le wallet + log payout
+- `compute_user_grade(_user_id)` — retourne grade calculé (CA, filleuls actifs, downline) + grade actuel
 
-**Admin:**
-- `/admin/roles` — `AdminRoles.tsx` : recherche utilisateur par code MSN, attribution rôle + pays/ville, liste assignations actives, révocation
-- `/admin/relays` — `AdminRelays.tsx` : CRUD complet des points de relais
+### Nouveau rôle `career_manager`
+- Ajout à l'enum `app_role`
+- Dashboard `/staff/career` (`StaffCareer.tsx`) : liste users avec CA + filleuls actifs + downline, attribution grade/bonus, paiement ponctuel
+- `/admin/career` (`AdminCareer.tsx`) : CRUD grades (nom, conditions CA/filleuls/réseau, bonus hebdo/mensuel)
+- Sidebar : entrée "Plan de Carrière" pour career_manager + admin
 
-**Sidebar (`DashboardLayout`):**
-- Ajout des entrées par rôle (zone_harvester, country_harvester, city_harvester, hr_manager, delivery_manager, emergency_admin)
-- Ajout liens admin "Gestion Rôles" et "Points de relais"
+## 4. Sécurité
+- Tous nouveaux RPC `SECURITY DEFINER` avec contrôle `has_role`
+- GRANT sur toutes nouvelles tables (`authenticated` lecture/insert via RPC ; `service_role` ALL)
+- RLS strict : broadcasts ciblés invisibles aux autres users
 
-**Routes (`App.tsx`):**
-- 6 nouvelles routes staff + 2 routes admin
+## 5. Hors scope (différé)
+- Calcul automatique du CA en temps réel (snapshot manuel via bouton "Recalculer" pour l'instant)
+- Auto-paiement hebdo/mensuel via cron (paiement manuel par staff pour l'instant)
 
-### 3. Sécurité
-
-- Toute écriture passe par RPC `SECURITY DEFINER` avec vérification `has_role` + `has_geo_scope`
-- GRANT explicite sur les nouvelles tables (anon: select sur relay_points actifs ; authenticated: select + crud via RPC)
-- RLS strict : pas de bypass côté client
-
-### Hors scope (Phase 3)
-- Canal de diffusion (broadcast_messages) — sera traité ensuite
-
-Confirme et je lance la migration + le code.
+Confirme et je lance migrations + code.
