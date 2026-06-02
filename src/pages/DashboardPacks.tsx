@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Package, ShoppingBag, Check, ChevronLeft, ChevronRight, ImageIcon, Eye, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -72,6 +74,8 @@ const DashboardPacks = () => {
   const [showPurchase, setShowPurchase] = useState(false);
   const [detailPack, setDetailPack] = useState<Pack | null>(null);
   const [userOrders, setUserOrders] = useState<string[]>([]);
+  const [search, setSearch] = useState("");
+  const [sectorFilter, setSectorFilter] = useState<string>("all");
 
   useEffect(() => {
     const load = async () => {
@@ -116,6 +120,15 @@ const DashboardPacks = () => {
     if (ordersRes.data) setUserOrders(ordersRes.data.map((o: any) => o.product_id));
   };
 
+  const sectors = Array.from(new Set(packs.map(p => p.sector).filter(Boolean))) as string[];
+  const visiblePacks = packs.filter(p => {
+    if (sectorFilter !== "all" && p.sector !== sectorFilter) return false;
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    const partner = (companies[p.company_id] || "").toLowerCase();
+    return p.name.toLowerCase().includes(q) || partner.includes(q) || (p.sector || "").toLowerCase().includes(q);
+  });
+
   return (
     <div className="p-6">
       <h1 className="font-display text-xl font-bold mb-2 flex items-center gap-2">
@@ -140,13 +153,29 @@ const DashboardPacks = () => {
         </div>
       )}
 
+      <div className="glass-card rounded-xl p-3 mb-4 flex flex-col sm:flex-row gap-2">
+        <Input
+          placeholder="Rechercher par nom de pack, partenaire ou secteur…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="flex-1"
+        />
+        <Select value={sectorFilter} onValueChange={setSectorFilter}>
+          <SelectTrigger className="sm:w-56"><SelectValue placeholder="Secteur" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les secteurs</SelectItem>
+            {sectors.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[1, 2, 3].map(i => <Skeleton key={i} className="h-60 rounded-2xl" />)}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {packs.map(pack => {
+          {visiblePacks.map(pack => {
             const allImages = [pack.image_url, ...pack.images].filter(Boolean) as string[];
             const alreadyBought = userOrders.includes(pack.id);
             return (
@@ -185,10 +214,10 @@ const DashboardPacks = () => {
         </div>
       )}
 
-      {!loading && packs.length === 0 && (
+      {!loading && visiblePacks.length === 0 && (
         <div className="text-center py-16 text-muted-foreground">
           <Package size={48} className="mx-auto mb-4 opacity-30" />
-          <p className="font-display text-sm">Aucun pack disponible pour le moment</p>
+          <p className="font-display text-sm">Aucun pack ne correspond à votre recherche</p>
         </div>
       )}
 
