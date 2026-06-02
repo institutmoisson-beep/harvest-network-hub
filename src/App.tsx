@@ -41,6 +41,8 @@ const StaffCity = lazy(() => import("./pages/StaffCity.tsx"));
 const StaffZone = lazy(() => import("./pages/StaffZone.tsx"));
 const DashboardChannel = lazy(() => import("./pages/DashboardChannel.tsx"));
 const AdminBroadcasts = lazy(() => import("./pages/AdminBroadcasts.tsx"));
+const AdminCareer = lazy(() => import("./pages/AdminCareer.tsx"));
+const StaffCareer = lazy(() => import("./pages/StaffCareer.tsx"));
 const InstallApp = lazy(() => import("./pages/InstallApp.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
@@ -87,6 +89,8 @@ const App = () => (
             <Route path="/staff/zone" element={<StaffZone />} />
             <Route path="/staff/emergency" element={<AdminEmergencies />} />
             <Route path="/admin/broadcasts" element={<AdminBroadcasts />} />
+            <Route path="/admin/career" element={<AdminCareer />} />
+            <Route path="/staff/career" element={<StaffCareer />} />
             <Route path="/moissonneurs-pros" element={<MoissoneursPros />} />
             <Route path="/packs" element={<Packs />} />
             <Route path="/dashboard" element={<DashboardLayout />}>
