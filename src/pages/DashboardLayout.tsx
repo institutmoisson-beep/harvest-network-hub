@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 import {
   LayoutDashboard, Users, Building2, Wallet, TrendingUp, UserCircle,
-  LogOut, Menu, X, ChevronRight, Shield, Package, DollarSign, MessageCircle, Handshake, Download, ShoppingBag, Boxes, PackageCheck, HeartHandshake, Siren, MapPin, Truck, Globe, Globe2, Radio
+  LogOut, Menu, X, ChevronRight, Shield, Package, DollarSign, MessageCircle, Handshake, Download, ShoppingBag, Boxes, PackageCheck, HeartHandshake, Siren, MapPin, Truck, Globe, Globe2, Radio, Trophy
 } from "lucide-react";
 
 const baseMenuItems = [
@@ -28,6 +28,8 @@ const roleMenuItems: Record<string, { icon: any; label: string; path: string }[]
   admin: [
     { icon: Shield, label: "Administration", path: "/admin" },
     { icon: Radio, label: "Canal de diffusion", path: "/admin/broadcasts" },
+    { icon: Trophy, label: "Plan de Carrière", path: "/admin/career" },
+    { icon: Trophy, label: "Attribution Carrière", path: "/staff/career" },
     { icon: Boxes, label: "Gestion Commerce", path: "/staff/commerce" },
     { icon: Siren, label: "Centre d'urgences", path: "/admin/urgences" },
     { icon: Shield, label: "Gestion des rôles", path: "/admin/roles" },
@@ -45,6 +47,7 @@ const roleMenuItems: Record<string, { icon: any; label: string; path: string }[]
   emergency_admin: [{ icon: Siren, label: "Centre d'urgences", path: "/admin/urgences" }],
   hr_manager: [{ icon: Users, label: "Ressources Humaines", path: "/staff/hr" }],
   delivery_manager: [{ icon: Truck, label: "Gestion Livraison", path: "/staff/delivery" }, { icon: MapPin, label: "Points de relais", path: "/admin/relays" }],
+  career_manager: [{ icon: Trophy, label: "Plan de Carrière", path: "/staff/career" }],
 };
 
 const DashboardLayout = () => {
