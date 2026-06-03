@@ -63,8 +63,12 @@ const TermsAndConditions = ({ open, onAccepted, forceful }: Props) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!forceful) { /* allow close */ } if (!v && forceful) { /* prevent close */ return; } }}>
-      <DialogContent className="glass-card border-border max-w-2xl" onInteractOutside={(e) => { if (forceful) e.preventDefault(); }} onEscapeKeyDown={(e) => { if (forceful) e.preventDefault(); }}>
+    <Dialog open={open} onOpenChange={(v) => { if (forceful && !v) return; }}>
+      <DialogContent
+        className="glass-card border-border max-w-2xl [&>button]:hidden"
+        onInteractOutside={(e) => { if (forceful) e.preventDefault(); }}
+        onEscapeKeyDown={(e) => { if (forceful) e.preventDefault(); }}
+      >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2"><ScrollText size={20} className="text-primary" /> Conditions Générales d'Utilisation</DialogTitle>
         </DialogHeader>
