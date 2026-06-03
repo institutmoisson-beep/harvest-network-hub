@@ -45,10 +45,12 @@ const StaffCareer = () => {
 
   const load = async () => {
     setLoading(true);
-    const [{ data: u }, { data: g }] = await Promise.all([
+    const [{ data: u, error: e1 }, { data: g, error: e2 }] = await Promise.all([
       (supabase as any).rpc("list_users_for_career"),
       supabase.from("career_grades").select("id, name, weekly_bonus, monthly_bonus").eq("is_active", true).order("display_order"),
     ]);
+    if (e1) toast.error("Utilisateurs: " + e1.message);
+    if (e2) toast.error("Grades: " + e2.message);
     setRows((u as Row[]) || []);
     setGrades((g as Grade[]) || []);
     setLoading(false);
@@ -96,7 +98,13 @@ const StaffCareer = () => {
       <div className="flex items-center gap-3 mb-6">
         <Link to="/dashboard"><Button variant="outline" size="sm"><ArrowLeft size={14} /></Button></Link>
         <h1 className="font-display text-xl font-bold flex items-center gap-2"><Trophy size={22} className="text-secondary" /> Gestion Plan de Carrière</h1>
-        <Link to="/admin/career" className="ml-auto"><Button variant="outline" size="sm">Gérer les grades</Button></Link>
+        <div className="ml-auto flex gap-2">
+          <Button variant="outline" size="sm" onClick={async () => {
+            const { data, error } = await (supabase as any).rpc("recalc_all_grades");
+            if (error) toast.error(error.message); else { toast.success(`Recalculé pour ${data} utilisateurs`); await load(); }
+          }}>Recalculer auto</Button>
+          <Link to="/admin/career"><Button variant="outline" size="sm">Gérer les grades</Button></Link>
+        </div>
       </div>
 
       <div className="glass-card rounded-xl p-4 mb-4">
