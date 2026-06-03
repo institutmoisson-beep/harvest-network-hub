@@ -43,6 +43,9 @@ const DashboardChannel = lazy(() => import("./pages/DashboardChannel.tsx"));
 const AdminBroadcasts = lazy(() => import("./pages/AdminBroadcasts.tsx"));
 const AdminCareer = lazy(() => import("./pages/AdminCareer.tsx"));
 const StaffCareer = lazy(() => import("./pages/StaffCareer.tsx"));
+const AdminGrenier = lazy(() => import("./pages/AdminGrenier.tsx"));
+const DashboardGrenier = lazy(() => import("./pages/DashboardGrenier.tsx"));
+const DashboardGrenierDetail = lazy(() => import("./pages/DashboardGrenierDetail.tsx"));
 const InstallApp = lazy(() => import("./pages/InstallApp.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
@@ -91,6 +94,7 @@ const App = () => (
             <Route path="/admin/broadcasts" element={<AdminBroadcasts />} />
             <Route path="/admin/career" element={<AdminCareer />} />
             <Route path="/staff/career" element={<StaffCareer />} />
+            <Route path="/admin/grenier" element={<AdminGrenier />} />
             <Route path="/moissonneurs-pros" element={<MoissoneursPros />} />
             <Route path="/packs" element={<Packs />} />
             <Route path="/dashboard" element={<DashboardLayout />}>
@@ -106,6 +110,8 @@ const App = () => (
               <Route path="fonds" element={<CommunityFund />} />
               <Route path="urgences" element={<Emergencies />} />
               <Route path="canal" element={<DashboardChannel />} />
+              <Route path="grenier" element={<DashboardGrenier />} />
+              <Route path="grenier/:id" element={<DashboardGrenierDetail />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>
