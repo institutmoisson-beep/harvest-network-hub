@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Users, TrendingUp, Wallet, Wheat, Building2, UserCircle, ShoppingBag, Package, Radio, Siren, HeartHandshake, MapPin, Trophy, Boxes } from "lucide-react";
+import { Users, TrendingUp, Wallet, Wheat, Building2, UserCircle, ShoppingBag, Package, Radio, Siren, HeartHandshake, MapPin, Trophy, Boxes, Sprout } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -77,6 +77,7 @@ const DashboardHome = () => {
             { to: "/dashboard/wallet", icon: Wallet, label: "Portefeuille", color: "text-secondary" },
             { to: "/dashboard/network", icon: Users, label: "Mon Réseau", color: "text-primary" },
             { to: "/dashboard/canal", icon: Radio, label: "Canal", color: "text-secondary" },
+            { to: "/dashboard/grenier", icon: Sprout, label: "Le Grenier", color: "text-secondary" },
             { to: "/dashboard/urgences", icon: Siren, label: "Urgences", color: "text-destructive" },
             { to: "/dashboard/fonds", icon: HeartHandshake, label: "Fonds Communautaire", color: "text-secondary" },
             { to: "/dashboard/orders", icon: ShoppingBag, label: "Commandes", color: "text-primary" },

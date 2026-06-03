@@ -4,8 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 import {
   LayoutDashboard, Users, Building2, Wallet, TrendingUp, UserCircle,
-  LogOut, Menu, X, ChevronRight, Shield, Package, DollarSign, MessageCircle, Handshake, Download, ShoppingBag, Boxes, PackageCheck, HeartHandshake, Siren, MapPin, Truck, Globe, Globe2, Radio, Trophy
+  LogOut, Menu, X, ChevronRight, Shield, Package, DollarSign, MessageCircle, Handshake, Download, ShoppingBag, Boxes, PackageCheck, HeartHandshake, Siren, MapPin, Truck, Globe, Globe2, Radio, Trophy, Sprout
 } from "lucide-react";
+import TermsAndConditions from "@/components/TermsAndConditions";
 
 const baseMenuItems = [
   { icon: LayoutDashboard, label: "Tableau de Bord", path: "/dashboard" },
@@ -19,6 +20,7 @@ const baseMenuItems = [
   { icon: HeartHandshake, label: "Fonds Communautaire", path: "/dashboard/fonds" },
   { icon: Siren, label: "Mes Urgences", path: "/dashboard/urgences" },
   { icon: Radio, label: "Canal Communauté", path: "/dashboard/canal" },
+  { icon: Sprout, label: "Le Grenier", path: "/dashboard/grenier" },
   { icon: Download, label: "Télécharger l'app", path: "/telecharger-app" },
   { icon: TrendingUp, label: "Commissions", path: "/dashboard/commissions" },
   { icon: UserCircle, label: "Mon Profil", path: "/dashboard/profile" },
@@ -30,6 +32,7 @@ const roleMenuItems: Record<string, { icon: any; label: string; path: string }[]
     { icon: Radio, label: "Canal de diffusion", path: "/admin/broadcasts" },
     { icon: Trophy, label: "Plan de Carrière", path: "/admin/career" },
     { icon: Trophy, label: "Attribution Carrière", path: "/staff/career" },
+    { icon: Sprout, label: "Orchestration Grenier", path: "/admin/grenier" },
     { icon: Boxes, label: "Gestion Commerce", path: "/staff/commerce" },
     { icon: Siren, label: "Centre d'urgences", path: "/admin/urgences" },
     { icon: Shield, label: "Gestion des rôles", path: "/admin/roles" },
@@ -58,6 +61,7 @@ const DashboardLayout = () => {
   const [menuItems, setMenuItems] = useState(baseMenuItems);
   const [profile, setProfile] = useState<any>(null);
   const [unread, setUnread] = useState(0);
+  const [cguOpen, setCguOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -68,7 +72,7 @@ const DashboardLayout = () => {
       loadedFor = uid;
       const [{ data: roles }, { data: prof }, { data: unreadCount }] = await Promise.all([
         supabase.from("user_roles").select("role").eq("user_id", uid),
-        supabase.from("profiles").select("first_name, last_name, career_level").eq("id", uid).maybeSingle(),
+        supabase.from("profiles").select("first_name, last_name, career_level, cgu_accepted").eq("id", uid).maybeSingle(),
         (supabase as any).rpc("count_unread_broadcasts"),
       ]);
       if (cancelled) return;
@@ -81,6 +85,7 @@ const DashboardLayout = () => {
       });
       setMenuItems([...baseMenuItems, ...extras]);
       if (prof) setProfile(prof);
+      if (prof && !prof.cgu_accepted) setCguOpen(true);
     };
 
     const handleSession = (session: any) => {
@@ -154,6 +159,12 @@ const DashboardLayout = () => {
       {sidebarOpen && (
         <div className="fixed inset-0 z-30 bg-background/50 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
+
+      <TermsAndConditions
+        open={cguOpen}
+        forceful
+        onAccepted={() => { setCguOpen(false); setProfile((p: any) => p ? { ...p, cgu_accepted: true } : p); }}
+      />
     </div>
   );
 };
