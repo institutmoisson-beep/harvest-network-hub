@@ -515,6 +515,110 @@ export type Database = {
           },
         ]
       }
+      moisson_community_investments: {
+        Row: {
+          contract_signed_url: string | null
+          id: string
+          investment_date: string
+          payment_method: string
+          payout_received: number
+          project_id: string
+          shares_purchased: number
+          total_amount_invested: number
+          user_id: string
+        }
+        Insert: {
+          contract_signed_url?: string | null
+          id?: string
+          investment_date?: string
+          payment_method?: string
+          payout_received?: number
+          project_id: string
+          shares_purchased: number
+          total_amount_invested: number
+          user_id: string
+        }
+        Update: {
+          contract_signed_url?: string | null
+          id?: string
+          investment_date?: string
+          payment_method?: string
+          payout_received?: number
+          project_id?: string
+          shares_purchased?: number
+          total_amount_invested?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "moisson_community_investments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "moisson_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      moisson_projects: {
+        Row: {
+          category: string
+          cover_image: string | null
+          created_at: string
+          created_by: string | null
+          description: string
+          end_date: string | null
+          estimated_roi: number
+          global_target: number
+          id: string
+          share_price: number
+          shares_sold: number
+          start_date: string | null
+          status: string
+          title: string
+          total_shares: number
+          update_feed: Json
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          cover_image?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          end_date?: string | null
+          estimated_roi?: number
+          global_target?: number
+          id?: string
+          share_price?: number
+          shares_sold?: number
+          start_date?: string | null
+          status?: string
+          title: string
+          total_shares?: number
+          update_feed?: Json
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          cover_image?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          end_date?: string | null
+          estimated_roi?: number
+          global_target?: number
+          id?: string
+          share_price?: number
+          shares_sold?: number
+          start_date?: string | null
+          status?: string
+          title?: string
+          total_shares?: number
+          update_feed?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       network: {
         Row: {
           created_at: string
@@ -776,6 +880,8 @@ export type Database = {
           account_status: Database["public"]["Enums"]["account_status"]
           avatar_url: string | null
           career_level: Database["public"]["Enums"]["career_level"]
+          cgu_accepted: boolean
+          cgu_accepted_at: string | null
           contract_signed_at: string | null
           country: string | null
           created_at: string
@@ -794,6 +900,8 @@ export type Database = {
           account_status?: Database["public"]["Enums"]["account_status"]
           avatar_url?: string | null
           career_level?: Database["public"]["Enums"]["career_level"]
+          cgu_accepted?: boolean
+          cgu_accepted_at?: string | null
           contract_signed_at?: string | null
           country?: string | null
           created_at?: string
@@ -812,6 +920,8 @@ export type Database = {
           account_status?: Database["public"]["Enums"]["account_status"]
           avatar_url?: string | null
           career_level?: Database["public"]["Enums"]["career_level"]
+          cgu_accepted?: boolean
+          cgu_accepted_at?: string | null
           contract_signed_at?: string | null
           country?: string | null
           created_at?: string
@@ -1116,6 +1226,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_cgu: { Args: never; Returns: undefined }
+      add_project_update: {
+        Args: {
+          _content: string
+          _image_url?: string
+          _project_id: string
+          _title: string
+        }
+        Returns: undefined
+      }
       admin_delete_grade: { Args: { _id: string }; Returns: undefined }
       admin_pay_career_bonus: {
         Args: {
@@ -1160,6 +1280,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      auto_assign_user_grade: { Args: { _user_id: string }; Returns: string }
       contribute_to_fund: {
         Args: { _amount: number }
         Returns: {
@@ -1178,6 +1299,13 @@ export type Database = {
           _title: string
         }
         Returns: string
+      }
+      distribute_dividends: {
+        Args: { _note?: string; _project_id: string; _total_revenue: number }
+        Returns: {
+          investors_paid: number
+          total_paid: number
+        }[]
       }
       find_profile_by_code: {
         Args: { _code: string }
@@ -1222,6 +1350,14 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      invest_in_project: {
+        Args: { _payment_method?: string; _project_id: string; _shares: number }
+        Returns: {
+          investment_id: string
+          new_wallet_balance: number
+          shares_sold: number
+        }[]
       }
       list_emergencies_for_admin: {
         Args: never
@@ -1382,6 +1518,8 @@ export type Database = {
           order_id: string
         }[]
       }
+      recalc_all_grades: { Args: never; Returns: number }
+      recalc_my_grade: { Args: never; Returns: string }
       revoke_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
