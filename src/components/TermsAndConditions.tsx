@@ -65,23 +65,23 @@ const TermsAndConditions = ({ open, onAccepted, forceful }: Props) => {
   return (
     <Dialog open={open} onOpenChange={(v) => { if (forceful && !v) return; }}>
       <DialogContent
-        className="glass-card border-border max-w-2xl [&>button]:hidden"
+        className="glass-card border-border max-w-2xl max-h-[90vh] flex flex-col [&>button]:hidden"
         onInteractOutside={(e) => { if (forceful) e.preventDefault(); }}
         onEscapeKeyDown={(e) => { if (forceful) e.preventDefault(); }}
       >
-        <DialogHeader>
+        <DialogHeader className="shrink-0">
           <DialogTitle className="flex items-center gap-2"><ScrollText size={20} className="text-primary" /> Conditions Générales d'Utilisation</DialogTitle>
         </DialogHeader>
-        <div className="max-h-60 overflow-y-scroll whitespace-pre-wrap text-xs leading-relaxed p-4 rounded-lg bg-muted/30 border border-border">
+        <div className="flex-1 min-h-0 overflow-y-auto whitespace-pre-wrap text-xs leading-relaxed p-4 rounded-lg bg-muted/30 border border-border">
           {CGU_TEXT}
         </div>
-        <label className="flex items-start gap-2 cursor-pointer p-3 rounded-lg bg-primary/5 border border-primary/20">
+        <label className="shrink-0 flex items-start gap-2 cursor-pointer p-3 rounded-lg bg-primary/5 border border-primary/20">
           <Checkbox checked={checked} onCheckedChange={(v) => setChecked(!!v)} className="mt-1" />
           <span className="text-xs">
             J'ai lu et j'accepte les Conditions Générales d'Utilisation de l'application de l'Institut Moisson. Je reconnais que les activités d'investissement du Grenier sont juridiquement opérées par le GIE de l'organisation.
           </span>
         </label>
-        <Button disabled={!checked || submitting} onClick={accept} className="w-full bg-gradient-purple text-primary-foreground font-display font-bold">
+        <Button disabled={!checked || submitting} onClick={accept} className="shrink-0 w-full bg-gradient-purple text-primary-foreground font-display font-bold">
           {submitting ? "Validation…" : "Valider mon acceptation"}
         </Button>
       </DialogContent>
