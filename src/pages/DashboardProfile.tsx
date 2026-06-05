@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { UserCircle, Save, Key } from "lucide-react";
 import { FileText, ScrollText, BookOpen } from "lucide-react";
 import { downloadAdhesionContract, downloadStatutes, downloadReglement, MemberInfo } from "@/utils/generateLegalDocs";
+import TermsAndConditions from "@/components/TermsAndConditions";
 
 const DashboardProfile = () => {
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ const DashboardProfile = () => {
   const [deliveryAddress, setDeliveryAddress] = useState({ fullName: "", phone: "", country: "", city: "", addressLine: "", postalCode: "" });
   const [packName, setPackName] = useState<string>("Pack d'adhésion");
   const [acceptDocs, setAcceptDocs] = useState(false);
+  const [showCgu, setShowCgu] = useState(false);
 
   const [loading, setLoading] = useState(true);
 
@@ -179,6 +181,37 @@ const DashboardProfile = () => {
         </div>
 
         {/* Referral Section */}
+        <div className="p-4 rounded-lg bg-secondary/10 border border-secondary/30 mb-6">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <Label className="text-xs font-bold text-secondary">Conditions Générales d'Utilisation</Label>
+              <p className="text-xs text-muted-foreground mt-1">
+                {profile?.cgu_accepted ? `Acceptées le ${profile.cgu_accepted_at ? new Date(profile.cgu_accepted_at).toLocaleString("fr-FR") : "—"}` : "À accepter avant tout investissement dans Le Grenier."}
+              </p>
+            </div>
+            {profile?.cgu_accepted ? (
+              <span className="text-xs font-bold text-secondary">✓ Validé</span>
+            ) : (
+              <Button size="sm" onClick={() => setShowCgu((v) => !v)} className="bg-gradient-purple text-primary-foreground text-xs">
+                {showCgu ? "Masquer" : "Lire et accepter"}
+              </Button>
+            )}
+          </div>
+          {showCgu && !profile?.cgu_accepted && (
+            <div className="mt-4">
+              <TermsAndConditions
+                open={showCgu}
+                embedded
+                onAccepted={() => {
+                  const acceptedAt = new Date().toISOString();
+                  setProfile((p: any) => p ? { ...p, cgu_accepted: true, cgu_accepted_at: acceptedAt } : p);
+                  setShowCgu(false);
+                }}
+              />
+            </div>
+          )}
+        </div>
+
         <div className="p-4 rounded-lg bg-primary/5 border border-primary/20 mb-6">
           <Label className="text-xs font-bold text-primary">🌾 Code Moissonneur</Label>
           <div className="flex items-center gap-2 mt-1">
