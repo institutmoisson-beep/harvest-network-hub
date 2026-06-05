@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          id: string
+          metadata: Json
+          target_id: string | null
+          target_type: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          target_id?: string | null
+          target_type?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          metadata?: Json
+          target_id?: string | null
+          target_type?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       broadcast_messages: {
         Row: {
           content: string
@@ -1226,7 +1259,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      accept_cgu: { Args: never; Returns: undefined }
+      accept_cgu: { Args: never; Returns: boolean }
       add_project_update: {
         Args: {
           _content: string
@@ -1487,6 +1520,16 @@ export type Database = {
           phone: string
           referral_code: string
         }[]
+      }
+      log_admin_event: {
+        Args: {
+          _action: string
+          _metadata?: Json
+          _target_id?: string
+          _target_type?: string
+          _user_agent?: string
+        }
+        Returns: string
       }
       mark_broadcast_read: { Args: { _message_id: string }; Returns: undefined }
       move_referral_position: {

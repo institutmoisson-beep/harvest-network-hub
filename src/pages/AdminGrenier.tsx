@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,8 +9,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Plus, DollarSign, Sprout, Pencil, ScrollText, Activity } from "lucide-react";
+import { ArrowLeft, Plus, DollarSign, Sprout, Pencil, ScrollText, Activity, ImagePlus } from "lucide-react";
 import { toast } from "sonner";
+import { uploadOptimizedImage } from "@/utils/imageCompression";
 
 interface Project {
   id: string; title: string; category: string; description: string;
@@ -33,12 +34,31 @@ const AdminGrenier = () => {
   const [revenue, setRevenue] = useState(0);
   const [payoutNote, setPayoutNote] = useState("");
   const [journal, setJournal] = useState({ title: "", content: "", image_url: "" });
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [uploadingJournal, setUploadingJournal] = useState(false);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+  const journalInputRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     const { data } = await supabase.from("moisson_projects").select("*").order("created_at", { ascending: false });
     setProjects((data as Project[]) || []);
   };
   useEffect(() => { load(); }, []);
+
+  const uploadGrenierImage = async (file: File, target: "cover" | "journal") => {
+    const setUploading = target === "cover" ? setUploadingCover : setUploadingJournal;
+    setUploading(true);
+    try {
+      const url = await uploadOptimizedImage(file, "pack-images", "grenier");
+      if (target === "cover") setForm(f => ({ ...f, cover_image: url }));
+      else setJournal(j => ({ ...j, image_url: url }));
+      toast.success("Image optimisée et téléchargée");
+    } catch (error: any) {
+      toast.error(error?.message || "Erreur pendant le téléchargement");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const save = async () => {
     if (!form.title?.trim()) { toast.error("Titre requis"); return; }
@@ -147,7 +167,15 @@ const AdminGrenier = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div><label className="text-xs">Image (URL)</label><Input value={form.cover_image || ""} onChange={e => setForm(f => ({ ...f, cover_image: e.target.value }))} /></div>
+            <div>
+              <label className="text-xs">Image du projet</label>
+              {form.cover_image && <img src={form.cover_image} alt="Aperçu du projet" className="mt-1 h-24 w-full rounded-lg border border-border object-cover" />}
+              <input ref={coverInputRef} type="file" accept="image/*" className="hidden" onChange={e => { const file = e.target.files?.[0]; if (file) void uploadGrenierImage(file, "cover"); e.currentTarget.value = ""; }} />
+              <Button type="button" variant="outline" size="sm" className="mt-2 w-full text-xs" disabled={uploadingCover} onClick={() => coverInputRef.current?.click()}>
+                <ImagePlus size={14} className="mr-1" /> {uploadingCover ? "Optimisation…" : "Télécharger une image"}
+              </Button>
+              <Input value={form.cover_image || ""} onChange={e => setForm(f => ({ ...f, cover_image: e.target.value }))} placeholder="Ou coller une URL" className="mt-2" />
+            </div>
             <div className="col-span-2"><label className="text-xs">Description</label><Textarea rows={4} value={form.description || ""} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} /></div>
             <div><label className="text-xs">Objectif global (FCFA)</label><Input type="number" value={form.global_target ?? 0} onChange={e => setForm(f => ({ ...f, global_target: Number(e.target.value) }))} /></div>
             <div><label className="text-xs">Prix d'une part (FCFA)</label><Input type="number" value={form.share_price ?? 10000} onChange={e => setForm(f => ({ ...f, share_price: Number(e.target.value) }))} /></div>
@@ -175,7 +203,15 @@ const AdminGrenier = () => {
           <DialogHeader><DialogTitle>Mise à jour Journal — {active?.title}</DialogTitle></DialogHeader>
           <div><label className="text-xs">Titre</label><Input value={journal.title} onChange={e => setJournal(j => ({ ...j, title: e.target.value }))} placeholder="Début du tournage à Abidjan" /></div>
           <div><label className="text-xs">Contenu</label><Textarea rows={4} value={journal.content} onChange={e => setJournal(j => ({ ...j, content: e.target.value }))} /></div>
-          <div><label className="text-xs">Image (URL, optionnel)</label><Input value={journal.image_url} onChange={e => setJournal(j => ({ ...j, image_url: e.target.value }))} /></div>
+          <div>
+            <label className="text-xs">Image du journal</label>
+            {journal.image_url && <img src={journal.image_url} alt="Aperçu journal" className="mt-1 h-28 w-full rounded-lg border border-border object-cover" />}
+            <input ref={journalInputRef} type="file" accept="image/*" className="hidden" onChange={e => { const file = e.target.files?.[0]; if (file) void uploadGrenierImage(file, "journal"); e.currentTarget.value = ""; }} />
+            <Button type="button" variant="outline" size="sm" className="mt-2 w-full text-xs" disabled={uploadingJournal} onClick={() => journalInputRef.current?.click()}>
+              <ImagePlus size={14} className="mr-1" /> {uploadingJournal ? "Optimisation…" : "Télécharger une image"}
+            </Button>
+            <Input value={journal.image_url} onChange={e => setJournal(j => ({ ...j, image_url: e.target.value }))} placeholder="Ou coller une URL" className="mt-2" />
+          </div>
           <Button onClick={addJournal} className="bg-gradient-purple"><ScrollText size={14} className="mr-1" /> Publier</Button>
         </DialogContent>
       </Dialog>

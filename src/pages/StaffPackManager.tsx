@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Package, Plus, Edit2, Save, X, Trash2, Upload, ImagePlus } from "lucide-react";
 import logo from "@/assets/logo.png";
-import { compressImages } from "@/utils/imageCompression";
+import { uploadOptimizedImages } from "@/utils/imageCompression";
 
 type Product = { id: string; name: string; price: number; profit_amount: number; level1_commission_percentage: number; company_id: string; description: string | null; image_url: string | null; is_active: boolean; is_physical: boolean; activates_system: boolean; currency: string; sector: string | null; images: string[] | null };
 type Company = { id: string; name: string };
@@ -61,22 +61,18 @@ const StaffPackManager = () => {
 
   const uploadImages = async (files: FileList) => {
     setUploading(true);
-    const newUrls: string[] = [];
-    const compressed = await compressImages(files);
-    for (const file of compressed) {
-      const ext = "webp";
-      const path = `packs/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
-      const { error } = await supabase.storage.from("pack-images").upload(path, file, { cacheControl: "31536000", upsert: false });
-      if (error) { toast.error(`Erreur upload: ${file.name}`); continue; }
-      const { data: urlData } = supabase.storage.from("pack-images").getPublicUrl(path);
-      newUrls.push(urlData.publicUrl);
+    try {
+      const newUrls = await uploadOptimizedImages(files, "pack-images", "packs");
+      setForm(p => {
+        const updated = [...p.images, ...newUrls];
+        return { ...p, images: updated, image_url: p.image_url || updated[0] || "" };
+      });
+      if (newUrls.length > 0) toast.success(`${newUrls.length} image(s) optimisée(s) et ajoutée(s)`);
+    } catch (error: any) {
+      toast.error(error?.message || "Erreur upload");
+    } finally {
+      setUploading(false);
     }
-    setForm(p => {
-      const updated = [...p.images, ...newUrls];
-      return { ...p, images: updated, image_url: p.image_url || updated[0] || "" };
-    });
-    setUploading(false);
-    if (newUrls.length > 0) toast.success(`${newUrls.length} image(s) ajoutée(s)`);
   };
 
   const removeImage = (index: number) => {

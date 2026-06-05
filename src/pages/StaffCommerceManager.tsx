@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import logo from "@/assets/logo.png";
-import { compressImages } from "@/utils/imageCompression";
+import { uploadOptimizedImages } from "@/utils/imageCompression";
 
 type Kind = "wholesale" | "distribution";
 type Product = { id: string; kind: Kind; name: string; description: string; price: number; currency: string; min_quantity: number; available_quantity: number | null; commission_percentage: number; partner_name: string; images: string[]; is_active: boolean };
@@ -57,16 +57,15 @@ const StaffCommerceManager = () => {
 
   const uploadImages = async (files: FileList) => {
     setUploading(true);
-    const compressed = await compressImages(files);
-    const urls: string[] = [];
-    for (const file of compressed) {
-      const path = `commerce/${Date.now()}_${Math.random().toString(36).slice(2)}.webp`;
-      const { error } = await supabase.storage.from("pack-images").upload(path, file, { cacheControl: "31536000", upsert: false });
-      if (!error) urls.push(supabase.storage.from("pack-images").getPublicUrl(path).data.publicUrl);
+    try {
+      const urls = await uploadOptimizedImages(files, "pack-images", "commerce");
+      setForm(p => ({ ...p, images: [...p.images, ...urls] }));
+      if (urls.length) toast.success(`${urls.length} image(s) optimisée(s) et ajoutée(s)`);
+    } catch (error: any) {
+      toast.error(error?.message || "Erreur upload");
+    } finally {
+      setUploading(false);
     }
-    setForm(p => ({ ...p, images: [...p.images, ...urls] }));
-    setUploading(false);
-    if (urls.length) toast.success(`${urls.length} image(s) ajoutée(s)`);
   };
 
   const save = async () => {

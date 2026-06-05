@@ -6,7 +6,6 @@ import {
   LayoutDashboard, Users, Building2, Wallet, TrendingUp, UserCircle,
   LogOut, Menu, X, ChevronRight, Shield, Package, DollarSign, MessageCircle, Handshake, Download, ShoppingBag, Boxes, PackageCheck, HeartHandshake, Siren, MapPin, Truck, Globe, Globe2, Radio, Trophy, Sprout
 } from "lucide-react";
-import TermsAndConditions from "@/components/TermsAndConditions";
 
 const baseMenuItems = [
   { icon: LayoutDashboard, label: "Tableau de Bord", path: "/dashboard" },
@@ -61,7 +60,6 @@ const DashboardLayout = () => {
   const [menuItems, setMenuItems] = useState(baseMenuItems);
   const [profile, setProfile] = useState<any>(null);
   const [unread, setUnread] = useState(0);
-  const [cguOpen, setCguOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -85,7 +83,6 @@ const DashboardLayout = () => {
       });
       setMenuItems([...baseMenuItems, ...extras]);
       if (prof) setProfile(prof);
-      if (prof && !prof.cgu_accepted) setCguOpen(true);
     };
 
     const handleSession = (session: any) => {
@@ -160,11 +157,6 @@ const DashboardLayout = () => {
         <div className="fixed inset-0 z-30 bg-background/50 backdrop-blur-sm lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      <TermsAndConditions
-        open={cguOpen}
-        forceful
-        onAccepted={() => { setCguOpen(false); setProfile((p: any) => p ? { ...p, cgu_accepted: true } : p); }}
-      />
     </div>
   );
 };

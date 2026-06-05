@@ -15,7 +15,7 @@ import {
   Eye, DollarSign, Star, Tags, Shield, Search, ChevronDown, ChevronUp
 } from "lucide-react";
 import logo from "@/assets/logo.png";
-import { compressImage } from "@/utils/imageCompression";
+import { uploadOptimizedImage } from "@/utils/imageCompression";
 
 type Profile = { id: string; first_name: string; last_name: string; email: string; phone: string; country: string; referral_code: string; career_level: string; account_status: string; is_system_active: boolean; created_at: string };
 type Transaction = { id: string; user_id: string; type: string; amount: number; status: string; created_at: string; operator: string | null; transaction_ref: string | null; service: string | null; contact: string | null; withdrawal_address: string | null; notes: string | null; transaction_date: string | null; recipient_id?: string | null };
@@ -638,13 +638,13 @@ const AdminDashboard = () => {
                         <input type="file" accept="image/*" className="text-[10px] w-full" onChange={async (e) => {
                           const raw = e.target.files?.[0];
                           if (!raw) return;
-                          const file = await compressImage(raw);
-                          const path = `companies/${Date.now()}_${Math.random().toString(36).slice(2)}.webp`;
-                          const { error } = await supabase.storage.from("company-images").upload(path, file, { cacheControl: "31536000", upsert: false });
-                          if (error) { toast.error(`Erreur upload: ${error.message}`); return; }
-                          const { data: urlData } = supabase.storage.from("company-images").getPublicUrl(path);
-                          setCompanyForm(p => ({ ...p, [field]: urlData.publicUrl }));
-                          toast.success(`${label} téléchargé !`);
+                          try {
+                            const url = await uploadOptimizedImage(raw, "company-images", "companies");
+                            setCompanyForm(p => ({ ...p, [field]: url }));
+                            toast.success(`${label} optimisé et téléchargé !`);
+                          } catch (error: any) {
+                            toast.error(`Erreur upload: ${error?.message || "image non envoyée"}`);
+                          }
                           e.target.value = "";
                         }} />
                       </div>
@@ -759,12 +759,12 @@ const AdminDashboard = () => {
                         const files = e.target.files;
                         if (!files) return;
                         for (const raw of Array.from(files)) {
-                          const file = await compressImage(raw);
-                          const path = `packs/${Date.now()}_${Math.random().toString(36).slice(2)}.webp`;
-                          const { error } = await supabase.storage.from("pack-images").upload(path, file, { cacheControl: "31536000", upsert: false });
-                          if (error) { toast.error(`Erreur upload: ${error.message}`); continue; }
-                          const { data: urlData } = supabase.storage.from("pack-images").getPublicUrl(path);
-                          setProductForm(p => ({ ...p, images: [...p.images, urlData.publicUrl] }));
+                          try {
+                            const url = await uploadOptimizedImage(raw, "pack-images", "packs");
+                            setProductForm(p => ({ ...p, images: [...p.images, url] }));
+                          } catch (error: any) {
+                            toast.error(`Erreur upload: ${error?.message || raw.name}`);
+                          }
                         }
                         toast.success("Images téléchargées !");
                         e.target.value = "";

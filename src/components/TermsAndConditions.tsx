@@ -47,43 +47,65 @@ interface Props {
   open: boolean;
   onAccepted: () => void;
   forceful?: boolean;
+  embedded?: boolean;
 }
 
-const TermsAndConditions = ({ open, onAccepted, forceful }: Props) => {
+const TermsAndConditions = ({ open, onAccepted, forceful, embedded }: Props) => {
   const [checked, setChecked] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const accept = async () => {
+    if (!checked) return;
     setSubmitting(true);
-    const { error } = await (supabase as any).rpc("accept_cgu");
+    const { data, error } = await (supabase as any).rpc("accept_cgu");
     setSubmitting(false);
     if (error) { toast.error(error.message); return; }
+    if (data !== true) { toast.error("Acceptation non enregistrée. Réessayez."); return; }
     toast.success("CGU acceptées");
+    setChecked(false);
     onAccepted();
   };
 
+  const header = embedded ? (
+    <div className="shrink-0">
+      <h3 className="flex items-center gap-2 font-display text-sm font-bold"><ScrollText size={20} className="text-primary" /> Conditions Générales d'Utilisation</h3>
+    </div>
+  ) : (
+    <DialogHeader className="shrink-0">
+      <DialogTitle className="flex items-center gap-2"><ScrollText size={20} className="text-primary" /> Conditions Générales d'Utilisation</DialogTitle>
+    </DialogHeader>
+  );
+
+  const content = (
+    <>
+      {header}
+      <div className="flex-1 min-h-0 overflow-y-auto whitespace-pre-wrap text-xs leading-relaxed p-4 rounded-lg bg-muted/30 border border-border">
+        {CGU_TEXT}
+      </div>
+      <label className="shrink-0 flex items-start gap-2 cursor-pointer p-3 rounded-lg bg-primary/5 border border-primary/20">
+        <Checkbox checked={checked} onCheckedChange={(v) => setChecked(!!v)} className="mt-1" />
+        <span className="text-xs">
+          J'ai lu et j'accepte les Conditions Générales d'Utilisation de l'application de l'Institut Moisson. Je reconnais que les activités d'investissement du Grenier sont juridiquement opérées par le GIE de l'organisation.
+        </span>
+      </label>
+      <Button disabled={!checked || submitting} onClick={accept} className="shrink-0 w-full bg-gradient-purple text-primary-foreground font-display font-bold">
+        {submitting ? "Validation…" : "Valider mon acceptation"}
+      </Button>
+    </>
+  );
+
+  if (embedded) {
+    return <div className="flex max-h-[72vh] flex-col gap-4">{content}</div>;
+  }
+
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (forceful && !v) return; }}>
+    <Dialog open={open} onOpenChange={(v) => { if (!forceful && !v) onAccepted(); }}>
       <DialogContent
         className="glass-card border-border max-w-2xl max-h-[90vh] flex flex-col [&>button]:hidden"
         onInteractOutside={(e) => { if (forceful) e.preventDefault(); }}
         onEscapeKeyDown={(e) => { if (forceful) e.preventDefault(); }}
       >
-        <DialogHeader className="shrink-0">
-          <DialogTitle className="flex items-center gap-2"><ScrollText size={20} className="text-primary" /> Conditions Générales d'Utilisation</DialogTitle>
-        </DialogHeader>
-        <div className="flex-1 min-h-0 overflow-y-auto whitespace-pre-wrap text-xs leading-relaxed p-4 rounded-lg bg-muted/30 border border-border">
-          {CGU_TEXT}
-        </div>
-        <label className="shrink-0 flex items-start gap-2 cursor-pointer p-3 rounded-lg bg-primary/5 border border-primary/20">
-          <Checkbox checked={checked} onCheckedChange={(v) => setChecked(!!v)} className="mt-1" />
-          <span className="text-xs">
-            J'ai lu et j'accepte les Conditions Générales d'Utilisation de l'application de l'Institut Moisson. Je reconnais que les activités d'investissement du Grenier sont juridiquement opérées par le GIE de l'organisation.
-          </span>
-        </label>
-        <Button disabled={!checked || submitting} onClick={accept} className="shrink-0 w-full bg-gradient-purple text-primary-foreground font-display font-bold">
-          {submitting ? "Validation…" : "Valider mon acceptation"}
-        </Button>
+        {content}
       </DialogContent>
     </Dialog>
   );
