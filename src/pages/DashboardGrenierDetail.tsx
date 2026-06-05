@@ -20,10 +20,18 @@ const DashboardGrenierDetail = () => {
   const [payOpen, setPayOpen] = useState(false);
   const [payMethod, setPayMethod] = useState("wallet");
   const [submitting, setSubmitting] = useState(false);
+  const [cguAccepted, setCguAccepted] = useState<boolean | null>(null);
 
   const load = async () => {
-    const { data } = await supabase.from("moisson_projects").select("*").eq("id", id).maybeSingle();
+    const [{ data }, { data: { user } }] = await Promise.all([
+      supabase.from("moisson_projects").select("*").eq("id", id).maybeSingle(),
+      supabase.auth.getUser(),
+    ]);
     setProject(data);
+    if (user) {
+      const { data: prof } = await supabase.from("profiles").select("cgu_accepted").eq("id", user.id).maybeSingle();
+      setCguAccepted(!!prof?.cgu_accepted);
+    }
   };
 
   useEffect(() => { load(); }, [id]);
@@ -36,6 +44,11 @@ const DashboardGrenierDetail = () => {
   const estGain = total * (Number(project.estimated_roi) / 100);
 
   const invest = async () => {
+    if (cguAccepted === false) {
+      toast.error("Veuillez accepter les CGU dans votre profil avant d'investir dans Le Grenier.");
+      navigate("/dashboard/profile");
+      return;
+    }
     setSubmitting(true);
     const { error } = await (supabase as any).rpc("invest_in_project", {
       _project_id: id, _shares: shares, _payment_method: payMethod,
@@ -96,7 +109,10 @@ const DashboardGrenierDetail = () => {
                 <p className="font-display font-bold text-lg text-secondary">+{estGain.toLocaleString()} FCFA</p>
               </div>
             </div>
-            <Button onClick={() => setPayOpen(true)} className="w-full bg-gradient-purple text-primary-foreground font-display font-bold">
+            {cguAccepted === false && (
+              <p className="text-xs rounded-lg border border-primary/20 bg-primary/5 p-3 text-muted-foreground">Acceptez les CGU dans votre profil pour activer l’investissement dans Le Grenier.</p>
+            )}
+            <Button onClick={() => cguAccepted === false ? navigate("/dashboard/profile") : setPayOpen(true)} className="w-full bg-gradient-purple text-primary-foreground font-display font-bold">
               <Wallet size={16} className="mr-2" /> Soutenir ce projet via le GIE
             </Button>
           </div>
