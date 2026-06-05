@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Building2, Plus, Edit2, Save, X, Trash2 } from "lucide-react";
 import logo from "@/assets/logo.png";
-import { compressImage } from "@/utils/imageCompression";
+import { uploadOptimizedImage } from "@/utils/imageCompression";
 
 type Company = { id: string; name: string; sector: string; country: string; description: string | null; logo_url: string | null; banner_url: string | null; website_url: string | null; is_active: boolean; contact_whatsapp?: string; contact_facebook?: string; contact_email?: string; image_url_2?: string };
 type Sector = { id: string; name: string };
@@ -123,13 +123,13 @@ const StaffPartnerManager = () => {
                   {form[field] && <img src={form[field]} alt={label} className="w-full h-20 rounded-lg object-cover border border-border" />}
                   <input type="file" accept="image/*" className="text-[10px] w-full" onChange={async (e) => {
                     const raw = e.target.files?.[0]; if (!raw) return;
-                    const file = await compressImage(raw);
-                    const path = `companies/${Date.now()}_${Math.random().toString(36).slice(2)}.webp`;
-                    const { error } = await supabase.storage.from("company-images").upload(path, file, { cacheControl: "31536000", upsert: false });
-                    if (error) { toast.error(error.message); return; }
-                    const { data: urlData } = supabase.storage.from("company-images").getPublicUrl(path);
-                    setForm(p => ({ ...p, [field]: urlData.publicUrl }));
-                    toast.success(`${label} téléchargé !`);
+                    try {
+                      const url = await uploadOptimizedImage(raw, "company-images", "companies");
+                      setForm(p => ({ ...p, [field]: url }));
+                      toast.success(`${label} optimisé et téléchargé !`);
+                    } catch (error: any) {
+                      toast.error(error?.message || "Erreur upload");
+                    }
                   }} />
                 </div>
               ))}
