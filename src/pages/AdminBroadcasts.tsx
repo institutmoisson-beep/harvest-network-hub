@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Radio, Send, Image as ImageIcon, Link as LinkIcon, User, Search, ArrowLeft } from "lucide-react";
+import { uploadOptimizedImage } from "@/utils/imageCompression";
 
 const AdminBroadcasts = () => {
   const navigate = useNavigate();
@@ -51,10 +52,7 @@ const AdminBroadcasts = () => {
     try {
       let imageUrl: string | null = null;
       if (imageFile) {
-        const path = `${Date.now()}-${imageFile.name}`;
-        const { error: upErr } = await supabase.storage.from("broadcast-media").upload(path, imageFile);
-        if (upErr) throw upErr;
-        imageUrl = supabase.storage.from("broadcast-media").getPublicUrl(path).data.publicUrl;
+        imageUrl = await uploadOptimizedImage(imageFile, "broadcast-media", "broadcasts");
       }
       const { error } = await (supabase as any).rpc("create_broadcast", {
         _title: title, _content: content, _image_url: imageUrl,
