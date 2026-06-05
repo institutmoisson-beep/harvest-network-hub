@@ -1259,7 +1259,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      accept_cgu: { Args: never; Returns: undefined }
+      accept_cgu: { Args: never; Returns: boolean }
       add_project_update: {
         Args: {
           _content: string
