@@ -66,11 +66,19 @@ const TermsAndConditions = ({ open, onAccepted, forceful, embedded }: Props) => 
     onAccepted();
   };
 
+  const header = embedded ? (
+    <div className="shrink-0">
+      <h3 className="flex items-center gap-2 font-display text-sm font-bold"><ScrollText size={20} className="text-primary" /> Conditions Générales d'Utilisation</h3>
+    </div>
+  ) : (
+    <DialogHeader className="shrink-0">
+      <DialogTitle className="flex items-center gap-2"><ScrollText size={20} className="text-primary" /> Conditions Générales d'Utilisation</DialogTitle>
+    </DialogHeader>
+  );
+
   const content = (
     <>
-      <DialogHeader className="shrink-0">
-        <DialogTitle className="flex items-center gap-2"><ScrollText size={20} className="text-primary" /> Conditions Générales d'Utilisation</DialogTitle>
-      </DialogHeader>
+      {header}
       <div className="flex-1 min-h-0 overflow-y-auto whitespace-pre-wrap text-xs leading-relaxed p-4 rounded-lg bg-muted/30 border border-border">
         {CGU_TEXT}
       </div>
