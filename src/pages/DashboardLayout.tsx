@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 import {
   LayoutDashboard, Users, Building2, Wallet, TrendingUp, UserCircle,
-  LogOut, Menu, X, ChevronRight, Shield, Package, DollarSign, MessageCircle, Handshake, Download, ShoppingBag, Boxes, PackageCheck, HeartHandshake, Siren, MapPin, Truck, Globe, Globe2, Radio, Trophy, Sprout
+  LogOut, Menu, X, ChevronRight, Shield, Package, DollarSign, MessageCircle, Handshake, Download, ShoppingBag, Boxes, PackageCheck, HeartHandshake, Siren, MapPin, Truck, Globe, Globe2, Radio, Trophy, Sprout, IdCard, ScanLine
 } from "lucide-react";
 
 const baseMenuItems = [
@@ -20,6 +20,8 @@ const baseMenuItems = [
   { icon: Siren, label: "Mes Urgences", path: "/dashboard/urgences" },
   { icon: Radio, label: "Canal Communauté", path: "/dashboard/canal" },
   { icon: Sprout, label: "Le Grenier", path: "/dashboard/grenier" },
+  { icon: IdCard, label: "Ma Carte Moissonneur", path: "/dashboard/carte" },
+  { icon: ScanLine, label: "Vérificateur Communauté", path: "/dashboard/scanner" },
   { icon: Download, label: "Télécharger l'app", path: "/telecharger-app" },
   { icon: TrendingUp, label: "Commissions", path: "/dashboard/commissions" },
   { icon: UserCircle, label: "Mon Profil", path: "/dashboard/profile" },

@@ -144,10 +144,13 @@ export type Database = {
           min_active_referrals: number
           min_downline_size: number
           min_revenue: number
+          min_weekly_revenue: number
           monthly_bonus: number
           name: string
+          rewards_description: string | null
           updated_at: string
           weekly_bonus: number
+          weekly_revenue_percentage: number
         }
         Insert: {
           created_at?: string
@@ -158,10 +161,13 @@ export type Database = {
           min_active_referrals?: number
           min_downline_size?: number
           min_revenue?: number
+          min_weekly_revenue?: number
           monthly_bonus?: number
           name: string
+          rewards_description?: string | null
           updated_at?: string
           weekly_bonus?: number
+          weekly_revenue_percentage?: number
         }
         Update: {
           created_at?: string
@@ -172,10 +178,13 @@ export type Database = {
           min_active_referrals?: number
           min_downline_size?: number
           min_revenue?: number
+          min_weekly_revenue?: number
           monthly_bonus?: number
           name?: string
+          rewards_description?: string | null
           updated_at?: string
           weekly_bonus?: number
+          weekly_revenue_percentage?: number
         }
         Relationships: []
       }
@@ -601,6 +610,7 @@ export type Database = {
           description: string
           end_date: string | null
           estimated_roi: number
+          gallery_images: Json
           global_target: number
           id: string
           share_price: number
@@ -620,6 +630,7 @@ export type Database = {
           description?: string
           end_date?: string | null
           estimated_roi?: number
+          gallery_images?: Json
           global_target?: number
           id?: string
           share_price?: number
@@ -639,6 +650,7 @@ export type Database = {
           description?: string
           end_date?: string | null
           estimated_roi?: number
+          gallery_images?: Json
           global_target?: number
           id?: string
           share_price?: number
@@ -921,13 +933,16 @@ export type Database = {
           email: string | null
           first_name: string
           id: string
+          id_moissonneur: string | null
           is_pro_visible: boolean
           is_system_active: boolean
           last_name: string
           phone: string | null
           referral_code: string
           referred_by: string | null
+          signature_url: string | null
           updated_at: string
+          verification_token: string
         }
         Insert: {
           account_status?: Database["public"]["Enums"]["account_status"]
@@ -941,13 +956,16 @@ export type Database = {
           email?: string | null
           first_name?: string
           id: string
+          id_moissonneur?: string | null
           is_pro_visible?: boolean
           is_system_active?: boolean
           last_name?: string
           phone?: string | null
           referral_code?: string
           referred_by?: string | null
+          signature_url?: string | null
           updated_at?: string
+          verification_token?: string
         }
         Update: {
           account_status?: Database["public"]["Enums"]["account_status"]
@@ -961,13 +979,16 @@ export type Database = {
           email?: string | null
           first_name?: string
           id?: string
+          id_moissonneur?: string | null
           is_pro_visible?: boolean
           is_system_active?: boolean
           last_name?: string
           phone?: string | null
           referral_code?: string
           referred_by?: string | null
+          signature_url?: string | null
           updated_at?: string
+          verification_token?: string
         }
         Relationships: [
           {
@@ -1304,6 +1325,24 @@ export type Database = {
         }
         Returns: string
       }
+      admin_upsert_grade_v2: {
+        Args: {
+          _description: string
+          _display_order: number
+          _id: string
+          _is_active: boolean
+          _min_active_referrals: number
+          _min_downline_size: number
+          _min_revenue: number
+          _min_weekly_revenue: number
+          _monthly_bonus: number
+          _name: string
+          _rewards_description: string
+          _weekly_bonus: number
+          _weekly_revenue_percentage: number
+        }
+        Returns: string
+      }
       assign_role: {
         Args: {
           _city?: string
@@ -1536,6 +1575,13 @@ export type Database = {
         Args: { _member_id: string; _new_position: string }
         Returns: undefined
       }
+      pay_weekly_revenue_bonuses: {
+        Args: never
+        Returns: {
+          total_paid: number
+          users_paid: number
+        }[]
+      }
       purchase_commerce_product: {
         Args: {
           _client_name?: string
@@ -1591,6 +1637,20 @@ export type Database = {
           _status: Database["public"]["Enums"]["delivery_status"]
         }
         Returns: undefined
+      }
+      verify_member_token: {
+        Args: { _token: string }
+        Returns: {
+          account_status: Database["public"]["Enums"]["account_status"]
+          avatar_url: string
+          career_level: Database["public"]["Enums"]["career_level"]
+          country: string
+          first_name: string
+          id_moissonneur: string
+          is_system_active: boolean
+          last_name: string
+          member_since: string
+        }[]
       }
       withdraw_from_fund: {
         Args: { _amount: number; _emergency_id?: string; _reason: string }

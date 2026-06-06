@@ -8,7 +8,6 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Sprout, TrendingUp, Calendar, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
@@ -18,7 +17,6 @@ const DashboardGrenierDetail = () => {
   const [project, setProject] = useState<any>(null);
   const [shares, setShares] = useState(1);
   const [payOpen, setPayOpen] = useState(false);
-  const [payMethod, setPayMethod] = useState("wallet");
   const [submitting, setSubmitting] = useState(false);
   const [cguAccepted, setCguAccepted] = useState<boolean | null>(null);
 
@@ -51,7 +49,7 @@ const DashboardGrenierDetail = () => {
     }
     setSubmitting(true);
     const { error } = await (supabase as any).rpc("invest_in_project", {
-      _project_id: id, _shares: shares, _payment_method: payMethod,
+      _project_id: id, _shares: shares, _payment_method: "wallet",
     });
     setSubmitting(false);
     if (error) { toast.error(error.message); return; }
@@ -68,6 +66,13 @@ const DashboardGrenierDetail = () => {
 
       {project.cover_image && (
         <div className="h-64 rounded-xl bg-cover bg-center mb-6" style={{ backgroundImage: `url(${project.cover_image})` }} />
+      )}
+      {Array.isArray(project.gallery_images) && project.gallery_images.length > 0 && (
+        <div className="grid grid-cols-3 gap-2 mb-6">
+          {project.gallery_images.map((url: string, i: number) => (
+            <a key={i} href={url} target="_blank" rel="noreferrer"><img src={url} alt="" className="h-24 w-full object-cover rounded-md border border-border" /></a>
+          ))}
+        </div>
       )}
 
       <div className="flex items-center gap-2 flex-wrap mb-2">
@@ -144,21 +149,7 @@ const DashboardGrenierDetail = () => {
           <DialogHeader><DialogTitle>Confirmer l'investissement</DialogTitle></DialogHeader>
           <div className="space-y-3 text-sm">
             <p>Vous allez acquérir <strong>{shares} part{shares > 1 ? "s" : ""}</strong> du projet <strong>{project.title}</strong> pour un total de <strong className="text-primary">{total.toLocaleString()} FCFA</strong>.</p>
-            <div>
-              <label className="text-xs text-muted-foreground">Mode de paiement</label>
-              <Select value={payMethod} onValueChange={setPayMethod}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="wallet">Portefeuille (Wallet)</SelectItem>
-                  <SelectItem value="wave">Wave</SelectItem>
-                  <SelectItem value="orange_money">Orange Money</SelectItem>
-                  <SelectItem value="mtn">MTN Money</SelectItem>
-                  <SelectItem value="moov">Moov Money</SelectItem>
-                  <SelectItem value="card">Carte bancaire</SelectItem>
-                </SelectContent>
-              </Select>
-              {payMethod !== "wallet" && <p className="text-[10px] text-muted-foreground mt-1">Paiement Mobile Money/Carte simulé pour la démo — l'orchestration réelle est validée par l'admin GIE.</p>}
-            </div>
+          <p className="text-xs rounded-lg bg-muted/30 border border-border p-3">Paiement uniquement via votre <strong>Portefeuille interne</strong>. Rechargez votre wallet si nécessaire.</p>
             <Button onClick={invest} disabled={submitting} className="w-full bg-gradient-gold text-secondary-foreground font-display font-bold">
               {submitting ? "Traitement…" : "Confirmer & investir"}
             </Button>

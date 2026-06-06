@@ -46,6 +46,9 @@ const StaffCareer = lazy(() => import("./pages/StaffCareer.tsx"));
 const AdminGrenier = lazy(() => import("./pages/AdminGrenier.tsx"));
 const DashboardGrenier = lazy(() => import("./pages/DashboardGrenier.tsx"));
 const DashboardGrenierDetail = lazy(() => import("./pages/DashboardGrenierDetail.tsx"));
+const DashboardCard = lazy(() => import("./pages/DashboardCard.tsx"));
+const DashboardScanner = lazy(() => import("./pages/DashboardScanner.tsx"));
+const VerifyMember = lazy(() => import("./pages/VerifyMember.tsx"));
 const InstallApp = lazy(() => import("./pages/InstallApp.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
@@ -112,6 +115,9 @@ const App = () => (
               <Route path="canal" element={<DashboardChannel />} />
               <Route path="grenier" element={<DashboardGrenier />} />
               <Route path="grenier/:id" element={<DashboardGrenierDetail />} />
+              <Route path="carte" element={<DashboardCard />} />
+              <Route path="scanner" element={<DashboardScanner />} />
+              <Route path="verify" element={<VerifyMember />} />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

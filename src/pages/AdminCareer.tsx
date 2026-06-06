@@ -20,13 +20,18 @@ interface Grade {
   min_downline_size: number;
   weekly_bonus: number;
   monthly_bonus: number;
+  weekly_revenue_percentage: number;
+  min_weekly_revenue: number;
+  rewards_description: string | null;
   display_order: number;
   is_active: boolean;
 }
 
 const emptyGrade: Partial<Grade> = {
   name: "", description: "", min_revenue: 0, min_active_referrals: 0,
-  min_downline_size: 0, weekly_bonus: 0, monthly_bonus: 0, display_order: 0, is_active: true,
+  min_downline_size: 0, weekly_bonus: 0, monthly_bonus: 0,
+  weekly_revenue_percentage: 0, min_weekly_revenue: 0, rewards_description: "",
+  display_order: 0, is_active: true,
 };
 
 const AdminCareer = () => {
@@ -49,7 +54,7 @@ const AdminCareer = () => {
 
   const save = async () => {
     if (!form.name?.trim()) { toast.error("Le nom est requis"); return; }
-    const { error } = await (supabase as any).rpc("admin_upsert_grade", {
+    const { error } = await (supabase as any).rpc("admin_upsert_grade_v2", {
       _id: form.id || null,
       _name: form.name,
       _description: form.description || "",
@@ -58,6 +63,9 @@ const AdminCareer = () => {
       _min_downline_size: Number(form.min_downline_size) || 0,
       _weekly_bonus: Number(form.weekly_bonus) || 0,
       _monthly_bonus: Number(form.monthly_bonus) || 0,
+      _weekly_revenue_percentage: Number(form.weekly_revenue_percentage) || 0,
+      _min_weekly_revenue: Number(form.min_weekly_revenue) || 0,
+      _rewards_description: form.rewards_description || "",
       _display_order: Number(form.display_order) || 0,
       _is_active: form.is_active ?? true,
     });
@@ -157,6 +165,18 @@ const AdminCareer = () => {
             <div>
               <label className="text-xs text-muted-foreground">Bonus mensuel (FCFA)</label>
               <Input type="number" value={form.monthly_bonus ?? 0} onChange={e => setForm(f => ({ ...f, monthly_bonus: Number(e.target.value) }))} />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">% sur CA hebdomadaire</label>
+              <Input type="number" step="0.1" value={form.weekly_revenue_percentage ?? 0} onChange={e => setForm(f => ({ ...f, weekly_revenue_percentage: Number(e.target.value) }))} />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">CA hebdo min requis (FCFA)</label>
+              <Input type="number" value={form.min_weekly_revenue ?? 0} onChange={e => setForm(f => ({ ...f, min_weekly_revenue: Number(e.target.value) }))} />
+            </div>
+            <div className="col-span-2">
+              <label className="text-xs text-muted-foreground">Cadeaux & récompenses (voiture, maison, assurance…)</label>
+              <Textarea value={form.rewards_description || ""} onChange={e => setForm(f => ({ ...f, rewards_description: e.target.value }))} placeholder="Ex: Voiture neuve, assurance santé, vacances…" />
             </div>
             <div className="col-span-2 flex items-center gap-2">
               <Switch checked={form.is_active ?? true} onCheckedChange={v => setForm(f => ({ ...f, is_active: v }))} />
