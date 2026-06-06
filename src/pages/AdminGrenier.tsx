@@ -9,19 +9,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Plus, DollarSign, Sprout, Pencil, ScrollText, Activity, ImagePlus } from "lucide-react";
+import { ArrowLeft, Plus, DollarSign, Sprout, Pencil, ScrollText, Activity, ImagePlus, X } from "lucide-react";
 import { toast } from "sonner";
-import { uploadOptimizedImage } from "@/utils/imageCompression";
+import { uploadOptimizedImage, uploadOptimizedImages } from "@/utils/imageCompression";
 
 interface Project {
   id: string; title: string; category: string; description: string;
   global_target: number; share_price: number; total_shares: number; shares_sold: number;
   estimated_roi: number; status: string; cover_image: string | null;
+  gallery_images?: string[];
 }
 
 const empty: Partial<Project> = {
   title: "", category: "Agrobusiness", description: "", global_target: 0,
-  share_price: 10000, total_shares: 0, estimated_roi: 0, status: "collecte", cover_image: "",
+  share_price: 10000, total_shares: 0, estimated_roi: 0, status: "collecte", cover_image: "", gallery_images: [],
 };
 
 const AdminGrenier = () => {
@@ -36,8 +37,10 @@ const AdminGrenier = () => {
   const [journal, setJournal] = useState({ title: "", content: "", image_url: "" });
   const [uploadingCover, setUploadingCover] = useState(false);
   const [uploadingJournal, setUploadingJournal] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const journalInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     const { data } = await supabase.from("moisson_projects").select("*").order("created_at", { ascending: false });
@@ -60,6 +63,19 @@ const AdminGrenier = () => {
     }
   };
 
+  const uploadGalleryFiles = async (files: FileList) => {
+    setUploadingGallery(true);
+    try {
+      const urls = await uploadOptimizedImages(files, "pack-images", "grenier-gallery");
+      setForm(f => ({ ...f, gallery_images: [ ...(f.gallery_images || []), ...urls ] }));
+      toast.success(`${urls.length} image(s) ajoutée(s)`);
+    } catch (e: any) { toast.error(e?.message || "Erreur téléchargement"); }
+    finally { setUploadingGallery(false); }
+  };
+
+  const removeGalleryAt = (i: number) =>
+    setForm(f => ({ ...f, gallery_images: (f.gallery_images || []).filter((_, idx) => idx !== i) }));
+
   const save = async () => {
     if (!form.title?.trim()) { toast.error("Titre requis"); return; }
     const payload = {
@@ -72,6 +88,7 @@ const AdminGrenier = () => {
       estimated_roi: Number(form.estimated_roi) || 0,
       status: form.status || "collecte",
       cover_image: form.cover_image || null,
+      gallery_images: form.gallery_images || [],
       updated_at: new Date().toISOString(),
     };
     const { error } = form.id
