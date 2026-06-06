@@ -103,6 +103,11 @@ const StaffCareer = () => {
             const { data, error } = await (supabase as any).rpc("recalc_all_grades");
             if (error) toast.error(error.message); else { toast.success(`Recalculé pour ${data} utilisateurs`); await load(); }
           }}>Recalculer auto</Button>
+          <Button variant="outline" size="sm" onClick={async () => {
+            const { data, error } = await (supabase as any).rpc("pay_weekly_revenue_bonuses");
+            if (error) toast.error(error.message);
+            else toast.success(`${data?.[0]?.users_paid || 0} bonus hebdo payés (${Number(data?.[0]?.total_paid || 0).toLocaleString()} FCFA)`);
+          }}>Payer bonus hebdo (%)</Button>
           <Link to="/admin/career"><Button variant="outline" size="sm">Gérer les grades</Button></Link>
         </div>
       </div>

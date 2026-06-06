@@ -198,6 +198,21 @@ const AdminGrenier = () => {
             <div><label className="text-xs">Prix d'une part (FCFA)</label><Input type="number" value={form.share_price ?? 10000} onChange={e => setForm(f => ({ ...f, share_price: Number(e.target.value) }))} /></div>
             <div><label className="text-xs">Total de parts</label><Input type="number" value={form.total_shares ?? 0} onChange={e => setForm(f => ({ ...f, total_shares: Number(e.target.value) }))} /></div>
             <div><label className="text-xs">ROI estimé (%)</label><Input type="number" value={form.estimated_roi ?? 0} onChange={e => setForm(f => ({ ...f, estimated_roi: Number(e.target.value) }))} /></div>
+            <div className="col-span-2">
+              <label className="text-xs">Galerie d'images du projet</label>
+              <div className="grid grid-cols-3 gap-2 mt-1">
+                {(form.gallery_images || []).map((url, i) => (
+                  <div key={i} className="relative h-20 rounded-md overflow-hidden border border-border">
+                    <img src={url} alt="" className="h-full w-full object-cover" />
+                    <button type="button" onClick={() => removeGalleryAt(i)} className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-0.5"><X size={12} /></button>
+                  </div>
+                ))}
+              </div>
+              <input ref={galleryInputRef} type="file" accept="image/*" multiple className="hidden" onChange={e => { if (e.target.files?.length) void uploadGalleryFiles(e.target.files); e.currentTarget.value = ""; }} />
+              <Button type="button" variant="outline" size="sm" className="mt-2 w-full text-xs" disabled={uploadingGallery} onClick={() => galleryInputRef.current?.click()}>
+                <ImagePlus size={14} className="mr-1" /> {uploadingGallery ? "Optimisation…" : "Ajouter plusieurs images"}
+              </Button>
+            </div>
           </div>
           <Button onClick={save} className="bg-gradient-purple">Enregistrer</Button>
         </DialogContent>

@@ -67,6 +67,13 @@ const DashboardGrenierDetail = () => {
       {project.cover_image && (
         <div className="h-64 rounded-xl bg-cover bg-center mb-6" style={{ backgroundImage: `url(${project.cover_image})` }} />
       )}
+      {Array.isArray(project.gallery_images) && project.gallery_images.length > 0 && (
+        <div className="grid grid-cols-3 gap-2 mb-6">
+          {project.gallery_images.map((url: string, i: number) => (
+            <a key={i} href={url} target="_blank" rel="noreferrer"><img src={url} alt="" className="h-24 w-full object-cover rounded-md border border-border" /></a>
+          ))}
+        </div>
+      )}
 
       <div className="flex items-center gap-2 flex-wrap mb-2">
         <Badge variant="secondary">{project.category}</Badge>
