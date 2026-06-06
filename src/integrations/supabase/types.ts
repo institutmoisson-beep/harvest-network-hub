@@ -610,6 +610,7 @@ export type Database = {
           description: string
           end_date: string | null
           estimated_roi: number
+          gallery_images: Json
           global_target: number
           id: string
           share_price: number
@@ -629,6 +630,7 @@ export type Database = {
           description?: string
           end_date?: string | null
           estimated_roi?: number
+          gallery_images?: Json
           global_target?: number
           id?: string
           share_price?: number
@@ -648,6 +650,7 @@ export type Database = {
           description?: string
           end_date?: string | null
           estimated_roi?: number
+          gallery_images?: Json
           global_target?: number
           id?: string
           share_price?: number
