@@ -109,11 +109,12 @@ const DashboardProfile = () => {
     setBusy(true);
     try {
       const path = await uploadPrivateImage(file, "identity-docs", user.id);
-      const col = side === "front" ? "id_photo_front" : "id_photo_back";
-      await supabase.from("profiles").update({ [col]: path, identity_submitted_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", user.id);
+      const patch: any = { identity_submitted_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+      if (side === "front") patch.id_photo_front = path; else patch.id_photo_back = path;
+      await supabase.from("profiles").update(patch).eq("id", user.id);
       const signed = await getSignedUrl("identity-docs", path, 7200);
       if (side === "front") setIdFrontUrl(signed); else setIdBackUrl(signed);
-      setProfile((p: any) => ({ ...p, [col]: path }));
+      setProfile((p: any) => ({ ...p, ...(side === "front" ? { id_photo_front: path } : { id_photo_back: path }) }));
       toast.success("Pièce d'identité envoyée. L'administrateur validera votre compte.");
     } catch (e: any) { toast.error(e.message || "Échec de l'envoi"); }
     finally { setBusy(false); }
