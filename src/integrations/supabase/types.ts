@@ -559,34 +559,43 @@ export type Database = {
       }
       moisson_community_investments: {
         Row: {
+          available_before: number | null
           contract_signed_url: string | null
           id: string
           investment_date: string
+          operation_id: string | null
           payment_method: string
           payout_received: number
           project_id: string
+          shares_before: number | null
           shares_purchased: number
           total_amount_invested: number
           user_id: string
         }
         Insert: {
+          available_before?: number | null
           contract_signed_url?: string | null
           id?: string
           investment_date?: string
+          operation_id?: string | null
           payment_method?: string
           payout_received?: number
           project_id: string
+          shares_before?: number | null
           shares_purchased: number
           total_amount_invested: number
           user_id: string
         }
         Update: {
+          available_before?: number | null
           contract_signed_url?: string | null
           id?: string
           investment_date?: string
+          operation_id?: string | null
           payment_method?: string
           payout_received?: number
           project_id?: string
+          shares_before?: number | null
           shares_purchased?: number
           total_amount_invested?: number
           user_id?: string
@@ -934,6 +943,13 @@ export type Database = {
           first_name: string
           id: string
           id_moissonneur: string | null
+          id_photo_back: string | null
+          id_photo_front: string | null
+          identity_reject_reason: string | null
+          identity_submitted_at: string | null
+          identity_verified: boolean
+          identity_verified_at: string | null
+          identity_verified_by: string | null
           is_pro_visible: boolean
           is_system_active: boolean
           last_name: string
@@ -957,6 +973,13 @@ export type Database = {
           first_name?: string
           id: string
           id_moissonneur?: string | null
+          id_photo_back?: string | null
+          id_photo_front?: string | null
+          identity_reject_reason?: string | null
+          identity_submitted_at?: string | null
+          identity_verified?: boolean
+          identity_verified_at?: string | null
+          identity_verified_by?: string | null
           is_pro_visible?: boolean
           is_system_active?: boolean
           last_name?: string
@@ -980,6 +1003,13 @@ export type Database = {
           first_name?: string
           id?: string
           id_moissonneur?: string | null
+          id_photo_back?: string | null
+          id_photo_front?: string | null
+          identity_reject_reason?: string | null
+          identity_submitted_at?: string | null
+          identity_verified?: boolean
+          identity_verified_at?: string | null
+          identity_verified_by?: string | null
           is_pro_visible?: boolean
           is_system_active?: boolean
           last_name?: string
@@ -1291,6 +1321,23 @@ export type Database = {
         Returns: undefined
       }
       admin_delete_grade: { Args: { _id: string }; Returns: undefined }
+      admin_list_identity_submissions: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          email: string
+          full_name: string
+          id_moissonneur: string
+          id_photo_back: string
+          id_photo_front: string
+          identity_submitted_at: string
+          identity_verified: boolean
+          identity_verified_at: string
+          phone: string
+          referral_code: string
+          user_id: string
+        }[]
+      }
       admin_pay_career_bonus: {
         Args: {
           _amount: number
@@ -1298,6 +1345,10 @@ export type Database = {
           _period: string
           _user_id: string
         }
+        Returns: undefined
+      }
+      admin_set_identity_verified: {
+        Args: { _reason?: string; _user_id: string; _verified: boolean }
         Returns: undefined
       }
       admin_set_user_grade: {
@@ -1428,6 +1479,7 @@ export type Database = {
         Returns: {
           investment_id: string
           new_wallet_balance: number
+          operation_id: string
           shares_sold: number
         }[]
       }
@@ -1637,6 +1689,29 @@ export type Database = {
           _status: Database["public"]["Enums"]["delivery_status"]
         }
         Returns: undefined
+      }
+      verify_investment_document: {
+        Args: { _operation_id: string }
+        Returns: {
+          available_before: number
+          id_moissonneur: string
+          investment_date: string
+          investment_id: string
+          operation_id: string
+          percentage_acquired: number
+          project_category: string
+          project_id: string
+          project_title: string
+          shares_before: number
+          shares_purchased: number
+          total_amount_invested: number
+          total_shares: number
+          user_email: string
+          user_id: string
+          user_name: string
+          user_phone: string
+          user_referral_code: string
+        }[]
       }
       verify_member_token: {
         Args: { _token: string }
