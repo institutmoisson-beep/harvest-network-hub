@@ -319,6 +319,32 @@ const DashboardProfile = () => {
 
       <div className="glass-card rounded-xl p-6 mt-6">
         <h3 className="font-display text-sm font-bold mb-4 flex items-center gap-2">
+          <ImageIcon size={16} className="text-primary" /> Vérification d'identité
+        </h3>
+        <p className="text-xs text-muted-foreground mb-3">Envoyez la photo recto et verso de votre pièce d'identité. Un administrateur validera votre compte.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <Label className="text-xs">Pièce d'identité — Recto</Label>
+            {idFrontUrl && <img src={idFrontUrl} alt="recto" className="mt-2 h-32 w-full object-cover rounded-md border border-border" />}
+            <input type="file" accept="image/*" disabled={uploadingIdFront}
+              onChange={e => { const f = e.target.files?.[0]; if (f) handleIdUpload(f, "front"); }}
+              className="mt-2 text-xs" />
+          </div>
+          <div>
+            <Label className="text-xs">Pièce d'identité — Verso</Label>
+            {idBackUrl && <img src={idBackUrl} alt="verso" className="mt-2 h-32 w-full object-cover rounded-md border border-border" />}
+            <input type="file" accept="image/*" disabled={uploadingIdBack}
+              onChange={e => { const f = e.target.files?.[0]; if (f) handleIdUpload(f, "back"); }}
+              className="mt-2 text-xs" />
+          </div>
+        </div>
+        {profile?.identity_reject_reason && (
+          <p className="text-xs text-red-500 mt-3">Motif du refus : {profile.identity_reject_reason}</p>
+        )}
+      </div>
+
+      <div className="glass-card rounded-xl p-6 mt-6">
+        <h3 className="font-display text-sm font-bold mb-4 flex items-center gap-2">
           <Truck size={16} className="text-primary" /> Adresse de livraison par défaut
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
