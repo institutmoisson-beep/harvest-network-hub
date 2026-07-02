@@ -50,3 +50,19 @@ export const uploadOptimizedImage = async (file: File, bucket: string, folder: s
   const [url] = await uploadOptimizedImages([file], bucket, folder);
   return url;
 };
+
+// Upload to a PRIVATE bucket. Returns the storage path (not URL). Use getSignedUrl to display.
+export const uploadPrivateImage = async (file: File, bucket: string, folder: string): Promise<string> => {
+  const [compressed] = await compressImages([file]);
+  const path = `${folder}/${Date.now()}_${Math.random().toString(36).slice(2)}.${imageExtension(compressed)}`;
+  const { error } = await supabase.storage.from(bucket).upload(path, compressed, { cacheControl: "3600", upsert: true, contentType: compressed.type || "image/webp" });
+  if (error) throw new Error(error.message);
+  return path;
+};
+
+export const getSignedUrl = async (bucket: string, path: string, expiresIn = 3600): Promise<string | null> => {
+  if (!path) return null;
+  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, expiresIn);
+  if (error) return null;
+  return data.signedUrl;
+};

@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { UserCircle, Save, Key } from "lucide-react";
-import { FileText, ScrollText, BookOpen } from "lucide-react";
+import { FileText, ScrollText, BookOpen, Upload, ShieldCheck, ShieldAlert, Image as ImageIcon } from "lucide-react";
 import { downloadAdhesionContract, downloadStatutes, downloadReglement, MemberInfo } from "@/utils/generateLegalDocs";
 import TermsAndConditions from "@/components/TermsAndConditions";
+import { uploadPrivateImage, getSignedUrl } from "@/utils/imageCompression";
 
 const DashboardProfile = () => {
   const navigate = useNavigate();
@@ -30,6 +31,12 @@ const DashboardProfile = () => {
   const [packName, setPackName] = useState<string>("Pack d'adhésion");
   const [acceptDocs, setAcceptDocs] = useState(false);
   const [showCgu, setShowCgu] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [idFrontUrl, setIdFrontUrl] = useState<string | null>(null);
+  const [idBackUrl, setIdBackUrl] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingIdFront, setUploadingIdFront] = useState(false);
+  const [uploadingIdBack, setUploadingIdBack] = useState(false);
 
   const [loading, setLoading] = useState(true);
 
@@ -56,6 +63,9 @@ const DashboardProfile = () => {
         setDeliveryAddress({ fullName: addr.full_name, phone: addr.phone, country: addr.country, city: addr.city, addressLine: addr.address_line, postalCode: addr.postal_code || "" });
       }
       if (prof?.contract_signed_at) setAcceptDocs(true);
+      if (prof?.avatar_url) setAvatarUrl(await getSignedUrl("avatars", prof.avatar_url, 7200));
+      if (prof?.id_photo_front) setIdFrontUrl(await getSignedUrl("identity-docs", prof.id_photo_front, 7200));
+      if (prof?.id_photo_back) setIdBackUrl(await getSignedUrl("identity-docs", prof.id_photo_back, 7200));
       const { data: firstOrder } = await supabase
         .from("orders")
         .select("products(name)")
@@ -77,6 +87,37 @@ const DashboardProfile = () => {
     await supabase.auth.updateUser({ data: { first_name: firstName, last_name: lastName, phone, country } });
     setSaving(false);
     toast.success("Profil mis à jour !");
+  };
+
+  const handleAvatarUpload = async (file: File) => {
+    if (!user) return;
+    setUploadingAvatar(true);
+    try {
+      const path = await uploadPrivateImage(file, "avatars", user.id);
+      await supabase.from("profiles").update({ avatar_url: path, updated_at: new Date().toISOString() }).eq("id", user.id);
+      const signed = await getSignedUrl("avatars", path, 7200);
+      setAvatarUrl(signed);
+      setProfile((p: any) => ({ ...p, avatar_url: path }));
+      toast.success("Photo de profil mise à jour");
+    } catch (e: any) { toast.error(e.message || "Échec de l'envoi"); }
+    finally { setUploadingAvatar(false); }
+  };
+
+  const handleIdUpload = async (file: File, side: "front" | "back") => {
+    if (!user) return;
+    const setBusy = side === "front" ? setUploadingIdFront : setUploadingIdBack;
+    setBusy(true);
+    try {
+      const path = await uploadPrivateImage(file, "identity-docs", user.id);
+      const patch: any = { identity_submitted_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+      if (side === "front") patch.id_photo_front = path; else patch.id_photo_back = path;
+      await supabase.from("profiles").update(patch).eq("id", user.id);
+      const signed = await getSignedUrl("identity-docs", path, 7200);
+      if (side === "front") setIdFrontUrl(signed); else setIdBackUrl(signed);
+      setProfile((p: any) => ({ ...p, ...(side === "front" ? { id_photo_front: path } : { id_photo_back: path }) }));
+      toast.success("Pièce d'identité envoyée. L'administrateur validera votre compte.");
+    } catch (e: any) { toast.error(e.message || "Échec de l'envoi"); }
+    finally { setBusy(false); }
   };
 
   const handlePasswordChange = async () => {
@@ -170,13 +211,25 @@ const DashboardProfile = () => {
 
       <div className="glass-card rounded-xl p-6 mb-6">
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 rounded-full bg-gradient-purple flex items-center justify-center text-primary-foreground font-display text-xl font-bold">
-            {(firstName[0] || "M").toUpperCase()}
-          </div>
+          <label className="relative cursor-pointer">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="avatar" className="w-16 h-16 rounded-full object-cover border-2 border-primary" />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-gradient-purple flex items-center justify-center text-primary-foreground font-display text-xl font-bold">{(firstName[0] || "M").toUpperCase()}</div>
+            )}
+            <span className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full p-1"><Upload size={12} /></span>
+            <input type="file" accept="image/*" className="hidden" disabled={uploadingAvatar}
+              onChange={e => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(f); }} />
+          </label>
           <div>
             <p className="font-display font-bold">{firstName} {lastName}</p>
             <p className="text-sm text-muted-foreground">{user.email}</p>
             {profile && <p className="text-xs text-primary mt-1">{levelLabels[profile.career_level] || profile.career_level}</p>}
+            {profile?.identity_verified ? (
+              <span className="inline-flex items-center gap-1 mt-1 text-[11px] text-green-600 font-bold"><ShieldCheck size={12} /> Compte vérifié</span>
+            ) : profile?.identity_submitted_at ? (
+              <span className="inline-flex items-center gap-1 mt-1 text-[11px] text-orange-500"><ShieldAlert size={12} /> Vérification en cours…</span>
+            ) : null}
           </div>
         </div>
 
@@ -262,6 +315,32 @@ const DashboardProfile = () => {
         </h3>
         <Input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} placeholder="Nouveau mot de passe" className="bg-input border-border text-sm mb-3" />
         <Button onClick={handlePasswordChange} variant="outline" className="border-primary text-foreground hover:bg-primary/10">Mettre à jour</Button>
+      </div>
+
+      <div className="glass-card rounded-xl p-6 mt-6">
+        <h3 className="font-display text-sm font-bold mb-4 flex items-center gap-2">
+          <ImageIcon size={16} className="text-primary" /> Vérification d'identité
+        </h3>
+        <p className="text-xs text-muted-foreground mb-3">Envoyez la photo recto et verso de votre pièce d'identité. Un administrateur validera votre compte.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <Label className="text-xs">Pièce d'identité — Recto</Label>
+            {idFrontUrl && <img src={idFrontUrl} alt="recto" className="mt-2 h-32 w-full object-cover rounded-md border border-border" />}
+            <input type="file" accept="image/*" disabled={uploadingIdFront}
+              onChange={e => { const f = e.target.files?.[0]; if (f) handleIdUpload(f, "front"); }}
+              className="mt-2 text-xs" />
+          </div>
+          <div>
+            <Label className="text-xs">Pièce d'identité — Verso</Label>
+            {idBackUrl && <img src={idBackUrl} alt="verso" className="mt-2 h-32 w-full object-cover rounded-md border border-border" />}
+            <input type="file" accept="image/*" disabled={uploadingIdBack}
+              onChange={e => { const f = e.target.files?.[0]; if (f) handleIdUpload(f, "back"); }}
+              className="mt-2 text-xs" />
+          </div>
+        </div>
+        {profile?.identity_reject_reason && (
+          <p className="text-xs text-red-500 mt-3">Motif du refus : {profile.identity_reject_reason}</p>
+        )}
       </div>
 
       <div className="glass-card rounded-xl p-6 mt-6">

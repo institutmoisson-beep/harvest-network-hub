@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ArrowLeft, Sprout, TrendingUp, Calendar, Wallet } from "lucide-react";
 import { toast } from "sonner";
+import { openInvestmentDoc } from "@/utils/generateInvestmentDoc";
 
 const DashboardGrenierDetail = () => {
   const { id } = useParams();
@@ -48,14 +49,42 @@ const DashboardGrenierDetail = () => {
       return;
     }
     setSubmitting(true);
-    const { error } = await (supabase as any).rpc("invest_in_project", {
+    const availableBefore = project.total_shares - project.shares_sold;
+    const { data: rpcData, error } = await (supabase as any).rpc("invest_in_project", {
       _project_id: id, _shares: shares, _payment_method: "wallet",
     });
     setSubmitting(false);
     if (error) { toast.error(error.message); return; }
-    toast.success(`Investissement validé ! ${shares} part(s) achetée(s).`);
+    const row = Array.isArray(rpcData) ? rpcData[0] : rpcData;
+    const operationId = row?.operation_id;
+    toast.success(`Investissement validé ! Reçu ${operationId || ""}`);
     setPayOpen(false);
     await load();
+
+    // Auto-generate combined receipt + property title
+    if (operationId) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: prof } = await supabase.from("profiles")
+          .select("first_name,last_name,referral_code,phone,id_moissonneur").eq("id", user.id).maybeSingle();
+        openInvestmentDoc({
+          operationId,
+          investmentDate: new Date().toISOString(),
+          userName: `${prof?.first_name || ""} ${prof?.last_name || ""}`.trim() || "Moissonneur",
+          userReferralCode: prof?.referral_code || "",
+          userIdMoissonneur: (prof as any)?.id_moissonneur || "",
+          userPhone: prof?.phone || user.email || "",
+          userEmail: user.email || "",
+          projectTitle: project.title,
+          projectCategory: project.category,
+          totalShares: project.total_shares,
+          availableBefore,
+          sharesPurchased: shares,
+          totalAmount: total,
+          percentageAcquired: (shares / project.total_shares) * 100,
+        });
+      }
+    }
   };
 
   const feed: any[] = Array.isArray(project.update_feed) ? project.update_feed : [];
