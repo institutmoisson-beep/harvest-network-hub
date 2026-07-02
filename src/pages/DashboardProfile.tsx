@@ -211,13 +211,25 @@ const DashboardProfile = () => {
 
       <div className="glass-card rounded-xl p-6 mb-6">
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-16 h-16 rounded-full bg-gradient-purple flex items-center justify-center text-primary-foreground font-display text-xl font-bold">
-            {(firstName[0] || "M").toUpperCase()}
-          </div>
+          <label className="relative cursor-pointer">
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="avatar" className="w-16 h-16 rounded-full object-cover border-2 border-primary" />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-gradient-purple flex items-center justify-center text-primary-foreground font-display text-xl font-bold">{(firstName[0] || "M").toUpperCase()}</div>
+            )}
+            <span className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground rounded-full p-1"><Upload size={12} /></span>
+            <input type="file" accept="image/*" className="hidden" disabled={uploadingAvatar}
+              onChange={e => { const f = e.target.files?.[0]; if (f) handleAvatarUpload(f); }} />
+          </label>
           <div>
             <p className="font-display font-bold">{firstName} {lastName}</p>
             <p className="text-sm text-muted-foreground">{user.email}</p>
             {profile && <p className="text-xs text-primary mt-1">{levelLabels[profile.career_level] || profile.career_level}</p>}
+            {profile?.identity_verified ? (
+              <span className="inline-flex items-center gap-1 mt-1 text-[11px] text-green-600 font-bold"><ShieldCheck size={12} /> Compte vérifié</span>
+            ) : profile?.identity_submitted_at ? (
+              <span className="inline-flex items-center gap-1 mt-1 text-[11px] text-orange-500"><ShieldAlert size={12} /> Vérification en cours…</span>
+            ) : null}
           </div>
         </div>
 
