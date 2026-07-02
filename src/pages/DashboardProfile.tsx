@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { UserCircle, Save, Key } from "lucide-react";
-import { FileText, ScrollText, BookOpen } from "lucide-react";
+import { FileText, ScrollText, BookOpen, Upload, ShieldCheck, ShieldAlert, Image as ImageIcon } from "lucide-react";
 import { downloadAdhesionContract, downloadStatutes, downloadReglement, MemberInfo } from "@/utils/generateLegalDocs";
 import TermsAndConditions from "@/components/TermsAndConditions";
+import { uploadPrivateImage, getSignedUrl } from "@/utils/imageCompression";
 
 const DashboardProfile = () => {
   const navigate = useNavigate();
@@ -30,6 +31,12 @@ const DashboardProfile = () => {
   const [packName, setPackName] = useState<string>("Pack d'adhésion");
   const [acceptDocs, setAcceptDocs] = useState(false);
   const [showCgu, setShowCgu] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [idFrontUrl, setIdFrontUrl] = useState<string | null>(null);
+  const [idBackUrl, setIdBackUrl] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadingIdFront, setUploadingIdFront] = useState(false);
+  const [uploadingIdBack, setUploadingIdBack] = useState(false);
 
   const [loading, setLoading] = useState(true);
 
@@ -56,6 +63,9 @@ const DashboardProfile = () => {
         setDeliveryAddress({ fullName: addr.full_name, phone: addr.phone, country: addr.country, city: addr.city, addressLine: addr.address_line, postalCode: addr.postal_code || "" });
       }
       if (prof?.contract_signed_at) setAcceptDocs(true);
+      if (prof?.avatar_url) setAvatarUrl(await getSignedUrl("avatars", prof.avatar_url, 7200));
+      if (prof?.id_photo_front) setIdFrontUrl(await getSignedUrl("identity-docs", prof.id_photo_front, 7200));
+      if (prof?.id_photo_back) setIdBackUrl(await getSignedUrl("identity-docs", prof.id_photo_back, 7200));
       const { data: firstOrder } = await supabase
         .from("orders")
         .select("products(name)")
@@ -77,6 +87,36 @@ const DashboardProfile = () => {
     await supabase.auth.updateUser({ data: { first_name: firstName, last_name: lastName, phone, country } });
     setSaving(false);
     toast.success("Profil mis à jour !");
+  };
+
+  const handleAvatarUpload = async (file: File) => {
+    if (!user) return;
+    setUploadingAvatar(true);
+    try {
+      const path = await uploadPrivateImage(file, "avatars", user.id);
+      await supabase.from("profiles").update({ avatar_url: path, updated_at: new Date().toISOString() }).eq("id", user.id);
+      const signed = await getSignedUrl("avatars", path, 7200);
+      setAvatarUrl(signed);
+      setProfile((p: any) => ({ ...p, avatar_url: path }));
+      toast.success("Photo de profil mise à jour");
+    } catch (e: any) { toast.error(e.message || "Échec de l'envoi"); }
+    finally { setUploadingAvatar(false); }
+  };
+
+  const handleIdUpload = async (file: File, side: "front" | "back") => {
+    if (!user) return;
+    const setBusy = side === "front" ? setUploadingIdFront : setUploadingIdBack;
+    setBusy(true);
+    try {
+      const path = await uploadPrivateImage(file, "identity-docs", user.id);
+      const col = side === "front" ? "id_photo_front" : "id_photo_back";
+      await supabase.from("profiles").update({ [col]: path, identity_submitted_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", user.id);
+      const signed = await getSignedUrl("identity-docs", path, 7200);
+      if (side === "front") setIdFrontUrl(signed); else setIdBackUrl(signed);
+      setProfile((p: any) => ({ ...p, [col]: path }));
+      toast.success("Pièce d'identité envoyée. L'administrateur validera votre compte.");
+    } catch (e: any) { toast.error(e.message || "Échec de l'envoi"); }
+    finally { setBusy(false); }
   };
 
   const handlePasswordChange = async () => {
