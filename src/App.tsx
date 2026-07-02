@@ -46,6 +46,9 @@ const StaffCareer = lazy(() => import("./pages/StaffCareer.tsx"));
 const AdminGrenier = lazy(() => import("./pages/AdminGrenier.tsx"));
 const DashboardGrenier = lazy(() => import("./pages/DashboardGrenier.tsx"));
 const DashboardGrenierDetail = lazy(() => import("./pages/DashboardGrenierDetail.tsx"));
+const DashboardInvestments = lazy(() => import("./pages/DashboardInvestments.tsx"));
+const AdminVerifyInvestment = lazy(() => import("./pages/AdminVerifyInvestment.tsx"));
+const AdminIdentityVerification = lazy(() => import("./pages/AdminIdentityVerification.tsx"));
 const DashboardCard = lazy(() => import("./pages/DashboardCard.tsx"));
 const DashboardScanner = lazy(() => import("./pages/DashboardScanner.tsx"));
 const VerifyMember = lazy(() => import("./pages/VerifyMember.tsx"));
@@ -98,6 +101,8 @@ const App = () => (
             <Route path="/admin/career" element={<AdminCareer />} />
             <Route path="/staff/career" element={<StaffCareer />} />
             <Route path="/admin/grenier" element={<AdminGrenier />} />
+            <Route path="/admin/verify-invest" element={<AdminVerifyInvestment />} />
+            <Route path="/admin/identities" element={<AdminIdentityVerification />} />
             <Route path="/moissonneurs-pros" element={<MoissoneursPros />} />
             <Route path="/packs" element={<Packs />} />
             <Route path="/dashboard" element={<DashboardLayout />}>
@@ -115,6 +120,7 @@ const App = () => (
               <Route path="canal" element={<DashboardChannel />} />
               <Route path="grenier" element={<DashboardGrenier />} />
               <Route path="grenier/:id" element={<DashboardGrenierDetail />} />
+              <Route path="investments" element={<DashboardInvestments />} />
               <Route path="carte" element={<DashboardCard />} />
               <Route path="scanner" element={<DashboardScanner />} />
               <Route path="verify" element={<VerifyMember />} />
