@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Camera, CameraOff, CheckCircle2, AlertTriangle, XCircle, RotateCcw } from "lucide-react";
+import { Camera, CameraOff, CheckCircle2, AlertTriangle, XCircle, RotateCcw, Flashlight, FlashlightOff } from "lucide-react";
 
 type Status = "idle" | "scanning" | "success" | "warning" | "error";
 interface Result {
@@ -15,6 +15,8 @@ const ScannerCommunautaire = () => {
   const [result, setResult] = useState<Result | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const [torchOn, setTorchOn] = useState(false);
+  const [torchAvailable, setTorchAvailable] = useState(false);
 
   const stop = async () => {
     if (scannerRef.current) {
@@ -22,6 +24,8 @@ const ScannerCommunautaire = () => {
       try { scannerRef.current.clear(); } catch {}
       scannerRef.current = null;
     }
+    setTorchOn(false);
+    setTorchAvailable(false);
   };
 
   useEffect(() => () => { void stop(); }, []);
@@ -60,8 +64,42 @@ const ScannerCommunautaire = () => {
         },
         () => {}
       );
+      // Detect torch capability
+      try {
+        const track: MediaStreamTrack | undefined = (html5 as any).getRunningTrackCameraCapabilities
+          ? undefined
+          : undefined;
+        const stream: MediaStream | undefined = (html5 as any)?.localMediaStream || (html5 as any)?.mediaStream;
+        const t = stream?.getVideoTracks?.()[0];
+        const caps: any = t?.getCapabilities?.();
+        if (caps && "torch" in caps) setTorchAvailable(true);
+      } catch {}
     } catch (e: any) {
       setStatus("error"); setErrorMsg(e?.message || "Caméra indisponible");
+    }
+  };
+
+  const toggleTorch = async () => {
+    const html5 = scannerRef.current as any;
+    if (!html5) return;
+    const next = !torchOn;
+    try {
+      // Preferred: html5-qrcode capabilities API
+      const caps = html5.getRunningTrackCameraCapabilities?.();
+      if (caps?.torchFeature) {
+        await caps.torchFeature().apply(next);
+        setTorchOn(next);
+        return;
+      }
+      // Fallback: direct track constraint
+      const stream: MediaStream | undefined = html5?.localMediaStream || html5?.mediaStream;
+      const track = stream?.getVideoTracks?.()[0];
+      if (track) {
+        await track.applyConstraints({ advanced: [{ torch: next } as any] });
+        setTorchOn(next);
+      }
+    } catch {
+      setTorchAvailable(false);
     }
   };
 
@@ -85,7 +123,14 @@ const ScannerCommunautaire = () => {
       )}
 
       {status === "scanning" && (
-        <Button onClick={reset} variant="outline" className="mt-3 w-full"><CameraOff size={14} className="mr-1" /> Arrêter</Button>
+        <div className="mt-3 flex gap-2">
+          {torchAvailable && (
+            <Button onClick={toggleTorch} variant="outline" className="flex-1">
+              {torchOn ? <><FlashlightOff size={14} className="mr-1" /> Éteindre</> : <><Flashlight size={14} className="mr-1" /> Torche</>}
+            </Button>
+          )}
+          <Button onClick={reset} variant="outline" className="flex-1"><CameraOff size={14} className="mr-1" /> Arrêter</Button>
+        </div>
       )}
 
       {status === "success" && result && (
