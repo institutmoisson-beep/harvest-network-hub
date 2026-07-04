@@ -20,9 +20,17 @@ const CompanyProfile = () => {
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const { data: comp } = await supabase.from("companies").select("*").eq("id", id).single();
+      const safeCols = "id, name, sector, country, description, logo_url, banner_url, image_url_2, website_url, contact_facebook, is_active, created_at";
+      const { data: comp } = await supabase.from("companies").select(safeCols).eq("id", id).single();
       if (comp) {
         setCompany(comp);
+        // Contact info only exposed to authenticated members
+        const { data: { user: authedUser } } = await supabase.auth.getUser();
+        if (authedUser) {
+          const { data: contact } = await supabase.from("companies")
+            .select("contact_email, contact_whatsapp").eq("id", id).maybeSingle();
+          if (contact) setCompany((c: any) => ({ ...c, ...contact }));
+        }
         const { data: prods } = await supabase.from("products").select("*").eq("company_id", id).eq("is_active", true);
         setProducts(prods || []);
       }
