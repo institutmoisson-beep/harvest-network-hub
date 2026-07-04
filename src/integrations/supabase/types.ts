@@ -1751,6 +1751,9 @@ export type Database = {
         | "hr_manager"
         | "delivery_manager"
         | "career_manager"
+        | "identity_verifier"
+        | "title_verifier"
+        | "grenier_manager"
       career_level:
         | "semeur"
         | "cultivateur"
@@ -1940,6 +1943,9 @@ export const Constants = {
         "hr_manager",
         "delivery_manager",
         "career_manager",
+        "identity_verifier",
+        "title_verifier",
+        "grenier_manager",
       ],
       career_level: [
         "semeur",
