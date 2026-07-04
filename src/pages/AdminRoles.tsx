@@ -21,6 +21,9 @@ const ROLES = [
   { value: "emergency_admin", label: "Admin Urgences" },
   { value: "hr_manager", label: "Ressources Humaines" },
   { value: "delivery_manager", label: "Gestion Livraison" },
+  { value: "identity_verifier", label: "Vérificateur d'identité" },
+  { value: "title_verifier", label: "Vérificateur de titres" },
+  { value: "grenier_manager", label: "Gestionnaire du Grenier" },
 ];
 
 const AdminRoles = () => {

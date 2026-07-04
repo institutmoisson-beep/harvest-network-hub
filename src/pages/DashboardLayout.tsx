@@ -55,6 +55,9 @@ const roleMenuItems: Record<string, { icon: any; label: string; path: string }[]
   hr_manager: [{ icon: Users, label: "Ressources Humaines", path: "/staff/hr" }],
   delivery_manager: [{ icon: Truck, label: "Gestion Livraison", path: "/staff/delivery" }, { icon: MapPin, label: "Points de relais", path: "/admin/relays" }],
   career_manager: [{ icon: Trophy, label: "Plan de Carrière", path: "/staff/career" }],
+  identity_verifier: [{ icon: Shield, label: "Vérifier Identités", path: "/admin/identities" }],
+  title_verifier: [{ icon: Shield, label: "Vérifier Titres GIE", path: "/admin/verify-invest" }],
+  grenier_manager: [{ icon: Sprout, label: "Orchestration Grenier", path: "/admin/grenier" }],
 };
 
 const DashboardLayout = () => {
