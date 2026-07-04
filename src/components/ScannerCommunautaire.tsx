@@ -64,16 +64,29 @@ const ScannerCommunautaire = () => {
         },
         () => {}
       );
-      // Detect torch capability
-      try {
-        const track: MediaStreamTrack | undefined = (html5 as any).getRunningTrackCameraCapabilities
-          ? undefined
-          : undefined;
-        const stream: MediaStream | undefined = (html5 as any)?.localMediaStream || (html5 as any)?.mediaStream;
-        const t = stream?.getVideoTracks?.()[0];
-        const caps: any = t?.getCapabilities?.();
-        if (caps && "torch" in caps) setTorchAvailable(true);
-      } catch {}
+      // Detect torch capability (retry briefly while track initializes)
+      const detectTorch = async () => {
+        for (let i = 0; i < 10; i++) {
+          try {
+            const caps: any = (html5 as any).getRunningTrackCameraCapabilities?.();
+            if (caps?.torchFeature && caps.torchFeature().isSupported?.()) {
+              setTorchAvailable(true); return;
+            }
+          } catch {}
+          try {
+            const trackCaps: any = (html5 as any).getRunningTrackSettings?.();
+            if (trackCaps && "torch" in trackCaps) { setTorchAvailable(true); return; }
+          } catch {}
+          // Fallback: read the underlying video track directly
+          const video = document.querySelector("#scanner-region video") as HTMLVideoElement | null;
+          const stream = video?.srcObject as MediaStream | null;
+          const track = stream?.getVideoTracks?.()[0];
+          const c: any = track?.getCapabilities?.();
+          if (c && "torch" in c) { setTorchAvailable(true); return; }
+          await new Promise(r => setTimeout(r, 300));
+        }
+      };
+      detectTorch();
     } catch (e: any) {
       setStatus("error"); setErrorMsg(e?.message || "Caméra indisponible");
     }
@@ -84,21 +97,19 @@ const ScannerCommunautaire = () => {
     if (!html5) return;
     const next = !torchOn;
     try {
-      // Preferred: html5-qrcode capabilities API
       const caps = html5.getRunningTrackCameraCapabilities?.();
       if (caps?.torchFeature) {
         await caps.torchFeature().apply(next);
-        setTorchOn(next);
-        return;
+        setTorchOn(next); return;
       }
-      // Fallback: direct track constraint
-      const stream: MediaStream | undefined = html5?.localMediaStream || html5?.mediaStream;
+      const video = document.querySelector("#scanner-region video") as HTMLVideoElement | null;
+      const stream = video?.srcObject as MediaStream | null;
       const track = stream?.getVideoTracks?.()[0];
       if (track) {
         await track.applyConstraints({ advanced: [{ torch: next } as any] });
         setTorchOn(next);
       }
-    } catch {
+    } catch (e) {
       setTorchAvailable(false);
     }
   };
