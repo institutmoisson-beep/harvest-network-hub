@@ -16,7 +16,7 @@ const Directory = () => {
     const load = async () => {
       const { data } = await supabase
         .from("companies")
-        .select("*, products(id)")
+        .select("id, name, sector, country, description, logo_url, banner_url, image_url_2, website_url, contact_facebook, is_active, products(id)")
         .eq("is_active", true);
       setCompanies(data || []);
       setLoading(false);
