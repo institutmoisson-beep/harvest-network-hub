@@ -44,7 +44,6 @@ const RelayPointSelector = ({ country, city, value, onChange }: Props) => {
               className={`w-full text-left p-2 rounded-lg border text-xs transition-all ${value === r.id ? "border-primary bg-primary/10" : "border-border bg-muted/30"}`}>
               <p className="font-display font-bold">{r.name}</p>
               <p className="text-muted-foreground text-[10px]">{r.address} — {r.city}, {r.country}</p>
-              {r.phone && <p className="text-muted-foreground text-[10px]">📞 {r.phone}</p>}
             </button>
           ))}
         </div>
