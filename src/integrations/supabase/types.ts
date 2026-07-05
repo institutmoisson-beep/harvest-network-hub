@@ -483,6 +483,101 @@ export type Database = {
         }
         Relationships: []
       }
+      custom_order_commissions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          level_depth: number
+          percentage_applied: number
+          source_order_id: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          level_depth: number
+          percentage_applied: number
+          source_order_id: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          level_depth?: number
+          percentage_applied?: number
+          source_order_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_order_commissions_source_order_id_fkey"
+            columns: ["source_order_id"]
+            isOneToOne: false
+            referencedRelation: "custom_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      custom_orders: {
+        Row: {
+          admin_note: string | null
+          calculated_commission: number
+          created_at: string
+          delivery_address_text: string | null
+          delivery_details: Json
+          delivery_frequency: string
+          delivery_latitude: number
+          delivery_longitude: number
+          id: string
+          product_name: string
+          quantity: number
+          status: string
+          total_amount: number | null
+          unit_price: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          calculated_commission?: number
+          created_at?: string
+          delivery_address_text?: string | null
+          delivery_details?: Json
+          delivery_frequency?: string
+          delivery_latitude: number
+          delivery_longitude: number
+          id?: string
+          product_name: string
+          quantity: number
+          status?: string
+          total_amount?: number | null
+          unit_price: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          calculated_commission?: number
+          created_at?: string
+          delivery_address_text?: string | null
+          delivery_details?: Json
+          delivery_frequency?: string
+          delivery_latitude?: number
+          delivery_longitude?: number
+          id?: string
+          product_name?: string
+          quantity?: number
+          status?: string
+          total_amount?: number | null
+          unit_price?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       emergencies: {
         Row: {
           admin_note: string | null
@@ -556,6 +651,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      mlm_commission_configs: {
+        Row: {
+          created_at: string
+          criteria_type: string
+          criteria_value: string | null
+          id: string
+          is_active: boolean
+          percentage: number
+          rule_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          criteria_type?: string
+          criteria_value?: string | null
+          id?: string
+          is_active?: boolean
+          percentage?: number
+          rule_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          criteria_type?: string
+          criteria_value?: string | null
+          id?: string
+          is_active?: boolean
+          percentage?: number
+          rule_name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       moisson_community_investments: {
         Row: {
@@ -1320,7 +1448,36 @@ export type Database = {
         }
         Returns: undefined
       }
+      admin_delete_commission_config: {
+        Args: { _id: string }
+        Returns: undefined
+      }
       admin_delete_grade: { Args: { _id: string }; Returns: undefined }
+      admin_list_custom_orders: {
+        Args: never
+        Returns: {
+          admin_note: string
+          calculated_commission: number
+          country: string
+          created_at: string
+          delivery_address_text: string
+          delivery_details: Json
+          delivery_frequency: string
+          delivery_latitude: number
+          delivery_longitude: number
+          first_name: string
+          id: string
+          last_name: string
+          phone: string
+          product_name: string
+          quantity: number
+          referral_code: string
+          status: string
+          total_amount: number
+          unit_price: number
+          user_id: string
+        }[]
+      }
       admin_list_identity_submissions: {
         Args: never
         Returns: {
@@ -1360,6 +1517,21 @@ export type Database = {
           _weekly: number
         }
         Returns: undefined
+      }
+      admin_update_custom_order_status: {
+        Args: { _id: string; _note?: string; _status: string }
+        Returns: undefined
+      }
+      admin_upsert_commission_config: {
+        Args: {
+          _criteria_type: string
+          _criteria_value: string
+          _id: string
+          _is_active: boolean
+          _percentage: number
+          _rule_name: string
+        }
+        Returns: string
       }
       admin_upsert_grade: {
         Args: {
@@ -1404,6 +1576,10 @@ export type Database = {
         Returns: undefined
       }
       auto_assign_user_grade: { Args: { _user_id: string }; Returns: string }
+      compute_custom_order_commission: {
+        Args: { _order_id: string }
+        Returns: number
+      }
       contribute_to_fund: {
         Args: { _amount: number }
         Returns: {
@@ -1422,6 +1598,10 @@ export type Database = {
           _title: string
         }
         Returns: string
+      }
+      distribute_custom_order_commissions: {
+        Args: { _order_id: string }
+        Returns: undefined
       }
       distribute_dividends: {
         Args: { _note?: string; _project_id: string; _total_revenue: number }
