@@ -1549,22 +1549,11 @@ export type Database = {
           address: string
           city: string
           country: string
-          created_at: string
           id: string
           is_active: boolean
-          manager_id: string | null
           name: string
-          phone: string | null
-          responsible_name: string | null
           type: string
-          updated_at: string
         }[]
-        SetofOptions: {
-          from: "*"
-          to: "relay_points"
-          isOneToOne: false
-          isSetofReturn: true
-        }
       }
       list_role_assignments: {
         Args: never
