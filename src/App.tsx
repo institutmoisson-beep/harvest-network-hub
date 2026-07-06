@@ -51,6 +51,8 @@ const AdminVerifyInvestment = lazy(() => import("./pages/AdminVerifyInvestment.t
 const AdminIdentityVerification = lazy(() => import("./pages/AdminIdentityVerification.tsx"));
 const DashboardCustomOrders = lazy(() => import("./pages/DashboardCustomOrders.tsx"));
 const AdminCustomOrders = lazy(() => import("./pages/AdminCustomOrders.tsx"));
+const DashboardSubmissions = lazy(() => import("./pages/DashboardSubmissions.tsx"));
+const AdminSubmissions = lazy(() => import("./pages/AdminSubmissions.tsx"));
 const DashboardCard = lazy(() => import("./pages/DashboardCard.tsx"));
 const DashboardScanner = lazy(() => import("./pages/DashboardScanner.tsx"));
 const VerifyMember = lazy(() => import("./pages/VerifyMember.tsx"));
@@ -106,6 +108,7 @@ const App = () => (
             <Route path="/admin/verify-invest" element={<AdminVerifyInvestment />} />
             <Route path="/admin/identities" element={<AdminIdentityVerification />} />
             <Route path="/admin/custom-orders" element={<AdminCustomOrders />} />
+            <Route path="/admin/submissions" element={<AdminSubmissions />} />
             <Route path="/moissonneurs-pros" element={<MoissoneursPros />} />
             <Route path="/packs" element={<Packs />} />
             <Route path="/dashboard" element={<DashboardLayout />}>
@@ -117,6 +120,7 @@ const App = () => (
               <Route path="packs" element={<DashboardPacks />} />
               <Route path="orders" element={<DashboardOrders />} />
               <Route path="custom-orders" element={<DashboardCustomOrders />} />
+              <Route path="submissions" element={<DashboardSubmissions />} />
               <Route path="wholesale" element={<CommerceProducts kind="wholesale" />} />
               <Route path="distribution" element={<CommerceProducts kind="distribution" />} />
               <Route path="fonds" element={<CommunityFund />} />

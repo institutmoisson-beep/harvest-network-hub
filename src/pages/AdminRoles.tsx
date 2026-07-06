@@ -24,6 +24,8 @@ const ROLES = [
   { value: "identity_verifier", label: "Vérificateur d'identité" },
   { value: "title_verifier", label: "Vérificateur de titres" },
   { value: "grenier_manager", label: "Gestionnaire du Grenier" },
+  { value: "custom_orders_manager", label: "Gestion Commandes hors-catalogue" },
+  { value: "submissions_manager", label: "Gestion Mises à disposition" },
 ];
 
 const AdminRoles = () => {
