@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
 import {
   LayoutDashboard, Users, Building2, Wallet, TrendingUp, UserCircle,
-  LogOut, Menu, X, ChevronRight, Shield, Package, DollarSign, MessageCircle, Handshake, Download, ShoppingBag, Boxes, PackageCheck, HeartHandshake, Siren, MapPin, Truck, Globe, Globe2, Radio, Trophy, Sprout, IdCard, ScanLine
+  LogOut, Menu, X, ChevronRight, Shield, Package, DollarSign, MessageCircle, Handshake, Download, ShoppingBag, Boxes, PackageCheck, HeartHandshake, Siren, MapPin, Truck, Globe, Globe2, Radio, Trophy, Sprout, IdCard, ScanLine, PackagePlus, PackageSearch
 } from "lucide-react";
 
 const baseMenuItems = [
@@ -14,6 +14,7 @@ const baseMenuItems = [
   { icon: PackageCheck, label: "Distribution", path: "/dashboard/distribution" },
   { icon: ShoppingBag, label: "Mes Commandes", path: "/dashboard/orders" },
   { icon: Package, label: "Commande hors-catalogue", path: "/dashboard/custom-orders" },
+  { icon: PackagePlus, label: "Mise à disposition", path: "/dashboard/submissions" },
   { icon: Users, label: "Mon Réseau", path: "/dashboard/network" },
   { icon: Building2, label: "Annuaire Stands", path: "/directory" },
   { icon: Wallet, label: "Portefeuille", path: "/dashboard/wallet" },
@@ -33,6 +34,7 @@ const roleMenuItems: Record<string, { icon: any; label: string; path: string }[]
   admin: [
     { icon: Shield, label: "Administration", path: "/admin" },
     { icon: Package, label: "Commandes hors-catalogue", path: "/admin/custom-orders" },
+    { icon: PackageSearch, label: "Mises à disposition", path: "/admin/submissions" },
     { icon: Radio, label: "Canal de diffusion", path: "/admin/broadcasts" },
     { icon: Trophy, label: "Plan de Carrière", path: "/admin/career" },
     { icon: Trophy, label: "Attribution Carrière", path: "/staff/career" },
@@ -60,6 +62,8 @@ const roleMenuItems: Record<string, { icon: any; label: string; path: string }[]
   identity_verifier: [{ icon: Shield, label: "Vérifier Identités", path: "/admin/identities" }],
   title_verifier: [{ icon: Shield, label: "Vérifier Titres GIE", path: "/admin/verify-invest" }],
   grenier_manager: [{ icon: Sprout, label: "Orchestration Grenier", path: "/admin/grenier" }],
+  custom_orders_manager: [{ icon: Package, label: "Commandes hors-catalogue", path: "/admin/custom-orders" }],
+  submissions_manager: [{ icon: PackageSearch, label: "Mises à disposition", path: "/admin/submissions" }],
 };
 
 const DashboardLayout = () => {
