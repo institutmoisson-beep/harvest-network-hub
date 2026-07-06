@@ -992,6 +992,66 @@ export type Database = {
         }
         Relationships: []
       }
+      product_submissions: {
+        Row: {
+          additional_info: Json
+          admin_notes: string | null
+          category: string
+          created_at: string
+          description: string
+          id: string
+          images: string[]
+          quantity: number
+          regular_price: number
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          title: string
+          unit_type: string
+          updated_at: string
+          user_id: string
+          wholesale_price: number
+        }
+        Insert: {
+          additional_info?: Json
+          admin_notes?: string | null
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          images?: string[]
+          quantity?: number
+          regular_price?: number
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          title: string
+          unit_type?: string
+          updated_at?: string
+          user_id: string
+          wholesale_price?: number
+        }
+        Update: {
+          additional_info?: Json
+          admin_notes?: string | null
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          images?: string[]
+          quantity?: number
+          regular_price?: number
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          title?: string
+          unit_type?: string
+          updated_at?: string
+          user_id?: string
+          wholesale_price?: number
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           activates_system: boolean
@@ -1495,6 +1555,31 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_list_submissions: {
+        Args: { _status?: string }
+        Returns: {
+          additional_info: Json
+          admin_notes: string
+          category: string
+          country: string
+          created_at: string
+          description: string
+          first_name: string
+          id: string
+          images: string[]
+          last_name: string
+          phone: string
+          quantity: number
+          referral_code: string
+          regular_price: number
+          status: string
+          title: string
+          unit_type: string
+          updated_at: string
+          user_id: string
+          wholesale_price: number
+        }[]
+      }
       admin_pay_career_bonus: {
         Args: {
           _amount: number
@@ -1520,6 +1605,10 @@ export type Database = {
       }
       admin_update_custom_order_status: {
         Args: { _id: string; _note?: string; _status: string }
+        Returns: undefined
+      }
+      admin_update_submission_status: {
+        Args: { _id: string; _notes?: string; _status: string }
         Returns: undefined
       }
       admin_upsert_commission_config: {
@@ -1708,6 +1797,34 @@ export type Database = {
           phone: string
           referral_code: string
         }[]
+      }
+      list_my_submissions: {
+        Args: never
+        Returns: {
+          additional_info: Json
+          admin_notes: string | null
+          category: string
+          created_at: string
+          description: string
+          id: string
+          images: string[]
+          quantity: number
+          regular_price: number
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          title: string
+          unit_type: string
+          updated_at: string
+          user_id: string
+          wholesale_price: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "product_submissions"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       list_pros_directory: {
         Args: never
