@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { isCountryAllowed } from "@/lib/countries";
 
 type CommerceKind = "wholesale" | "distribution";
 type CommerceProduct = {
@@ -22,6 +23,7 @@ type CommerceProduct = {
   commission_percentage: number;
   partner_name: string;
   images: string[];
+  countries?: string[] | null;
 };
 
 const labels = {
@@ -39,6 +41,7 @@ export const CommerceProductsPage = ({ kind }: { kind: CommerceKind }) => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [client, setClient] = useState({ name: "", phone: "", note: "" });
+  const [userCountry, setUserCountry] = useState<string | null>(null);
 
   const config = labels[kind];
   const Icon = config.icon;
@@ -46,6 +49,10 @@ export const CommerceProductsPage = ({ kind }: { kind: CommerceKind }) => {
   useEffect(() => {
     const load = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data: prof } = await supabase.from("profiles").select("country").eq("id", session.user.id).maybeSingle();
+        if (prof?.country) setUserCountry(prof.country);
+      }
       const [productsRes, walletRes, addressRes] = await Promise.all([
         supabase.from("commerce_products").select("*").eq("kind", kind).eq("is_active", true).order("created_at", { ascending: false }),
         session ? supabase.from("wallets").select("balance").eq("user_id", session.user.id).single() : Promise.resolve({ data: null }),
@@ -58,6 +65,8 @@ export const CommerceProductsPage = ({ kind }: { kind: CommerceKind }) => {
     };
     load();
   }, [kind]);
+
+  const visibleProducts = products.filter(p => isCountryAllowed(userCountry, (p as any).countries));
 
   const total = useMemo(() => selected ? Number(selected.price) * quantity : 0, [selected, quantity]);
   const commission = useMemo(() => selected ? (total * Number(selected.commission_percentage)) / 100 : 0, [selected, total]);
@@ -106,11 +115,11 @@ export const CommerceProductsPage = ({ kind }: { kind: CommerceKind }) => {
 
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">{[1, 2, 3].map(i => <div key={i} className="h-64 rounded-2xl bg-muted/30 animate-pulse" />)}</div>
-      ) : products.length === 0 ? (
+      ) : visibleProducts.length === 0 ? (
         <div className="text-center py-16 text-muted-foreground"><Icon size={48} className="mx-auto mb-4 opacity-30" /><p className="font-display text-sm">Aucun produit disponible</p></div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
-          {products.map(product => {
+          {visibleProducts.map(product => {
             const image = product.images[0];
             return (
               <button key={product.id} type="button" onClick={() => openProduct(product)} className="glass-card rounded-2xl overflow-hidden text-left hover:glow-purple transition-all">
