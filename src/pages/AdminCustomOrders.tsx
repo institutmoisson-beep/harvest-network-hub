@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Package, MapPin, Truck, CheckCircle2, XCircle, Clock, Settings, Plus, Trash2, ExternalLink } from "lucide-react";
+import { Package, MapPin, Truck, CheckCircle2, XCircle, Clock, Settings, Plus, Trash2, ExternalLink, Download } from "lucide-react";
 import { toast } from "sonner";
+import { downloadCsv, inPeriod, PERIOD_OPTIONS, PeriodFilter } from "@/utils/exportCsv";
 
 // ============= Admin — Commandes hors-catalogue =============
 
@@ -29,6 +30,8 @@ const AdminCustomOrders = () => {
   const emptyForm = { id: null as string | null, rule_name: "", criteria_type: "base", criteria_value: "", percentage: 5, is_active: true };
   const [form, setForm] = useState(emptyForm);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [period, setPeriod] = useState<PeriodFilter>("all");
+  const [userFilter, setUserFilter] = useState("");
 
   useEffect(() => { load(); }, []);
 
@@ -79,8 +82,37 @@ const AdminCustomOrders = () => {
     load();
   };
 
-  const filtered = statusFilter === "all" ? orders : orders.filter(o => o.status === statusFilter);
+  const filtered = orders.filter(o => {
+    if (statusFilter !== "all" && o.status !== statusFilter) return false;
+    if (!inPeriod(o.created_at, period)) return false;
+    if (userFilter) {
+      const u = userFilter.toLowerCase();
+      if (!(`${o.first_name || ""} ${o.last_name || ""} ${o.referral_code || ""} ${o.user_id || ""}`.toLowerCase().includes(u))) return false;
+    }
+    return true;
+  });
   const baseRate = configs.find(c => c.criteria_type === "base" && c.is_active)?.percentage ?? 0;
+
+  const exportCsv = () => {
+    downloadCsv(
+      `commandes-hors-catalogue-${period}`,
+      ["Date", "Moissonneur", "Code", "Produit", "Quantité", "Prix unitaire", "Total", "Commission", "Fréquence", "Statut", "Latitude", "Longitude"],
+      filtered.map((o: any) => [
+        new Date(o.created_at).toLocaleString("fr-FR"),
+        `${o.first_name || ""} ${o.last_name || ""}`.trim(),
+        o.referral_code,
+        o.product_name,
+        o.quantity,
+        o.unit_price,
+        o.total_amount,
+        o.calculated_commission,
+        FREQ_LABEL[o.delivery_frequency] || o.delivery_frequency,
+        o.status,
+        o.delivery_latitude,
+        o.delivery_longitude,
+      ]),
+    );
+  };
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
@@ -108,6 +140,18 @@ const AdminCustomOrders = () => {
             {f.l}
           </button>
         ))}
+      </div>
+
+      {/* Barre d'export */}
+      <div className="glass-card rounded-xl p-3 flex flex-wrap items-center gap-2">
+        <span className="text-xs font-display font-bold flex items-center gap-1"><Download size={12} /> Export</span>
+        <select value={period} onChange={e => setPeriod(e.target.value as PeriodFilter)} className="text-xs rounded-md bg-input border border-border p-1">
+          {PERIOD_OPTIONS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+        </select>
+        <Input placeholder="Filtrer par utilisateur / code" value={userFilter} onChange={e => setUserFilter(e.target.value)} className="h-7 text-xs w-56" />
+        <Button size="sm" className="text-xs bg-gradient-gold text-secondary-foreground" onClick={exportCsv}>
+          <Download size={12} className="mr-1" /> CSV ({filtered.length})
+        </Button>
       </div>
 
       {/* Liste */}
