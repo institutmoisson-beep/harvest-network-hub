@@ -260,6 +260,7 @@ export type Database = {
         Row: {
           available_quantity: number | null
           commission_percentage: number
+          countries: string[] | null
           created_at: string
           created_by: string | null
           currency: string
@@ -278,6 +279,7 @@ export type Database = {
         Insert: {
           available_quantity?: number | null
           commission_percentage?: number
+          countries?: string[] | null
           created_at?: string
           created_by?: string | null
           currency?: string
@@ -296,6 +298,7 @@ export type Database = {
         Update: {
           available_quantity?: number | null
           commission_percentage?: number
+          countries?: string[] | null
           created_at?: string
           created_by?: string | null
           currency?: string
@@ -435,6 +438,7 @@ export type Database = {
           contact_email: string | null
           contact_facebook: string | null
           contact_whatsapp: string | null
+          countries: string[] | null
           country: string
           created_at: string
           description: string | null
@@ -452,6 +456,7 @@ export type Database = {
           contact_email?: string | null
           contact_facebook?: string | null
           contact_whatsapp?: string | null
+          countries?: string[] | null
           country?: string
           created_at?: string
           description?: string | null
@@ -469,6 +474,7 @@ export type Database = {
           contact_email?: string | null
           contact_facebook?: string | null
           contact_whatsapp?: string | null
+          countries?: string[] | null
           country?: string
           created_at?: string
           description?: string | null
@@ -1056,6 +1062,7 @@ export type Database = {
         Row: {
           activates_system: boolean
           company_id: string
+          countries: string[] | null
           created_at: string
           currency: string
           description: string | null
@@ -1074,6 +1081,7 @@ export type Database = {
         Insert: {
           activates_system?: boolean
           company_id: string
+          countries?: string[] | null
           created_at?: string
           currency?: string
           description?: string | null
@@ -1092,6 +1100,7 @@ export type Database = {
         Update: {
           activates_system?: boolean
           company_id?: string
+          countries?: string[] | null
           created_at?: string
           currency?: string
           description?: string | null
