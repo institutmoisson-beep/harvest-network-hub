@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import PurchaseDialog from "@/components/PurchaseDialog";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { isCountryAllowed } from "@/lib/countries";
 
 interface Pack {
   id: string;
@@ -24,6 +25,7 @@ interface Pack {
   currency: string;
   sector: string | null;
   company_id: string;
+  countries?: string[] | null;
 }
 
 const Packs = () => {
@@ -36,9 +38,15 @@ const Packs = () => {
   const [selectedPack, setSelectedPack] = useState<Pack | null>(null);
   const [showPurchase, setShowPurchase] = useState(false);
   const [detailPack, setDetailPack] = useState<Pack | null>(null);
+  const [userCountry, setUserCountry] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data: prof } = await supabase.from("profiles").select("country").eq("id", session.user.id).maybeSingle();
+        if (prof?.country) setUserCountry(prof.country);
+      }
       const [prodRes, compRes, secRes] = await Promise.all([
         supabase.from("products").select("*").eq("is_active", true).order("created_at", { ascending: false }),
         supabase.from("companies").select("id, name").eq("is_active", true),
@@ -71,7 +79,8 @@ const Packs = () => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
       (p.description || "").toLowerCase().includes(search.toLowerCase());
     const matchSector = !sectorFilter || p.sector === sectorFilter;
-    return matchSearch && matchSector;
+    const matchCountry = isCountryAllowed(userCountry, p.countries);
+    return matchSearch && matchSector && matchCountry;
   });
 
   const handleBuy = (pack: Pack) => {
