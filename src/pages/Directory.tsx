@@ -6,17 +6,24 @@ import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { isCountryAllowed } from "@/lib/countries";
 
 const Directory = () => {
   const [search, setSearch] = useState("");
   const [companies, setCompanies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userCountry, setUserCountry] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { data: prof } = await supabase.from("profiles").select("country").eq("id", session.user.id).maybeSingle();
+        if (prof?.country) setUserCountry(prof.country);
+      }
       const { data } = await supabase
         .from("companies")
-        .select("id, name, sector, country, description, logo_url, banner_url, image_url_2, website_url, contact_facebook, is_active, products(id)")
+        .select("id, name, sector, country, countries, description, logo_url, banner_url, image_url_2, website_url, contact_facebook, is_active, products(id)")
         .eq("is_active", true);
       setCompanies(data || []);
       setLoading(false);
@@ -24,10 +31,11 @@ const Directory = () => {
     load();
   }, []);
 
-  const filtered = companies.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase()) ||
-    c.sector.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = companies.filter((c) => {
+    const matchSearch = c.name.toLowerCase().includes(search.toLowerCase()) ||
+      (c.sector || "").toLowerCase().includes(search.toLowerCase());
+    return matchSearch && isCountryAllowed(userCountry, c.countries);
+  });
 
   return (
     <div className="min-h-screen">
