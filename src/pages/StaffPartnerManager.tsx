@@ -7,11 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Building2, Plus, Edit2, Save, X, Trash2 } from "lucide-react";
+import { ArrowLeft, Building2, Plus, Edit2, Save, X, Trash2, Download } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { uploadOptimizedImage } from "@/utils/imageCompression";
+import CountriesPicker from "@/components/CountriesPicker";
+import { openPartnerPoster } from "@/utils/exportCsv";
 
-type Company = { id: string; name: string; sector: string; country: string; description: string | null; logo_url: string | null; banner_url: string | null; website_url: string | null; is_active: boolean; contact_whatsapp?: string; contact_facebook?: string; contact_email?: string; image_url_2?: string };
+type Company = { id: string; name: string; sector: string; country: string; description: string | null; logo_url: string | null; banner_url: string | null; website_url: string | null; is_active: boolean; contact_whatsapp?: string; contact_facebook?: string; contact_email?: string; image_url_2?: string; countries?: string[] | null };
 type Sector = { id: string; name: string };
 
 const StaffPartnerManager = () => {
@@ -22,7 +24,7 @@ const StaffPartnerManager = () => {
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Company | null>(null);
-  const [form, setForm] = useState({ name: "", sector: "", country: "", description: "", logo_url: "", banner_url: "", website_url: "", contact_whatsapp: "", contact_facebook: "", contact_email: "", image_url_2: "" });
+  const [form, setForm] = useState({ name: "", sector: "", country: "", description: "", logo_url: "", banner_url: "", website_url: "", contact_whatsapp: "", contact_facebook: "", contact_email: "", image_url_2: "", countries: null as string[] | null });
 
   useEffect(() => { checkAccess(); }, []);
 
@@ -47,10 +49,10 @@ const StaffPartnerManager = () => {
   const openForm = (c?: Company) => {
     if (c) {
       setEditing(c);
-      setForm({ name: c.name, sector: c.sector, country: c.country, description: c.description || "", logo_url: c.logo_url || "", banner_url: c.banner_url || "", website_url: c.website_url || "", contact_whatsapp: c.contact_whatsapp || "", contact_facebook: c.contact_facebook || "", contact_email: c.contact_email || "", image_url_2: c.image_url_2 || "" });
+      setForm({ name: c.name, sector: c.sector, country: c.country, description: c.description || "", logo_url: c.logo_url || "", banner_url: c.banner_url || "", website_url: c.website_url || "", contact_whatsapp: c.contact_whatsapp || "", contact_facebook: c.contact_facebook || "", contact_email: c.contact_email || "", image_url_2: c.image_url_2 || "", countries: c.countries || null });
     } else {
       setEditing(null);
-      setForm({ name: "", sector: "", country: "", description: "", logo_url: "", banner_url: "", website_url: "", contact_whatsapp: "", contact_facebook: "", contact_email: "", image_url_2: "" });
+      setForm({ name: "", sector: "", country: "", description: "", logo_url: "", banner_url: "", website_url: "", contact_whatsapp: "", contact_facebook: "", contact_email: "", image_url_2: "", countries: null });
     }
     setShowForm(true);
   };
@@ -135,6 +137,9 @@ const StaffPartnerManager = () => {
               ))}
             </div>
             <div className="mt-3"><Label className="text-xs">Description</Label><Textarea value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} className="mt-1 bg-input border-border text-sm" rows={3} /></div>
+            <div className="mt-3 p-3 rounded-xl border border-primary/20 bg-primary/5">
+              <CountriesPicker value={form.countries} onChange={c => setForm(p => ({ ...p, countries: c }))} label="Pays où ce partenaire est visible" />
+            </div>
             <div className="flex gap-2 mt-3">
               <Button size="sm" className="bg-gradient-gold text-secondary-foreground font-display text-xs" onClick={save}><Save size={14} className="mr-1" /> Enregistrer</Button>
               <Button size="sm" variant="outline" className="text-xs" onClick={() => setShowForm(false)}><X size={14} className="mr-1" /> Annuler</Button>
@@ -154,6 +159,9 @@ const StaffPartnerManager = () => {
               </div>
               <div className="flex gap-1">
                 <Badge className={`text-[10px] ${c.is_active ? "bg-green-600" : "bg-destructive"}`}>{c.is_active ? "Active" : "Inactive"}</Badge>
+                <Button size="sm" variant="outline" className="text-xs h-7" title="Télécharger l'affiche" onClick={() => openPartnerPoster(c)}>
+                  <Download size={12} />
+                </Button>
                 <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => openForm(c)}><Edit2 size={12} /></Button>
                 <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => toggleActive(c)}>{c.is_active ? "Désactiver" : "Activer"}</Button>
                 <Button size="sm" variant="destructive" className="text-xs h-7" onClick={() => remove(c.id)}><Trash2 size={12} /></Button>
