@@ -9,7 +9,8 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { getSignedUrl } from "@/utils/imageCompression";
-import { PackageSearch, Eye, Check, XCircle, ShoppingCart, Store, ClipboardCheck, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { PackageSearch, Eye, Check, XCircle, ShoppingCart, Store, ClipboardCheck, ChevronLeft, ChevronRight, Search, Download } from "lucide-react";
+import { downloadCsv, inPeriod, PERIOD_OPTIONS, PeriodFilter } from "@/utils/exportCsv";
 
 const STATUS_UI: Record<string, { label: string; cls: string }> = {
   pending:                  { label: "En attente",          cls: "bg-yellow-500/20 text-yellow-700 border-yellow-500/40" },
@@ -30,6 +31,8 @@ const AdminSubmissions = () => {
   const [carouselIdx, setCarouselIdx] = useState(0);
   const [rejectMode, setRejectMode] = useState(false);
   const [rejectNote, setRejectNote] = useState("");
+  const [period, setPeriod] = useState<PeriodFilter>("all");
+  const [userFilter, setUserFilter] = useState("");
 
   const load = async () => {
     const { data, error } = await (supabase as any).rpc("admin_list_submissions", {
@@ -50,14 +53,39 @@ const AdminSubmissions = () => {
   }, [filter]);
 
   const filtered = useMemo(() => {
-    if (!search) return items;
     const s = search.toLowerCase();
-    return items.filter((i: any) =>
-      i.title?.toLowerCase().includes(s) ||
-      i.first_name?.toLowerCase().includes(s) ||
-      i.last_name?.toLowerCase().includes(s) ||
-      i.referral_code?.toLowerCase().includes(s));
-  }, [items, search]);
+    const u = userFilter.toLowerCase();
+    return items.filter((i: any) => {
+      if (!inPeriod(i.created_at, period)) return false;
+      if (u && !(`${i.first_name} ${i.last_name} ${i.referral_code} ${i.user_id}`.toLowerCase().includes(u))) return false;
+      if (!search) return true;
+      return (
+        i.title?.toLowerCase().includes(s) ||
+        i.first_name?.toLowerCase().includes(s) ||
+        i.last_name?.toLowerCase().includes(s) ||
+        i.referral_code?.toLowerCase().includes(s)
+      );
+    });
+  }, [items, search, period, userFilter]);
+
+  const exportCsv = () => {
+    downloadCsv(
+      `mises-a-disposition-${period}`,
+      ["Date", "Moissonneur", "Code", "Titre", "Catégorie", "Quantité", "Unité", "Prix normal", "Prix gros", "Statut"],
+      filtered.map((i: any) => [
+        new Date(i.created_at).toLocaleString("fr-FR"),
+        `${i.first_name || ""} ${i.last_name || ""}`.trim(),
+        i.referral_code,
+        i.title,
+        i.category,
+        i.quantity,
+        i.unit_type,
+        i.regular_price,
+        i.wholesale_price,
+        i.status,
+      ]),
+    );
+  };
 
   const openDetail = async (row: any) => {
     setSelected(row);
@@ -114,6 +142,18 @@ const AdminSubmissions = () => {
           <Search size={14} className="absolute left-3 top-3 text-muted-foreground" />
           <Input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher…" className="pl-8" />
         </div>
+      </div>
+
+      {/* Barre d'export */}
+      <div className="glass-card rounded-xl p-3 flex flex-wrap items-center gap-2">
+        <span className="text-xs font-display font-bold flex items-center gap-1"><Download size={12} /> Export</span>
+        <select value={period} onChange={e => setPeriod(e.target.value as PeriodFilter)} className="text-xs rounded-md bg-input border border-border p-1">
+          {PERIOD_OPTIONS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+        </select>
+        <Input placeholder="Filtrer par utilisateur / code" value={userFilter} onChange={e => setUserFilter(e.target.value)} className="h-7 text-xs w-56" />
+        <Button size="sm" className="text-xs bg-gradient-gold text-secondary-foreground" onClick={exportCsv}>
+          <Download size={12} className="mr-1" /> Télécharger CSV ({filtered.length})
+        </Button>
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
