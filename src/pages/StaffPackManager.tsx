@@ -10,8 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Package, Plus, Edit2, Save, X, Trash2, Upload, ImagePlus } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { uploadOptimizedImages } from "@/utils/imageCompression";
+import CountriesPicker from "@/components/CountriesPicker";
+import { downloadCsv, inPeriod, PERIOD_OPTIONS, PeriodFilter } from "@/utils/exportCsv";
+import { Download } from "lucide-react";
 
-type Product = { id: string; name: string; price: number; profit_amount: number; level1_commission_percentage: number; company_id: string; description: string | null; image_url: string | null; is_active: boolean; is_physical: boolean; activates_system: boolean; currency: string; sector: string | null; images: string[] | null };
+type Product = { id: string; name: string; price: number; profit_amount: number; level1_commission_percentage: number; company_id: string; description: string | null; image_url: string | null; is_active: boolean; is_physical: boolean; activates_system: boolean; currency: string; sector: string | null; images: string[] | null; countries: string[] | null };
 type Company = { id: string; name: string };
 
 const StaffPackManager = () => {
@@ -22,9 +25,12 @@ const StaffPackManager = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
-  const [form, setForm] = useState({ name: "", price: "", profit_amount: "", level1_commission_percentage: "", company_id: "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA", sector: "", images: [] as string[] });
+  const [form, setForm] = useState({ name: "", price: "", profit_amount: "", level1_commission_percentage: "", company_id: "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA", sector: "", images: [] as string[], countries: null as string[] | null });
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [period, setPeriod] = useState<PeriodFilter>("all");
+  const [userFilter, setUserFilter] = useState<string>("");
 
   useEffect(() => { checkAccess(); }, []);
 
@@ -40,21 +46,23 @@ const StaffPackManager = () => {
   };
 
   const loadData = async () => {
-    const [prodRes, compRes] = await Promise.all([
+    const [prodRes, compRes, ordRes] = await Promise.all([
       supabase.from("products").select("*").order("created_at", { ascending: false }),
       supabase.from("companies").select("id, name"),
+      supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(2000),
     ]);
     if (prodRes.data) setProducts(prodRes.data as Product[]);
     if (compRes.data) setCompanies(compRes.data as Company[]);
+    if (ordRes.data) setOrders(ordRes.data);
   };
 
   const openForm = (p?: Product) => {
     if (p) {
       setEditing(p);
-      setForm({ name: p.name, price: String(p.price), profit_amount: String(p.profit_amount ?? ""), level1_commission_percentage: String(p.level1_commission_percentage ?? ""), company_id: p.company_id, description: p.description || "", image_url: p.image_url || "", is_physical: p.is_physical, activates_system: p.activates_system, currency: p.currency, sector: p.sector || "", images: Array.isArray(p.images) ? p.images : [] });
+      setForm({ name: p.name, price: String(p.price), profit_amount: String(p.profit_amount ?? ""), level1_commission_percentage: String(p.level1_commission_percentage ?? ""), company_id: p.company_id, description: p.description || "", image_url: p.image_url || "", is_physical: p.is_physical, activates_system: p.activates_system, currency: p.currency, sector: p.sector || "", images: Array.isArray(p.images) ? p.images : [], countries: p.countries || null });
     } else {
       setEditing(null);
-      setForm({ name: "", price: "", profit_amount: "", level1_commission_percentage: "", company_id: companies[0]?.id || "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA", sector: "", images: [] });
+      setForm({ name: "", price: "", profit_amount: "", level1_commission_percentage: "", company_id: companies[0]?.id || "", description: "", image_url: "", is_physical: true, activates_system: true, currency: "FCFA", sector: "", images: [], countries: null });
     }
     setShowForm(true);
   };
@@ -86,13 +94,13 @@ const StaffPackManager = () => {
   const save = async () => {
     if (!form.name.trim() || !form.price || !form.company_id) { toast.error("Nom, prix et entreprise requis"); return; }
     if (form.activates_system && (!form.profit_amount || !form.level1_commission_percentage)) { toast.error("Pour un pack MLM, indiquez le bénéfice du pack et la commission niveau 1"); return; }
-    const payload = { name: form.name, price: parseFloat(form.price), profit_amount: parseFloat(form.profit_amount || "0"), level1_commission_percentage: parseFloat(form.level1_commission_percentage || "0"), company_id: form.company_id, description: form.description, image_url: form.image_url || (form.images[0] || null), is_physical: form.is_physical, activates_system: form.activates_system, currency: form.currency, sector: form.sector, images: form.images, updated_at: new Date().toISOString() };
+    const payload = { name: form.name, price: parseFloat(form.price), profit_amount: parseFloat(form.profit_amount || "0"), level1_commission_percentage: parseFloat(form.level1_commission_percentage || "0"), company_id: form.company_id, description: form.description, image_url: form.image_url || (form.images[0] || null), is_physical: form.is_physical, activates_system: form.activates_system, currency: form.currency, sector: form.sector, images: form.images, countries: form.countries, updated_at: new Date().toISOString() };
     if (editing) {
-      const { error } = await supabase.from("products").update(payload).eq("id", editing.id);
+      const { error } = await supabase.from("products").update(payload as any).eq("id", editing.id);
       if (error) toast.error(error.message);
       else { toast.success("Pack mis à jour"); setShowForm(false); loadData(); }
     } else {
-      const { error } = await supabase.from("products").insert(payload);
+      const { error } = await supabase.from("products").insert(payload as any);
       if (error) toast.error(error.message);
       else { toast.success("Pack ajouté"); setShowForm(false); loadData(); }
     }
@@ -112,6 +120,18 @@ const StaffPackManager = () => {
   if (loading) return <div className="flex items-center justify-center min-h-screen"><div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" /></div>;
   if (!authorized) return null;
 
+  const filteredOrders = orders.filter(o => inPeriod(o.created_at, period) && (!userFilter || String(o.user_id).includes(userFilter)));
+  const exportOrders = () => {
+    downloadCsv(
+      `commandes-packs-${period}`,
+      ["Date", "Utilisateur", "Pack", "Montant", "Devise", "Statut"],
+      filteredOrders.map(o => {
+        const p = products.find(pr => pr.id === o.product_id);
+        return [new Date(o.created_at).toLocaleString("fr-FR"), o.user_id, p?.name || "—", o.total_price, p?.currency || "FCFA", o.status];
+      }),
+    );
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 glass-card border-b border-border/50 px-4 py-3 flex items-center gap-3">
@@ -122,6 +142,18 @@ const StaffPackManager = () => {
       </header>
 
       <div className="p-4 max-w-4xl mx-auto space-y-4">
+        {/* Export & filtres commandes */}
+        <div className="glass-card rounded-xl p-3 flex flex-wrap items-center gap-2">
+          <span className="text-xs font-display font-bold flex items-center gap-1"><Download size={12} /> Export commandes packs</span>
+          <select value={period} onChange={e => setPeriod(e.target.value as PeriodFilter)} className="text-xs rounded-md bg-input border border-border p-1">
+            {PERIOD_OPTIONS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+          </select>
+          <Input placeholder="ID utilisateur (facultatif)" value={userFilter} onChange={e => setUserFilter(e.target.value)} className="h-7 text-xs w-52" />
+          <Button size="sm" className="text-xs bg-gradient-gold text-secondary-foreground" onClick={exportOrders}>
+            <Download size={12} className="mr-1" /> Télécharger CSV ({filteredOrders.length})
+          </Button>
+        </div>
+
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">{products.length} packs</p>
           <Button size="sm" className="bg-gradient-gold text-secondary-foreground font-display text-xs" onClick={() => openForm()}>
@@ -156,6 +188,11 @@ const StaffPackManager = () => {
               </div>
             </div>
             <div className="mt-3"><Label className="text-xs">Description</Label><Textarea value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} className="mt-1 bg-input border-border text-sm" rows={3} /></div>
+
+            {/* Ciblage géographique */}
+            <div className="mt-4 p-3 rounded-xl border border-primary/20 bg-primary/5">
+              <CountriesPicker value={form.countries} onChange={c => setForm(p => ({ ...p, countries: c }))} label="Pays où ce pack est disponible" />
+            </div>
 
             {/* Multi-image upload */}
             <div className="mt-4">
