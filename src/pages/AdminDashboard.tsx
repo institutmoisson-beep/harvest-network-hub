@@ -807,6 +807,11 @@ const AdminDashboard = () => {
                           <div className="flex gap-1 mt-1">
                             {p.is_physical && <Badge variant="outline" className="text-[10px]">Physique</Badge>}
                             {p.activates_system && <Badge variant="outline" className="text-[10px]">Pack MLM</Badge>}
+                            <Badge variant="outline" className="text-[10px]">
+                              🌍 {p.countries && p.countries.length > 0
+                                ? (p.countries.length > 2 ? `${p.countries.slice(0, 2).join(", ")} +${p.countries.length - 2}` : p.countries.join(", "))
+                                : "Universel"}
+                            </Badge>
                           </div>
                         </div>
                       </div>
