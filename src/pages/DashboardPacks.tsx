@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import PurchaseDialog from "@/components/PurchaseDialog";
+import { isCountryAllowed } from "@/lib/countries";
 
 interface Pack {
   id: string;
@@ -77,6 +78,7 @@ const DashboardPacks = () => {
   const [userOrders, setUserOrders] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [sectorFilter, setSectorFilter] = useState<string>("all");
+  const [userCountry, setUserCountry] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -86,7 +88,7 @@ const DashboardPacks = () => {
       const [prodRes, compRes, profileRes, ordersRes] = await Promise.all([
         supabase.from("products").select("*").eq("is_active", true).order("price", { ascending: true }),
         supabase.from("companies").select("id, name").eq("is_active", true),
-        supabase.from("profiles").select("is_system_active").eq("id", session.user.id).single(),
+        supabase.from("profiles").select("is_system_active, country").eq("id", session.user.id).single(),
         supabase.from("orders").select("product_id").eq("user_id", session.user.id).neq("status", "cancelled"),
       ]);
 
@@ -98,7 +100,7 @@ const DashboardPacks = () => {
         compRes.data.forEach((c: any) => { map[c.id] = c.name; });
         setCompanies(map);
       }
-      if (profileRes.data) setIsSystemActive(profileRes.data.is_system_active);
+      if (profileRes.data) { setIsSystemActive(profileRes.data.is_system_active); setUserCountry((profileRes.data as any).country || null); }
       if (ordersRes.data) setUserOrders(ordersRes.data.map((o: any) => o.product_id));
       setLoading(false);
     };
@@ -123,6 +125,7 @@ const DashboardPacks = () => {
 
   const sectors = Array.from(new Set(packs.map(p => p.sector).filter(Boolean))) as string[];
   const visiblePacks = packs.filter(p => {
+    if (!isCountryAllowed(userCountry, p.countries)) return false;
     if (sectorFilter !== "all" && p.sector !== sectorFilter) return false;
     const q = search.trim().toLowerCase();
     if (!q) return true;
