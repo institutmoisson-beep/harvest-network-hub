@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import logo from "@/assets/logo.png";
 import { uploadOptimizedImage } from "@/utils/imageCompression";
+import { downloadCsv, inPeriod, PERIOD_OPTIONS, PeriodFilter } from "@/utils/exportCsv";
+import { Download } from "lucide-react";
 
 type Profile = { id: string; first_name: string; last_name: string; email: string; phone: string; country: string; referral_code: string; career_level: string; account_status: string; is_system_active: boolean; created_at: string };
 type Transaction = { id: string; user_id: string; type: string; amount: number; status: string; created_at: string; operator: string | null; transaction_ref: string | null; service: string | null; contact: string | null; withdrawal_address: string | null; notes: string | null; transaction_date: string | null; recipient_id?: string | null };
@@ -31,6 +33,8 @@ const AdminDashboard = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("users");
+  const [ordersPeriod, setOrdersPeriod] = useState<PeriodFilter>("all");
+  const [ordersUserFilter, setOrdersUserFilter] = useState("");
 
   const [users, setUsers] = useState<Profile[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
