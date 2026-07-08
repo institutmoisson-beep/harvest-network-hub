@@ -28,11 +28,19 @@ const StaffCommunication = () => {
   };
 
   const loadData = async () => {
-    const { data } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
+    // Utilise le RPC sécurisé qui ne retourne que les champs non sensibles
+    const { data } = await (supabase as any).rpc("list_users_for_staff", { _country: null });
     if (data) {
-      setUsers(data as Profile[]);
-      const countries = new Set(data.map((u: any) => u.country).filter(Boolean));
-      setStats({ total: data.length, pros: data.filter((u: any) => u.is_pro_visible).length, countries: countries.size });
+      // is_pro_visible et career_level ne sont pas retournés par le RPC — on les récupère séparément
+      const ids = (data as any[]).map(u => u.id);
+      const { data: extras } = await (supabase as any).rpc("get_public_profiles", { _ids: ids });
+      const extraMap: Record<string, any> = {};
+      (extras || []).forEach((e: any) => { extraMap[e.id] = e; });
+      const merged = (data as any[]).map(u => ({ ...u, career_level: extraMap[u.id]?.career_level, is_pro_visible: false }));
+      // is_pro_visible is admin-only; leave false for non-admin communication staff
+      setUsers(merged as Profile[]);
+      const countries = new Set(merged.map((u: any) => u.country).filter(Boolean));
+      setStats({ total: merged.length, pros: 0, countries: countries.size });
     }
   };
 

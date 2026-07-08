@@ -32,7 +32,7 @@ const StaffFinancier = () => {
   const loadData = async () => {
     const [txRes, profRes] = await Promise.all([
       supabase.from("wallet_transactions").select("*").order("created_at", { ascending: false }),
-      supabase.from("profiles").select("id, first_name, last_name, email"),
+      (supabase as any).rpc("list_users_for_staff", { _country: null }),
     ]);
     if (txRes.data) setTransactions(txRes.data as Transaction[]);
     if (profRes.data) {
