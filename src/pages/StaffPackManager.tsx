@@ -244,6 +244,9 @@ const StaffPackManager = () => {
                       {p.is_physical && <Badge variant="outline" className="text-[10px]">Physique</Badge>}
                       {p.activates_system && <Badge variant="outline" className="text-[10px]">MLM</Badge>}
                       {imgCount > 0 && <Badge variant="outline" className="text-[10px]">{imgCount} 📷</Badge>}
+                      <Badge variant="outline" className="text-[10px]">
+                        🌍 {p.countries && p.countries.length > 0 ? (p.countries.length > 2 ? `${p.countries.slice(0,2).join(", ")} +${p.countries.length - 2}` : p.countries.join(", ")) : "Universel"}
+                      </Badge>
                     </div>
                   </div>
                 </div>

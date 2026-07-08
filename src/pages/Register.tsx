@@ -19,6 +19,7 @@ const Register = () => {
     firstName: "",
     lastName: "",
     country: "",
+    city: "",
     phone: "",
     referralCode: searchParams.get("ref") || "",
     email: "",
@@ -58,6 +59,7 @@ const Register = () => {
           first_name: form.firstName,
           last_name: form.lastName,
           country: form.country,
+          city: form.city,
           phone: form.phone,
           referral_code: form.referralCode,
         },
@@ -107,10 +109,16 @@ const Register = () => {
                   placeholder="Pays" required className="mt-1 bg-input border-border text-sm" />
               </div>
               <div>
+                <Label className="text-xs">Ville</Label>
+                <Input value={form.city} onChange={(e) => update("city", e.target.value)}
+                  placeholder="Ville" required className="mt-1 bg-input border-border text-sm" />
+              </div>
+            </div>
+
+            <div>
                 <Label className="text-xs">Contact</Label>
                 <Input value={form.phone} onChange={(e) => update("phone", e.target.value)}
                   placeholder="+225 ..." required className="mt-1 bg-input border-border text-sm" />
-              </div>
             </div>
 
             <div>
