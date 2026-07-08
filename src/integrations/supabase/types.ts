@@ -1133,6 +1133,7 @@ export type Database = {
           career_level: Database["public"]["Enums"]["career_level"]
           cgu_accepted: boolean
           cgu_accepted_at: string | null
+          city: string | null
           contract_signed_at: string | null
           country: string | null
           created_at: string
@@ -1163,6 +1164,7 @@ export type Database = {
           career_level?: Database["public"]["Enums"]["career_level"]
           cgu_accepted?: boolean
           cgu_accepted_at?: string | null
+          city?: string | null
           contract_signed_at?: string | null
           country?: string | null
           created_at?: string
@@ -1193,6 +1195,7 @@ export type Database = {
           career_level?: Database["public"]["Enums"]["career_level"]
           cgu_accepted?: boolean
           cgu_accepted_at?: string | null
+          city?: string | null
           contract_signed_at?: string | null
           country?: string | null
           created_at?: string
