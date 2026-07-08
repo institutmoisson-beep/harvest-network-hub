@@ -734,6 +734,15 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   <div className="mt-3"><Label className="text-xs">Description</Label><Textarea value={productForm.description} onChange={e => setProductForm(p => ({ ...p, description: e.target.value }))} className="mt-1 bg-input border-border text-sm" rows={3} /></div>
+
+                  {/* Ciblage géographique du pack MLM */}
+                  <div className="mt-3">
+                    <CountriesPicker
+                      value={productForm.countries}
+                      onChange={c => setProductForm(p => ({ ...p, countries: c }))}
+                      label="Pays où ce pack est disponible"
+                    />
+                  </div>
                   
                   {/* Multi-image section */}
                   <div className="mt-3 space-y-2">
