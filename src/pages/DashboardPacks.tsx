@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Package, ShoppingBag, Check, ChevronLeft, ChevronRight, ImageIcon, Eye, Truck } from "lucide-react";
+import { Package, ShoppingBag, Check, ChevronLeft, ChevronRight, ImageIcon, Eye, Truck, Globe, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import PurchaseDialog from "@/components/PurchaseDialog";
+import { isCountryAllowed } from "@/lib/countries";
 
 interface Pack {
   id: string;
@@ -23,6 +24,7 @@ interface Pack {
   currency: string;
   sector: string | null;
   company_id: string;
+  countries?: string[] | null;
 }
 
 const PackImageCarousel = ({ images, name }: { images: string[]; name: string }) => {
@@ -76,6 +78,7 @@ const DashboardPacks = () => {
   const [userOrders, setUserOrders] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [sectorFilter, setSectorFilter] = useState<string>("all");
+  const [userCountry, setUserCountry] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -85,7 +88,7 @@ const DashboardPacks = () => {
       const [prodRes, compRes, profileRes, ordersRes] = await Promise.all([
         supabase.from("products").select("*").eq("is_active", true).order("price", { ascending: true }),
         supabase.from("companies").select("id, name").eq("is_active", true),
-        supabase.from("profiles").select("is_system_active").eq("id", session.user.id).single(),
+        supabase.from("profiles").select("is_system_active, country").eq("id", session.user.id).single(),
         supabase.from("orders").select("product_id").eq("user_id", session.user.id).neq("status", "cancelled"),
       ]);
 
@@ -97,7 +100,7 @@ const DashboardPacks = () => {
         compRes.data.forEach((c: any) => { map[c.id] = c.name; });
         setCompanies(map);
       }
-      if (profileRes.data) setIsSystemActive(profileRes.data.is_system_active);
+      if (profileRes.data) { setIsSystemActive(profileRes.data.is_system_active); setUserCountry((profileRes.data as any).country || null); }
       if (ordersRes.data) setUserOrders(ordersRes.data.map((o: any) => o.product_id));
       setLoading(false);
     };
@@ -122,6 +125,7 @@ const DashboardPacks = () => {
 
   const sectors = Array.from(new Set(packs.map(p => p.sector).filter(Boolean))) as string[];
   const visiblePacks = packs.filter(p => {
+    if (!isCountryAllowed(userCountry, p.countries)) return false;
     if (sectorFilter !== "all" && p.sector !== sectorFilter) return false;
     const q = search.trim().toLowerCase();
     if (!q) return true;
@@ -196,6 +200,11 @@ const DashboardPacks = () => {
                   <div className="flex items-center gap-2 mb-3 flex-wrap">
                     {pack.activates_system && <Badge className="text-[10px] bg-green-600">Active le MLM</Badge>}
                     {alreadyBought && <Badge variant="outline" className="text-[10px]">Déjà acheté</Badge>}
+                    {pack.countries && pack.countries.length > 0 ? (
+                      <Badge variant="outline" className="text-[10px] gap-1"><MapPin size={10} />{pack.countries.length > 2 ? `${pack.countries.slice(0, 2).join(", ")} +${pack.countries.length - 2}` : pack.countries.join(", ")}</Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-[10px] gap-1"><Globe size={10} /> Universel</Badge>
+                    )}
                     <span className="text-[10px] text-muted-foreground">{companies[pack.company_id] || ""}</span>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
@@ -246,6 +255,11 @@ const DashboardPacks = () => {
                   {detailPack.activates_system && <Badge className="text-[10px] bg-green-600">Active le MLM</Badge>}
                   {detailPack.is_physical && <Badge variant="outline" className="text-[10px]"><Truck size={10} className="mr-1" /> Livraison</Badge>}
                   <Badge variant="outline" className="text-[10px]">{detailPack.sector || "Pack"}</Badge>
+                  {detailPack.countries && detailPack.countries.length > 0 ? (
+                    <Badge variant="outline" className="text-[10px] gap-1"><MapPin size={10} />{detailPack.countries.join(", ")}</Badge>
+                  ) : (
+                    <Badge variant="outline" className="text-[10px] gap-1"><Globe size={10} /> Universel / International</Badge>
+                  )}
                 </div>
                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">{detailPack.description || "Détails bientôt disponibles."}</p>
                 <div className="flex items-center justify-between rounded-xl bg-muted/40 p-4">
