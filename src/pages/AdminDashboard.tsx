@@ -816,6 +816,56 @@ const AdminDashboard = () => {
           {/* ---- ORDERS ---- */}
           <TabsContent value="orders">
             <div className="space-y-3">
+              {/* Export commandes par période */}
+              <div className="glass-card rounded-xl p-3 flex flex-wrap items-center gap-2">
+                <span className="text-xs font-display font-bold flex items-center gap-1"><Download size={12} /> Export commandes</span>
+                <select value={ordersPeriod} onChange={e => setOrdersPeriod(e.target.value as PeriodFilter)} className="text-xs rounded-md bg-input border border-border p-1">
+                  {PERIOD_OPTIONS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+                </select>
+                <Input placeholder="Recherche utilisateur (nom, email, code)" value={ordersUserFilter} onChange={e => setOrdersUserFilter(e.target.value)} className="h-7 text-xs w-64" />
+                <Button
+                  size="sm"
+                  className="text-xs bg-gradient-gold text-secondary-foreground"
+                  onClick={() => {
+                    const q = ordersUserFilter.trim().toLowerCase();
+                    const rows = orders
+                      .filter(o => inPeriod(o.created_at, ordersPeriod))
+                      .filter(o => {
+                        if (!q) return true;
+                        const u = profiles[o.user_id];
+                        return (
+                          u?.first_name?.toLowerCase().includes(q) ||
+                          u?.last_name?.toLowerCase().includes(q) ||
+                          u?.email?.toLowerCase().includes(q) ||
+                          u?.referral_code?.toLowerCase().includes(q) ||
+                          o.user_id.toLowerCase().includes(q)
+                        );
+                      });
+                    downloadCsv(
+                      `commandes-${ordersPeriod}`,
+                      ["Date", "Utilisateur", "Email", "Code MSN", "Pays", "Produit", "Quantité", "Montant (FCFA)", "Statut"],
+                      rows.map(o => {
+                        const u = profiles[o.user_id];
+                        const pr = productsMap[o.product_id];
+                        return [
+                          new Date(o.created_at).toLocaleString("fr-FR"),
+                          `${u?.first_name || ""} ${u?.last_name || ""}`.trim() || o.user_id,
+                          u?.email || "",
+                          u?.referral_code || "",
+                          u?.country || "",
+                          pr?.name || o.product_id,
+                          o.quantity,
+                          o.total_price,
+                          o.status,
+                        ];
+                      }),
+                    );
+                  }}
+                >
+                  <Download size={12} className="mr-1" /> Télécharger CSV
+                </Button>
+              </div>
+
               <p className="text-sm text-muted-foreground">{orders.length} commandes</p>
               {orders.map(o => {
                 const user = profiles[o.user_id];
