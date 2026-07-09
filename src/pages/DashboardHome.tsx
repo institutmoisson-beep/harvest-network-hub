@@ -3,10 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Users, TrendingUp, Wallet, Wheat, Building2, UserCircle, ShoppingBag, Package, Radio, Siren, HeartHandshake, MapPin, Trophy, Boxes, Sprout } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 const DashboardHome = () => {
   const [meta, setMeta] = useState<any>({});
   const [stats, setStats] = useState({ directs: 0, network: 0, balance: 0, level: "semeur", commissions: 0 });
+  const { selectedCurrency, formatConverted } = useCurrency();
 
   useEffect(() => {
     const load = async () => {
@@ -55,13 +57,14 @@ const DashboardHome = () => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
           { label: "Filleuls Directs", value: String(stats.directs), icon: Users, color: "text-secondary" },
-          { label: "Solde Wallet", value: `${stats.balance.toLocaleString()} FCFA`, icon: Wallet, color: "text-primary" },
-          { label: "Total Commissions", value: `${stats.commissions.toLocaleString()} FCFA`, icon: TrendingUp, color: "text-green-500" },
+          { label: "Solde Wallet", value: `${stats.balance.toLocaleString()} FCFA`, sub: selectedCurrency !== "XOF" ? `≈ ${formatConverted(stats.balance)}` : "", icon: Wallet, color: "text-primary" },
+          { label: "Total Commissions", value: `${stats.commissions.toLocaleString()} FCFA`, sub: selectedCurrency !== "XOF" ? `≈ ${formatConverted(stats.commissions)}` : "", icon: TrendingUp, color: "text-green-500" },
           { label: "Niveau Carrière", value: levelLabels[stats.level] || stats.level, icon: Wheat, color: "text-primary" },
         ].map((s, i) => (
           <div key={i} className="glass-card rounded-xl p-4 hover:glow-purple transition-all">
             <s.icon size={18} className={s.color} />
             <p className="font-display text-lg font-bold mt-2">{s.value}</p>
+            {s.sub && <p className="text-[10px] text-muted-foreground">{s.sub}</p>}
             <p className="text-[10px] text-muted-foreground mt-1">{s.label}</p>
           </div>
         ))}
