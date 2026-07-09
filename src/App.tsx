@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import PwaInstallBanner from "@/components/PwaInstallBanner";
 import VersionNotice from "@/components/VersionNotice";
+import { CurrencyProvider } from "@/contexts/CurrencyContext";
 
 const Index = lazy(() => import("./pages/Index.tsx"));
 const Login = lazy(() => import("./pages/Login.tsx"));
@@ -72,6 +73,7 @@ const PageLoader = () => (
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <CurrencyProvider>
     <TooltipProvider>
       <Toaster />
       <Sonner />
@@ -138,6 +140,7 @@ const App = () => (
         </Suspense>
       </BrowserRouter>
     </TooltipProvider>
+    </CurrencyProvider>
   </QueryClientProvider>
 );
 
