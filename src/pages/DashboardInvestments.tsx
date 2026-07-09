@@ -6,8 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Sprout, Download, ArrowLeft, Search } from "lucide-react";
 import { openInvestmentDoc } from "@/utils/generateInvestmentDoc";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 const DashboardInvestments = () => {
+  const { selectedCurrency, formatConverted } = useCurrency();
   const navigate = useNavigate();
   const [rows, setRows] = useState<any[]>([]);
   const [profile, setProfile] = useState<any>(null);
@@ -98,7 +100,10 @@ const DashboardInvestments = () => {
                       <td className="p-3 text-xs">{new Date(r.investment_date).toLocaleString("fr-FR")}</td>
                       <td className="p-3">{proj?.title || "—"}</td>
                       <td className="p-3 text-right font-mono">{r.shares_purchased}</td>
-                      <td className="p-3 text-right font-mono">{Number(r.total_amount_invested).toLocaleString()} FCFA</td>
+                      <td className="p-3 text-right font-mono">
+                        {Number(r.total_amount_invested).toLocaleString()} FCFA
+                        {selectedCurrency !== "XOF" && <span className="block text-[10px] text-muted-foreground">≈ {formatConverted(Number(r.total_amount_invested))}</span>}
+                      </td>
                       <td className="p-3 text-right font-mono">{pct.toFixed(3).replace(/\.?0+$/, "")}%</td>
                       <td className="p-3"><code className="text-xs">{r.operation_id}</code></td>
                       <td className="p-3 text-right">
