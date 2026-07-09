@@ -10,9 +10,11 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ArrowLeft, Sprout, TrendingUp, Calendar, Wallet } from "lucide-react";
 import { toast } from "sonner";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { openInvestmentDoc } from "@/utils/generateInvestmentDoc";
 
 const DashboardGrenierDetail = () => {
+  const { selectedCurrency, formatConverted } = useCurrency();
   const { id } = useParams();
   const navigate = useNavigate();
   const [project, setProject] = useState<any>(null);
@@ -137,6 +139,7 @@ const DashboardGrenierDetail = () => {
               <div className="p-3 rounded-lg bg-muted/30 border border-border">
                 <p className="text-xs text-muted-foreground">Montant total</p>
                 <p className="font-display font-bold text-lg">{total.toLocaleString()} FCFA</p>
+                {selectedCurrency !== "XOF" && <p className="text-[10px] text-muted-foreground">≈ {formatConverted(total)}</p>}
               </div>
               <div className="p-3 rounded-lg bg-secondary/10 border border-secondary/30">
                 <p className="text-xs text-muted-foreground">Gain estimé</p>
@@ -177,7 +180,7 @@ const DashboardGrenierDetail = () => {
         <DialogContent className="glass-card border-border">
           <DialogHeader><DialogTitle>Confirmer l'investissement</DialogTitle></DialogHeader>
           <div className="space-y-3 text-sm">
-            <p>Vous allez acquérir <strong>{shares} part{shares > 1 ? "s" : ""}</strong> du projet <strong>{project.title}</strong> pour un total de <strong className="text-primary">{total.toLocaleString()} FCFA</strong>.</p>
+            <p>Vous allez acquérir <strong>{shares} part{shares > 1 ? "s" : ""}</strong> du projet <strong>{project.title}</strong> pour un total de <strong className="text-primary">{total.toLocaleString()} FCFA</strong>{selectedCurrency !== "XOF" && <span className="text-muted-foreground"> (≈ {formatConverted(total)})</span>}.</p>
           <p className="text-xs rounded-lg bg-muted/30 border border-border p-3">Paiement uniquement via votre <strong>Portefeuille interne</strong>. Rechargez votre wallet si nécessaire.</p>
             <Button onClick={invest} disabled={submitting} className="w-full bg-gradient-gold text-secondary-foreground font-display font-bold">
               {submitting ? "Traitement…" : "Confirmer & investir"}
