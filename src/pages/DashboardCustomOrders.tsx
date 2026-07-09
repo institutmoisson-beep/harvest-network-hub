@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MapPin, Package, Send, Clock, Truck, CheckCircle2, XCircle, Calendar } from "lucide-react";
 import { toast } from "sonner";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 // ============= Commandes hors-catalogue (utilisateur) =============
 
@@ -24,6 +25,7 @@ const STATUS_STYLE: Record<string, { label: string; className: string; icon: any
 };
 
 const DashboardCustomOrders = () => {
+  const { selectedCurrency, formatConverted } = useCurrency();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -175,8 +177,13 @@ const DashboardCustomOrders = () => {
 
         <div className="rounded-xl p-3 bg-primary/5 border border-primary/20 flex items-center justify-between">
           <span className="text-xs text-muted-foreground">Total estimé</span>
-          <span className="font-display font-black text-lg text-gradient-gold">
-            {total.toLocaleString()} FCFA
+          <span className="text-right">
+            <span className="font-display font-black text-lg text-gradient-gold block">
+              {total.toLocaleString()} FCFA
+            </span>
+            {selectedCurrency !== "XOF" && (
+              <span className="text-[10px] text-muted-foreground">≈ {formatConverted(total)}</span>
+            )}
           </span>
         </div>
 
@@ -273,12 +280,16 @@ const DashboardCustomOrders = () => {
                     <p className="font-display font-bold text-sm truncate">{o.product_name}</p>
                     <p className="text-xs text-muted-foreground">
                       {o.quantity} × {Number(o.unit_price).toLocaleString()} = <span className="text-secondary font-bold">{Number(o.total_amount).toLocaleString()} FCFA</span>
+                      {selectedCurrency !== "XOF" && <span className="text-[10px]"> (≈ {formatConverted(Number(o.total_amount))})</span>}
                     </p>
                     <p className="text-[10px] text-muted-foreground mt-1">
                       {new Date(o.created_at).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" })} • {o.delivery_frequency}
                     </p>
                     {o.status === "delivered" && Number(o.calculated_commission) > 0 && (
-                      <p className="text-[10px] text-green-400 mt-1">Commission générée: {Number(o.calculated_commission).toLocaleString()} FCFA</p>
+                      <p className="text-[10px] text-green-400 mt-1">
+                        Commission générée: {Number(o.calculated_commission).toLocaleString()} FCFA
+                        {selectedCurrency !== "XOF" && ` (≈ ${formatConverted(Number(o.calculated_commission))})`}
+                      </p>
                     )}
                   </div>
                   <div className="flex flex-col items-end gap-2 shrink-0">
