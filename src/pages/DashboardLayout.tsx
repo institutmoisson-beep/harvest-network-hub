@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, Link, Outlet, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import logo from "@/assets/logo.png";
+import CurrencySelector from "@/components/CurrencySelector";
 import {
   LayoutDashboard, Users, Building2, Wallet, TrendingUp, UserCircle,
   LogOut, Menu, X, ChevronRight, Shield, Package, DollarSign, MessageCircle, Handshake, Download, ShoppingBag, Boxes, PackageCheck, HeartHandshake, Siren, MapPin, Truck, Globe, Globe2, Radio, Trophy, Sprout, IdCard, ScanLine, PackagePlus, PackageSearch
@@ -154,7 +155,8 @@ const DashboardLayout = () => {
       <main className="flex-1 lg:ml-64">
         <header className="sticky top-0 z-30 glass-card border-b border-border/50 px-4 py-3 flex items-center gap-4">
           <button className="lg:hidden text-foreground" onClick={() => setSidebarOpen(true)}><Menu size={22} /></button>
-          <Link to="/dashboard/profile" className="ml-auto flex items-center gap-3 hover:opacity-80 transition-opacity">
+          <CurrencySelector className="ml-auto" />
+          <Link to="/dashboard/profile" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <div className="text-right">
               <p className="text-sm font-semibold">{displayName}</p>
               <p className="text-xs text-muted-foreground">🌱 {careerLevel}</p>
