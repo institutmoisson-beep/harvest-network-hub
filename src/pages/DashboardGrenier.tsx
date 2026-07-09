@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Sprout, TrendingUp, Film, Wheat, Cpu } from "lucide-react";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface Project {
   id: string; title: string; category: string; description: string;
@@ -21,6 +22,7 @@ const categoryIcon = (c: string) => {
 };
 
 const DashboardGrenier = () => {
+  const { selectedCurrency, formatConverted } = useCurrency();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -74,7 +76,10 @@ const DashboardGrenier = () => {
                     <Progress value={pct} className="h-2" />
                   </div>
                   <div className="flex items-center justify-between pt-2 border-t border-border">
-                    <span className="text-xs text-muted-foreground">Part: <strong className="text-foreground">{Number(p.share_price).toLocaleString()} FCFA</strong></span>
+                    <span className="text-xs text-muted-foreground">
+                      Part: <strong className="text-foreground">{Number(p.share_price).toLocaleString()} FCFA</strong>
+                      {selectedCurrency !== "XOF" && <span className="block text-[10px]">≈ {formatConverted(Number(p.share_price))}</span>}
+                    </span>
                     <Link to={`/dashboard/grenier/${p.id}`}>
                       <Button size="sm" className="bg-gradient-purple text-primary-foreground">Soutenir →</Button>
                     </Link>
