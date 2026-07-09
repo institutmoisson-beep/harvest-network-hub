@@ -6,8 +6,10 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 const CommunityFund = () => {
+  const { selectedCurrency, formatConverted } = useCurrency();
   const [fundBalance, setFundBalance] = useState(0);
   const [walletBalance, setWalletBalance] = useState(0);
   const [txs, setTxs] = useState<any[]>([]);
@@ -78,10 +80,16 @@ const CommunityFund = () => {
         <p className="font-display text-4xl font-black text-gradient-gold">
           {loading ? "..." : `${fundBalance.toLocaleString()} FCFA`}
         </p>
+        {!loading && selectedCurrency !== "XOF" && (
+          <p className="text-xs text-muted-foreground">≈ {formatConverted(fundBalance)}</p>
+        )}
         <Button onClick={() => setOpen(true)} className="mt-4 bg-gradient-purple font-display text-xs hover:opacity-90 glow-purple">
           <HeartHandshake size={16} className="mr-1" /> Contribuer
         </Button>
-        <p className="text-xs text-muted-foreground mt-2">Votre portefeuille : {walletBalance.toLocaleString()} FCFA</p>
+        <p className="text-xs text-muted-foreground mt-2">
+          Votre portefeuille : {walletBalance.toLocaleString()} FCFA
+          {selectedCurrency !== "XOF" && ` (≈ ${formatConverted(walletBalance)})`}
+        </p>
       </div>
 
       <div className="glass-card rounded-xl p-6">
