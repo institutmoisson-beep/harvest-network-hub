@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import OrderDeliveryConfirm from "@/components/OrderDeliveryConfirm";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
   pending: { label: "En attente", color: "bg-yellow-600", icon: Clock },
@@ -14,6 +15,7 @@ const statusConfig: Record<string, { label: string; color: string; icon: any }> 
 };
 
 const DashboardOrders = () => {
+  const { selectedCurrency, formatConverted } = useCurrency();
   const [orders, setOrders] = useState<any[]>([]);
   const [products, setProducts] = useState<Record<string, any>>({});
   const [companies, setCompanies] = useState<Record<string, string>>({});
@@ -92,6 +94,9 @@ const DashboardOrders = () => {
                         <StatusIcon size={10} className="mr-1" /> {cfg.label}
                       </Badge>
                       <span className="font-display text-xs font-bold text-primary">{Number(order.total_price).toLocaleString()} {product?.currency || "FCFA"}</span>
+                      {(!product?.currency || product.currency === "FCFA") && selectedCurrency !== "XOF" && (
+                        <span className="text-[10px] text-muted-foreground">≈ {formatConverted(Number(order.total_price))}</span>
+                      )}
                     </div>
                     {order.delivery_status && order.delivery_status !== "en_preparation" && (
                       <Badge variant="outline" className="text-[10px] mt-1">
