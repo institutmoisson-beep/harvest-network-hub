@@ -9,7 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import PurchaseDialog from "@/components/PurchaseDialog";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { isCountryAllowed } from "@/lib/countries";
+import CountryFilter from "@/components/CountryFilter";
+import { matchesCountryFilter } from "@/lib/countries";
 
 interface Pack {
   id: string;
@@ -39,6 +40,7 @@ const Packs = () => {
   const [showPurchase, setShowPurchase] = useState(false);
   const [detailPack, setDetailPack] = useState<Pack | null>(null);
   const [userCountry, setUserCountry] = useState<string | null>(null);
+  const [countryFilter, setCountryFilter] = useState<string>("auto");
 
   useEffect(() => {
     const load = async () => {
@@ -79,7 +81,7 @@ const Packs = () => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
       (p.description || "").toLowerCase().includes(search.toLowerCase());
     const matchSector = !sectorFilter || p.sector === sectorFilter;
-    const matchCountry = isCountryAllowed(userCountry, p.countries);
+    const matchCountry = matchesCountryFilter(countryFilter, userCountry, p.countries);
     return matchSearch && matchSector && matchCountry;
   });
 
@@ -106,7 +108,7 @@ const Packs = () => {
             </p>
           </div>
 
-          <div className="max-w-2xl mx-auto mb-10 flex gap-3 flex-wrap">
+          <div className="max-w-3xl mx-auto mb-10 flex gap-3 flex-wrap">
             <div className="relative flex-1 min-w-[200px]">
               <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <Input placeholder="Rechercher un pack..." value={search} onChange={e => setSearch(e.target.value)}
@@ -120,6 +122,7 @@ const Packs = () => {
                 {sectors.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
+            <CountryFilter value={countryFilter} onChange={setCountryFilter} className="min-w-[180px] h-10" />
           </div>
 
           {loading ? (
