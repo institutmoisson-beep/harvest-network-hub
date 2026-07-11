@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Package, MapPin, Truck, CheckCircle2, XCircle, Clock, Settings, Plus, Trash2, ExternalLink, Download } from "lucide-react";
+import { Package, MapPin, Truck, CheckCircle2, XCircle, Clock, Settings, Plus, Trash2, ExternalLink, Download, Link2 } from "lucide-react";
 import { toast } from "sonner";
 import { downloadCsv, inPeriod, PERIOD_OPTIONS, PeriodFilter } from "@/utils/exportCsv";
 
@@ -96,7 +96,7 @@ const AdminCustomOrders = () => {
   const exportCsv = () => {
     downloadCsv(
       `commandes-hors-catalogue-${period}`,
-      ["Date", "Moissonneur", "Code", "Produit", "Quantité", "Prix unitaire", "Total", "Commission", "Fréquence", "Statut", "Latitude", "Longitude"],
+      ["Date", "Moissonneur", "Code", "Produit", "Quantité", "Prix unitaire", "Total", "Commission", "Fréquence", "Statut", "Latitude", "Longitude", "Référence pack/produit"],
       filtered.map((o: any) => [
         new Date(o.created_at).toLocaleString("fr-FR"),
         `${o.first_name || ""} ${o.last_name || ""}`.trim(),
@@ -110,6 +110,7 @@ const AdminCustomOrders = () => {
         o.status,
         o.delivery_latitude,
         o.delivery_longitude,
+        o.reference_product_name || "",
       ]),
     );
   };
@@ -181,6 +182,13 @@ const AdminCustomOrders = () => {
                       <> ({JSON.stringify(o.delivery_details)})</>
                     )}
                   </p>
+                  {o.reference_product_name && (
+                    <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold">
+                      <Link2 size={10} />
+                      {o.reference_product_type === "pack" ? "Pack MLM: " : "Produit gros/distribution: "}
+                      {o.reference_product_name}
+                    </span>
+                  )}
                 </div>
                 <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full border text-[10px] font-bold ${s.className}`}>
                   <Icon size={10} /> {s.label}
