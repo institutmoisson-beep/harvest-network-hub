@@ -58,3 +58,19 @@ export const isCountryAllowed = (
   if (!userCountry) return true; // pas de restriction si pays inconnu
   return itemCountries.some(c => c.trim().toLowerCase() === userCountry.trim().toLowerCase());
 };
+
+/**
+ * Filtre de recherche par pays pour les sections Packs / Produits.
+ * - "auto"      : comportement par défaut, basé sur le pays détecté de l'utilisateur.
+ * - "universal" : uniquement les items universels / internationaux (sans restriction de pays).
+ * - un pays      : les items universels + ceux ciblant explicitement ce pays.
+ */
+export const matchesCountryFilter = (
+  filterValue: string,
+  userCountry: string | null | undefined,
+  itemCountries: string[] | null | undefined
+): boolean => {
+  if (filterValue === "auto") return isCountryAllowed(userCountry, itemCountries);
+  if (filterValue === "universal") return !itemCountries || itemCountries.length === 0;
+  return isCountryAllowed(filterValue, itemCountries);
+};
