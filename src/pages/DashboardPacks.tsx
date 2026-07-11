@@ -8,7 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import PurchaseDialog from "@/components/PurchaseDialog";
-import { isCountryAllowed } from "@/lib/countries";
+import CountryFilter from "@/components/CountryFilter";
+import { matchesCountryFilter } from "@/lib/countries";
 
 interface Pack {
   id: string;
@@ -79,6 +80,7 @@ const DashboardPacks = () => {
   const [search, setSearch] = useState("");
   const [sectorFilter, setSectorFilter] = useState<string>("all");
   const [userCountry, setUserCountry] = useState<string | null>(null);
+  const [countryFilter, setCountryFilter] = useState<string>("auto");
 
   useEffect(() => {
     const load = async () => {
@@ -125,7 +127,7 @@ const DashboardPacks = () => {
 
   const sectors = Array.from(new Set(packs.map(p => p.sector).filter(Boolean))) as string[];
   const visiblePacks = packs.filter(p => {
-    if (!isCountryAllowed(userCountry, p.countries)) return false;
+    if (!matchesCountryFilter(countryFilter, userCountry, p.countries)) return false;
     if (sectorFilter !== "all" && p.sector !== sectorFilter) return false;
     const q = search.trim().toLowerCase();
     if (!q) return true;
@@ -171,6 +173,7 @@ const DashboardPacks = () => {
             {sectors.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
           </SelectContent>
         </Select>
+        <CountryFilter value={countryFilter} onChange={setCountryFilter} className="sm:w-56" />
       </div>
 
       {loading ? (
