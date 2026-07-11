@@ -8,7 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { isCountryAllowed } from "@/lib/countries";
+import { matchesCountryFilter } from "@/lib/countries";
+import CountryFilter from "@/components/CountryFilter";
+import { Search } from "lucide-react";
 
 type CommerceKind = "wholesale" | "distribution";
 type CommerceProduct = {
@@ -42,6 +44,8 @@ export const CommerceProductsPage = ({ kind }: { kind: CommerceKind }) => {
   const [submitting, setSubmitting] = useState(false);
   const [client, setClient] = useState({ name: "", phone: "", note: "" });
   const [userCountry, setUserCountry] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [countryFilter, setCountryFilter] = useState<string>("auto");
 
   const config = labels[kind];
   const Icon = config.icon;
@@ -66,7 +70,12 @@ export const CommerceProductsPage = ({ kind }: { kind: CommerceKind }) => {
     load();
   }, [kind]);
 
-  const visibleProducts = products.filter(p => isCountryAllowed(userCountry, (p as any).countries));
+  const visibleProducts = products.filter(p => {
+    if (!matchesCountryFilter(countryFilter, userCountry, (p as any).countries)) return false;
+    const q = search.trim().toLowerCase();
+    if (!q) return true;
+    return p.name.toLowerCase().includes(q) || (p.description || "").toLowerCase().includes(q) || (p.partner_name || "").toLowerCase().includes(q);
+  });
 
   const total = useMemo(() => selected ? Number(selected.price) * quantity : 0, [selected, quantity]);
   const commission = useMemo(() => selected ? (total * Number(selected.commission_percentage)) / 100 : 0, [selected, total]);
@@ -113,6 +122,15 @@ export const CommerceProductsPage = ({ kind }: { kind: CommerceKind }) => {
         <Badge variant="outline" className="shrink-0"><Wallet size={12} className="mr-1" /> {walletBalance.toLocaleString()} FCFA</Badge>
       </div>
 
+      <div className="mb-6 flex flex-col sm:flex-row gap-2">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Input placeholder={`Rechercher un produit${kind === "wholesale" ? " en gros" : " de distribution"}...`}
+            value={search} onChange={e => setSearch(e.target.value)} className="pl-9 bg-input border-border" />
+        </div>
+        <CountryFilter value={countryFilter} onChange={setCountryFilter} className="sm:w-56" />
+      </div>
+
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">{[1, 2, 3].map(i => <div key={i} className="h-64 rounded-2xl bg-muted/30 animate-pulse" />)}</div>
       ) : visibleProducts.length === 0 ? (
@@ -134,6 +152,11 @@ export const CommerceProductsPage = ({ kind }: { kind: CommerceKind }) => {
                   <p className="line-clamp-2 text-xs text-muted-foreground">{product.description}</p>
                   <div className="flex flex-wrap gap-2">
                     <Badge variant="outline" className="text-[10px]">Min. {product.min_quantity}</Badge>
+                    {product.countries && product.countries.length > 0 ? (
+                      <Badge variant="outline" className="text-[10px]">{product.countries.length > 2 ? `${product.countries.slice(0, 2).join(", ")} +${product.countries.length - 2}` : product.countries.join(", ")}</Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-[10px]">🌐 Universel</Badge>
+                    )}
                     {product.commission_percentage > 0 && <Badge className="text-[10px] bg-green-600">Commission {product.commission_percentage}%</Badge>}
                   </div>
                 </div>
