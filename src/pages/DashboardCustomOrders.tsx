@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { MapPin, Package, Send, Clock, Truck, CheckCircle2, XCircle, Calendar } from "lucide-react";
+import { MapPin, Package, Send, Clock, Truck, CheckCircle2, XCircle, Calendar, Boxes, Link2 } from "lucide-react";
 import { toast } from "sonner";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { isCountryAllowed } from "@/lib/countries";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 
 // ============= Commandes hors-catalogue (utilisateur) =============
 
@@ -41,8 +43,33 @@ const DashboardCustomOrders = () => {
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [gpsError, setGpsError] = useState<string | null>(null);
   const [gpsBusy, setGpsBusy] = useState(false);
+  const [referenceKey, setReferenceKey] = useState<string>(""); // format "pack:<id>" ou "commerce:<id>"
+  const [refPacks, setRefPacks] = useState<{ id: string; name: string }[]>([]);
+  const [refCommerce, setRefCommerce] = useState<{ id: string; name: string; kind: string }[]>([]);
 
   const total = quantity * unitPrice;
+
+  // ============= Chargement des packs / produits pouvant servir de référence =============
+  useEffect(() => {
+    (async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      let userCountry: string | null = null;
+      if (session) {
+        const { data: prof } = await supabase.from("profiles").select("country").eq("id", session.user.id).maybeSingle();
+        userCountry = prof?.country || null;
+      }
+      const [packsRes, commerceRes] = await Promise.all([
+        supabase.from("products").select("id, name, countries").eq("is_active", true),
+        supabase.from("commerce_products").select("id, name, kind, countries").eq("is_active", true),
+      ]);
+      setRefPacks((packsRes.data || [])
+        .filter((p: any) => isCountryAllowed(userCountry, p.countries))
+        .map((p: any) => ({ id: p.id, name: p.name })));
+      setRefCommerce((commerceRes.data || [])
+        .filter((p: any) => isCountryAllowed(userCountry, p.countries))
+        .map((p: any) => ({ id: p.id, name: p.name, kind: p.kind })));
+    })();
+  }, []);
 
   // ============= Chargement + Realtime =============
   useEffect(() => {
@@ -110,6 +137,8 @@ const DashboardCustomOrders = () => {
       : frequency === "monthly" ? { deliveries_per_month: monthlyCount }
       : {};
 
+    const [refType, refId] = referenceKey ? referenceKey.split(":") : [null, null];
+
     const { error } = await (supabase as any).from("custom_orders").insert({
       user_id: user.id,
       product_name: productName.trim(),
@@ -120,13 +149,15 @@ const DashboardCustomOrders = () => {
       delivery_address_text: addressText.trim() || null,
       delivery_frequency: frequency,
       delivery_details,
+      reference_product_id: refId || null,
+      reference_product_type: refType || null,
     });
     setSubmitting(false);
 
     if (error) return toast.error(error.message);
     toast.success("Commande envoyée !");
     setProductName(""); setQuantity(1); setUnitPrice(0); setAddressText("");
-    setFrequency("once"); setWeekDays([]); setMonthlyCount(1);
+    setFrequency("once"); setWeekDays([]); setMonthlyCount(1); setReferenceKey("");
     load();
   };
 
@@ -172,6 +203,28 @@ const DashboardCustomOrders = () => {
             <Input type="number" min={0} step={100} value={unitPrice}
               onChange={e => setUnitPrice(Math.max(0, parseFloat(e.target.value) || 0))}
               className="mt-1 bg-input border-border text-sm" />
+          </div>
+          <div className="sm:col-span-2">
+            <Label className="text-xs flex items-center gap-1"><Link2 size={12} /> Pack MLM / produit de référence (optionnel)</Label>
+            <Select value={referenceKey || "none"} onValueChange={v => setReferenceKey(v === "none" ? "" : v)}>
+              <SelectTrigger className="mt-1 bg-input border-border text-sm"><SelectValue placeholder="Aucun — commande totalement libre" /></SelectTrigger>
+              <SelectContent className="max-h-72">
+                <SelectItem value="none">Aucun — commande totalement libre</SelectItem>
+                {refPacks.length > 0 && (
+                  <SelectGroup>
+                    <SelectLabel className="flex items-center gap-1"><Package size={12} /> Packs MLM</SelectLabel>
+                    {refPacks.map(p => <SelectItem key={`pack:${p.id}`} value={`pack:${p.id}`}>{p.name}</SelectItem>)}
+                  </SelectGroup>
+                )}
+                {refCommerce.length > 0 && (
+                  <SelectGroup>
+                    <SelectLabel className="flex items-center gap-1"><Boxes size={12} /> Produits en gros / distribution</SelectLabel>
+                    {refCommerce.map(p => <SelectItem key={`commerce:${p.id}`} value={`commerce:${p.id}`}>{p.name} {p.kind === "wholesale" ? "(gros)" : "(distribution)"}</SelectItem>)}
+                  </SelectGroup>
+                )}
+              </SelectContent>
+            </Select>
+            <p className="text-[10px] text-muted-foreground mt-1">Rattachez votre commande à un pack ou produit existant pour donner plus de contexte à l'administration.</p>
           </div>
         </div>
 
@@ -278,6 +331,14 @@ const DashboardCustomOrders = () => {
                 <div key={o.id} className="p-3 rounded-xl bg-muted/30 border border-border/50 flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <p className="font-display font-bold text-sm truncate">{o.product_name}</p>
+                    {o.reference_product_id && (
+                      <p className="text-[10px] text-primary flex items-center gap-1">
+                        <Link2 size={10} />
+                        {o.reference_product_type === "pack"
+                          ? refPacks.find(p => p.id === o.reference_product_id)?.name
+                          : refCommerce.find(p => p.id === o.reference_product_id)?.name}
+                      </p>
+                    )}
                     <p className="text-xs text-muted-foreground">
                       {o.quantity} × {Number(o.unit_price).toLocaleString()} = <span className="text-secondary font-bold">{Number(o.total_amount).toLocaleString()} FCFA</span>
                       {selectedCurrency !== "XOF" && <span className="text-[10px]"> (≈ {formatConverted(Number(o.total_amount))})</span>}
