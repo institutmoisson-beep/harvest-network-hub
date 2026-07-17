@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Package, Search, Filter, ShoppingBag, Eye, Truck } from "lucide-react";
@@ -11,6 +12,7 @@ import PurchaseDialog from "@/components/PurchaseDialog";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import CountryFilter from "@/components/CountryFilter";
 import { matchesCountryFilter } from "@/lib/countries";
+import ShareProductButton from "@/components/ShareProductButton";
 
 interface Pack {
   id: string;
@@ -30,6 +32,7 @@ interface Pack {
 }
 
 const Packs = () => {
+  const [searchParams] = useSearchParams();
   const [search, setSearch] = useState("");
   const [sectorFilter, setSectorFilter] = useState("");
   const [packs, setPacks] = useState<Pack[]>([]);
@@ -76,6 +79,13 @@ const Packs = () => {
     };
     load();
   }, []);
+
+  useEffect(() => {
+    const openId = searchParams.get("open");
+    if (!openId || packs.length === 0) return;
+    const target = packs.find(p => p.id === openId);
+    if (target) setDetailPack(target);
+  }, [searchParams, packs]);
 
   const filtered = packs.filter(p => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -173,13 +183,18 @@ const Packs = () => {
                           )}
                         </div>
                       )}
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-3 gap-2">
                         <Button size="sm" variant="outline" className="font-display text-xs" onClick={() => setDetailPack(pack)}>
                           <Eye size={14} className="mr-1" /> Détails
                         </Button>
                         <Button size="sm" className="bg-gradient-purple text-primary-foreground font-display text-xs hover:opacity-90 glow-purple" onClick={() => handleBuy(pack)}>
                           <ShoppingBag size={14} className="mr-1" /> Acheter
                         </Button>
+                        <ShareProductButton
+                          product={{ id: pack.id, type: "pack", name: pack.name, price: pack.price, currency: pack.currency, image: mainImage }}
+                          variant="icon"
+                          className="w-full"
+                        />
                       </div>
                     </div>
                   </div>
@@ -210,8 +225,16 @@ const Packs = () => {
           {detailPack && (
             <>
               <DialogHeader>
-                <DialogTitle className="font-display text-gradient-gold flex items-center gap-2"><Package size={20} /> {detailPack.name}</DialogTitle>
-                <DialogDescription>{companies[detailPack.company_id] || "Pack Institut Moisson"}</DialogDescription>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <DialogTitle className="font-display text-gradient-gold flex items-center gap-2"><Package size={20} /> {detailPack.name}</DialogTitle>
+                    <DialogDescription>{companies[detailPack.company_id] || "Pack Institut Moisson"}</DialogDescription>
+                  </div>
+                  <ShareProductButton
+                    product={{ id: detailPack.id, type: "pack", name: detailPack.name, price: detailPack.price, currency: detailPack.currency, image: detailPack.image_url || detailPack.images[0] }}
+                    variant="icon"
+                  />
+                </div>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="h-56 rounded-2xl overflow-hidden border border-border bg-gradient-purple flex items-center justify-center">
