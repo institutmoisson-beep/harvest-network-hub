@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Boxes, PackageCheck, ShoppingBag, Share2, Truck, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,7 @@ import { toast } from "sonner";
 import { matchesCountryFilter } from "@/lib/countries";
 import CountryFilter from "@/components/CountryFilter";
 import { Search } from "lucide-react";
+import ShareProductButton from "@/components/ShareProductButton";
 
 type CommerceKind = "wholesale" | "distribution";
 type CommerceProduct = {
@@ -34,6 +36,7 @@ const labels = {
 };
 
 export const CommerceProductsPage = ({ kind }: { kind: CommerceKind }) => {
+  const [searchParams] = useSearchParams();
   const [products, setProducts] = useState<CommerceProduct[]>([]);
   const [selected, setSelected] = useState<CommerceProduct | null>(null);
   const [walletBalance, setWalletBalance] = useState(0);
@@ -69,6 +72,13 @@ export const CommerceProductsPage = ({ kind }: { kind: CommerceKind }) => {
     };
     load();
   }, [kind]);
+
+  useEffect(() => {
+    const openId = searchParams.get("open");
+    if (!openId || products.length === 0) return;
+    const target = products.find(p => p.id === openId);
+    if (target) openProduct(target);
+  }, [searchParams, products]);
 
   const visibleProducts = products.filter(p => {
     if (!matchesCountryFilter(countryFilter, userCountry, (p as any).countries)) return false;
@@ -140,13 +150,17 @@ export const CommerceProductsPage = ({ kind }: { kind: CommerceKind }) => {
           {visibleProducts.map(product => {
             const image = product.images[0];
             return (
-              <button key={product.id} type="button" onClick={() => openProduct(product)} className="glass-card rounded-2xl overflow-hidden text-left hover:glow-purple transition-all">
-                <div className="h-44 bg-muted/40 flex items-center justify-center overflow-hidden">
-                  {image ? <img src={image} alt={product.name} loading="lazy" className="h-full w-full object-cover" /> : <Icon size={40} className="text-muted-foreground" />}
-                </div>
+              <div key={product.id} className="glass-card rounded-2xl overflow-hidden text-left hover:glow-purple transition-all">
+                <button type="button" onClick={() => openProduct(product)} className="block w-full text-left">
+                  <div className="h-44 bg-muted/40 flex items-center justify-center overflow-hidden">
+                    {image ? <img src={image} alt={product.name} loading="lazy" className="h-full w-full object-cover" /> : <Icon size={40} className="text-muted-foreground" />}
+                  </div>
+                </button>
                 <div className="p-4 space-y-3">
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-display text-sm font-bold">{product.name}</h3>
+                    <button type="button" onClick={() => openProduct(product)} className="text-left">
+                      <h3 className="font-display text-sm font-bold">{product.name}</h3>
+                    </button>
                     <span className="text-sm font-bold text-primary whitespace-nowrap">{Number(product.price).toLocaleString()} {product.currency}</span>
                   </div>
                   <p className="line-clamp-2 text-xs text-muted-foreground">{product.description}</p>
@@ -159,8 +173,17 @@ export const CommerceProductsPage = ({ kind }: { kind: CommerceKind }) => {
                     )}
                     {product.commission_percentage > 0 && <Badge className="text-[10px] bg-green-600">Commission {product.commission_percentage}%</Badge>}
                   </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button size="sm" variant="outline" className="font-display text-xs" onClick={() => openProduct(product)}>
+                      <ShoppingBag size={14} className="mr-1" /> Voir
+                    </Button>
+                    <ShareProductButton
+                      product={{ id: product.id, type: product.kind, name: product.name, price: product.price, currency: product.currency, image }}
+                      variant="full"
+                    />
+                  </div>
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>
@@ -171,8 +194,16 @@ export const CommerceProductsPage = ({ kind }: { kind: CommerceKind }) => {
           {selected && (
             <>
               <DialogHeader>
-                <DialogTitle className="font-display text-gradient-gold">{selected.name}</DialogTitle>
-                <DialogDescription>{selected.partner_name || "Partenaire Institut Moisson"}</DialogDescription>
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <DialogTitle className="font-display text-gradient-gold">{selected.name}</DialogTitle>
+                    <DialogDescription>{selected.partner_name || "Partenaire Institut Moisson"}</DialogDescription>
+                  </div>
+                  <ShareProductButton
+                    product={{ id: selected.id, type: selected.kind, name: selected.name, price: selected.price, currency: selected.currency, image: selected.images[0] }}
+                    variant="icon"
+                  />
+                </div>
               </DialogHeader>
               <div className="space-y-4">
                 {selected.images[0] && <img src={selected.images[0]} alt={selected.name} className="h-56 w-full rounded-2xl object-cover border border-border" />}
