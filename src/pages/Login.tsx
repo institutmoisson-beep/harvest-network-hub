@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,9 +8,11 @@ import { toast } from "sonner";
 import logo from "@/assets/logo.png";
 import { Eye, EyeOff, LogIn } from "lucide-react";
 import MathCaptcha from "@/components/MathCaptcha";
+import { clearPendingRedirect, getPendingRedirect } from "@/lib/pendingRedirect";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
@@ -47,7 +49,9 @@ const Login = () => {
       toast.error("Identifiants incorrects");
     } else {
       toast.success("Connexion réussie !");
-      navigate("/dashboard");
+      const redirectTo = searchParams.get("redirect") || getPendingRedirect();
+      clearPendingRedirect();
+      navigate(redirectTo || "/dashboard");
     }
   };
 
