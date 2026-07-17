@@ -58,6 +58,7 @@ const DashboardCard = lazy(() => import("./pages/DashboardCard.tsx"));
 const DashboardScanner = lazy(() => import("./pages/DashboardScanner.tsx"));
 const VerifyMember = lazy(() => import("./pages/VerifyMember.tsx"));
 const InstallApp = lazy(() => import("./pages/InstallApp.tsx"));
+const ProductLanding = lazy(() => import("./pages/ProductLanding.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
 const queryClient = new QueryClient();
@@ -87,6 +88,7 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/telecharger-app" element={<InstallApp />} />
             <Route path="/directory" element={<Directory />} />
+            <Route path="/p/:type/:id" element={<ProductLanding />} />
             <Route path="/company/:id" element={<CompanyProfile />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/staff/packs" element={<StaffPackManager />} />
