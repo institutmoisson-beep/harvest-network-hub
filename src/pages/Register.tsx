@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import logo from "@/assets/logo.png";
 import { Eye, EyeOff, UserPlus } from "lucide-react";
 import MathCaptcha from "@/components/MathCaptcha";
+import { getPendingRedirect } from "@/lib/pendingRedirect";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -71,7 +72,8 @@ const Register = () => {
       toast.error(error.message);
     } else {
       toast.success("Inscription réussie ! Vérifiez votre email.");
-      navigate("/login");
+      const pending = getPendingRedirect();
+      navigate(pending ? `/login?redirect=${encodeURIComponent(pending)}` : "/login");
     }
   };
 
@@ -163,7 +165,12 @@ const Register = () => {
 
           <div className="mt-4 text-center text-sm text-muted-foreground">
             Déjà Moissonneur ?{" "}
-            <Link to="/login" className="text-secondary hover:underline font-semibold">Se connecter</Link>
+            <Link
+              to={getPendingRedirect() ? `/login?redirect=${encodeURIComponent(getPendingRedirect() as string)}` : "/login"}
+              className="text-secondary hover:underline font-semibold"
+            >
+              Se connecter
+            </Link>
           </div>
         </div>
       </div>
