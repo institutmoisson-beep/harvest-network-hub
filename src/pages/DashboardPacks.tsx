@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Package, ShoppingBag, Check, ChevronLeft, ChevronRight, ImageIcon, Eye, Truck, Globe, MapPin } from "lucide-react";
+import { Package, ShoppingBag, Check, Eye, Truck, Globe, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import PurchaseDialog from "@/components/PurchaseDialog";
 import CountryFilter from "@/components/CountryFilter";
 import { matchesCountryFilter } from "@/lib/countries";
+import ImageGallery from "@/components/ImageGallery";
 
 interface Pack {
   id: string;
@@ -28,45 +29,6 @@ interface Pack {
   countries?: string[] | null;
 }
 
-const PackImageCarousel = ({ images, name }: { images: string[]; name: string }) => {
-  const [current, setCurrent] = useState(0);
-  if (images.length === 0) return (
-    <div className="h-44 bg-gradient-purple flex items-center justify-center">
-      <Package size={40} className="text-primary-foreground/50" />
-    </div>
-  );
-  return (
-    <div className="relative h-44 overflow-hidden group">
-      <img
-        src={images[current]}
-        alt={`${name} - ${current + 1}`}
-        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-        loading="lazy"
-        onError={(e) => { (e.target as HTMLImageElement).src = ""; (e.target as HTMLImageElement).style.display = "none"; }}
-      />
-      {images.length > 1 && (
-        <>
-          <button onClick={(e) => { e.stopPropagation(); setCurrent(p => p === 0 ? images.length - 1 : p - 1); }}
-            className="absolute left-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-background/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <ChevronLeft size={14} />
-          </button>
-          <button onClick={(e) => { e.stopPropagation(); setCurrent(p => p === images.length - 1 ? 0 : p + 1); }}
-            className="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-background/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <ChevronRight size={14} />
-          </button>
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-            {images.map((_, i) => (
-              <span key={i} className={`w-1.5 h-1.5 rounded-full transition-colors ${i === current ? "bg-primary" : "bg-white/50"}`} />
-            ))}
-          </div>
-          <div className="absolute top-2 right-2 bg-background/60 rounded-full px-2 py-0.5 text-[10px] flex items-center gap-1">
-            <ImageIcon size={10} /> {current + 1}/{images.length}
-          </div>
-        </>
-      )}
-    </div>
-  );
-};
 
 const DashboardPacks = () => {
   const [packs, setPacks] = useState<Pack[]>([]);
@@ -187,12 +149,12 @@ const DashboardPacks = () => {
             const alreadyBought = userOrders.includes(pack.id);
             return (
               <div key={pack.id} className="glass-card rounded-2xl overflow-hidden hover:glow-purple transition-all duration-500 group">
-                <button type="button" className="block w-full text-left" onClick={() => setDetailPack(pack)}>
-                  <PackImageCarousel images={allImages} name={pack.name} />
-                </button>
+                <ImageGallery images={allImages} name={pack.name} heightClass="h-44" />
                 <div className="p-4">
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="font-display text-sm font-bold">{pack.name}</h3>
+                    <button type="button" className="text-left" onClick={() => setDetailPack(pack)}>
+                      <h3 className="font-display text-sm font-bold">{pack.name}</h3>
+                    </button>
                     <span className="font-display text-sm font-bold text-primary whitespace-nowrap">
                       {pack.price.toLocaleString()} {pack.currency}
                     </span>
@@ -251,9 +213,13 @@ const DashboardPacks = () => {
                 <DialogDescription>{companies[detailPack.company_id] || "Pack Institut Moisson"}</DialogDescription>
               </DialogHeader>
               <div className="space-y-4">
-                <div className="rounded-2xl overflow-hidden border border-border">
-                  <PackImageCarousel images={[detailPack.image_url, ...detailPack.images].filter(Boolean) as string[]} name={detailPack.name} />
-                </div>
+                <ImageGallery
+                  images={[detailPack.image_url, ...detailPack.images].filter(Boolean) as string[]}
+                  name={detailPack.name}
+                  heightClass="h-56"
+                  showThumbnails
+                  className="rounded-2xl overflow-hidden border border-border"
+                />
                 <div className="flex flex-wrap items-center gap-2">
                   {detailPack.activates_system && <Badge className="text-[10px] bg-green-600">Active le MLM</Badge>}
                   {detailPack.is_physical && <Badge variant="outline" className="text-[10px]"><Truck size={10} className="mr-1" /> Livraison</Badge>}
