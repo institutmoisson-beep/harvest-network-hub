@@ -13,6 +13,7 @@ import { matchesCountryFilter } from "@/lib/countries";
 import CountryFilter from "@/components/CountryFilter";
 import { Search } from "lucide-react";
 import ShareProductButton from "@/components/ShareProductButton";
+import ImageGallery from "@/components/ImageGallery";
 
 type CommerceKind = "wholesale" | "distribution";
 type CommerceProduct = {
@@ -151,11 +152,7 @@ export const CommerceProductsPage = ({ kind }: { kind: CommerceKind }) => {
             const image = product.images[0];
             return (
               <div key={product.id} className="glass-card rounded-2xl overflow-hidden text-left hover:glow-purple transition-all">
-                <button type="button" onClick={() => openProduct(product)} className="block w-full text-left">
-                  <div className="h-44 bg-muted/40 flex items-center justify-center overflow-hidden">
-                    {image ? <img src={image} alt={product.name} loading="lazy" className="h-full w-full object-cover" /> : <Icon size={40} className="text-muted-foreground" />}
-                  </div>
-                </button>
+                <ImageGallery images={product.images} name={product.name} heightClass="h-44" />
                 <div className="p-4 space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <button type="button" onClick={() => openProduct(product)} className="text-left">
@@ -206,7 +203,13 @@ export const CommerceProductsPage = ({ kind }: { kind: CommerceKind }) => {
                 </div>
               </DialogHeader>
               <div className="space-y-4">
-                {selected.images[0] && <img src={selected.images[0]} alt={selected.name} className="h-56 w-full rounded-2xl object-cover border border-border" />}
+                <ImageGallery
+                  images={selected.images}
+                  name={selected.name}
+                  heightClass="h-56"
+                  showThumbnails
+                  className="rounded-2xl overflow-hidden border border-border"
+                />
                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">{selected.description}</p>
                 <div className="grid grid-cols-2 gap-3">
                   <Button variant={mode === "buy" ? "default" : "outline"} onClick={() => setMode("buy")} className="font-display text-xs"><ShoppingBag size={14} className="mr-1" /> Acheter</Button>
