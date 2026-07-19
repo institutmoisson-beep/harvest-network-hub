@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import ShareProductButton from "@/components/ShareProductButton";
+import ImageGallery from "@/components/ImageGallery";
 import { setPendingRedirect } from "@/lib/pendingRedirect";
 import type { ShareProductType } from "@/lib/shareLink";
 
@@ -18,6 +19,7 @@ interface LandingItem {
   price: number;
   currency: string;
   image: string | null;
+  images: string[];
   isPhysical?: boolean;
   activatesSystem?: boolean;
 }
@@ -49,13 +51,15 @@ const ProductLanding = () => {
       if (productType === "pack") {
         const { data } = await supabase.from("products").select("*").eq("id", id).maybeSingle();
         if (data) {
+          const gallery = [data.image_url, ...(Array.isArray(data.images) ? data.images : [])].filter(Boolean) as string[];
           setItem({
             id: data.id,
             name: data.name,
             description: data.description,
             price: Number(data.price),
             currency: data.currency,
-            image: data.image_url || (Array.isArray(data.images) && data.images[0]) || null,
+            image: gallery[0] || null,
+            images: gallery,
             isPhysical: data.is_physical,
             activatesSystem: data.activates_system,
           });
@@ -63,13 +67,15 @@ const ProductLanding = () => {
       } else {
         const { data } = await supabase.from("commerce_products").select("*").eq("id", id).maybeSingle();
         if (data) {
+          const gallery = Array.isArray(data.images) ? (data.images as string[]) : [];
           setItem({
             id: data.id,
             name: data.name,
             description: data.description,
             price: Number(data.price),
             currency: data.currency,
-            image: (Array.isArray(data.images) && data.images[0]) || null,
+            image: gallery[0] || null,
+            images: gallery,
           });
         }
       }
@@ -103,13 +109,13 @@ const ProductLanding = () => {
             </div>
           ) : (
             <div className="glass-card rounded-2xl overflow-hidden">
-              <div className="h-64 w-full bg-gradient-purple flex items-center justify-center overflow-hidden">
-                {item.image ? (
-                  <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                ) : (
+              {item.images.length > 0 ? (
+                <ImageGallery images={item.images} name={item.name} heightClass="h-64" />
+              ) : (
+                <div className="h-64 w-full bg-gradient-purple flex items-center justify-center">
                   <Icon size={64} className="text-primary-foreground/50" />
-                )}
-              </div>
+                </div>
+              )}
               <div className="p-6 space-y-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
