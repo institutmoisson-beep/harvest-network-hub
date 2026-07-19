@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import CountryFilter from "@/components/CountryFilter";
 import { matchesCountryFilter } from "@/lib/countries";
 import ShareProductButton from "@/components/ShareProductButton";
+import ImageGallery from "@/components/ImageGallery";
 
 interface Pack {
   id: string;
@@ -142,16 +143,11 @@ const Packs = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filtered.map(pack => {
-                const mainImage = pack.image_url || (pack.images.length > 0 ? pack.images[0] : null);
+                const allImages = [pack.image_url, ...pack.images].filter(Boolean) as string[];
+                const mainImage = allImages[0] || null;
                 return (
                   <div key={pack.id} className="glass-card rounded-2xl overflow-hidden hover:glow-purple transition-all duration-500 group">
-                    <button type="button" className="h-48 w-full bg-gradient-purple flex items-center justify-center overflow-hidden" onClick={() => setDetailPack(pack)}>
-                      {mainImage ? (
-                        <img src={mainImage} alt={pack.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                      ) : (
-                        <Package size={48} className="text-primary-foreground/50" />
-                      )}
-                    </button>
+                    <ImageGallery images={allImages} name={pack.name} heightClass="h-48" />
                     <div className="p-5">
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <h3 className="font-display text-sm font-bold">{pack.name}</h3>
@@ -171,18 +167,6 @@ const Packs = () => {
                         )}
                         <span className="text-[10px] text-muted-foreground">{companies[pack.company_id] || ""}</span>
                       </div>
-                      {pack.images.length > 1 && (
-                        <div className="flex gap-1 mb-3 overflow-x-auto">
-                          {pack.images.slice(0, 4).map((img, i) => (
-                            <img key={i} src={img} alt="" className="w-10 h-10 rounded-lg object-cover border border-border" />
-                          ))}
-                          {pack.images.length > 4 && (
-                            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-[10px] text-muted-foreground">
-                              +{pack.images.length - 4}
-                            </div>
-                          )}
-                        </div>
-                      )}
                       <div className="grid grid-cols-3 gap-2">
                         <Button size="sm" variant="outline" className="font-display text-xs" onClick={() => setDetailPack(pack)}>
                           <Eye size={14} className="mr-1" /> Détails
@@ -237,9 +221,13 @@ const Packs = () => {
                 </div>
               </DialogHeader>
               <div className="space-y-4">
-                <div className="h-56 rounded-2xl overflow-hidden border border-border bg-gradient-purple flex items-center justify-center">
-                  {(detailPack.image_url || detailPack.images[0]) ? <img src={detailPack.image_url || detailPack.images[0]} alt={detailPack.name} className="w-full h-full object-cover" /> : <Package size={48} className="text-primary-foreground/50" />}
-                </div>
+                <ImageGallery
+                  images={[detailPack.image_url, ...detailPack.images].filter(Boolean) as string[]}
+                  name={detailPack.name}
+                  heightClass="h-56"
+                  showThumbnails
+                  className="rounded-2xl overflow-hidden border border-border"
+                />
                 <div className="flex flex-wrap items-center gap-2">
                   {detailPack.activates_system && <Badge className="text-[10px] bg-green-600">Active le MLM</Badge>}
                   {detailPack.is_physical && <Badge variant="outline" className="text-[10px]"><Truck size={10} className="mr-1" /> Livraison</Badge>}
