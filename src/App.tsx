@@ -22,6 +22,11 @@ const DashboardOrders = lazy(() => import("./pages/DashboardOrders.tsx"));
 const DashboardDeliveries = lazy(() => import("./pages/DashboardDeliveries.tsx"));
 const CourierDashboard = lazy(() => import("./pages/CourierDashboard.tsx"));
 const AdminCouriers = lazy(() => import("./pages/AdminCouriers.tsx"));
+const VerifyDevice = lazy(() => import("./pages/VerifyDevice.tsx"));
+const StorePartnerDashboard = lazy(() => import("./pages/StorePartnerDashboard.tsx"));
+const TechnicianDashboard = lazy(() => import("./pages/TechnicianDashboard.tsx"));
+const AdminCareSwap = lazy(() => import("./pages/AdminCareSwap.tsx"));
+const AdminSettings = lazy(() => import("./pages/AdminSettings.tsx"));
 const Directory = lazy(() => import("./pages/Directory.tsx"));
 const CompanyProfile = lazy(() => import("./pages/CompanyProfile.tsx"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard.tsx"));
@@ -91,6 +96,7 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/telecharger-app" element={<InstallApp />} />
             <Route path="/directory" element={<Directory />} />
+            <Route path="/verify/:qrHash" element={<VerifyDevice />} />
             <Route path="/p/:type/:id" element={<ProductLanding />} />
             <Route path="/company/:id" element={<CompanyProfile />} />
             <Route path="/admin" element={<AdminDashboard />} />
@@ -106,6 +112,10 @@ const App = () => (
             <Route path="/staff/delivery" element={<StaffDelivery />} />
             <Route path="/staff/couriers" element={<AdminCouriers />} />
             <Route path="/courier" element={<CourierDashboard />} />
+            <Route path="/store-partner" element={<StorePartnerDashboard />} />
+            <Route path="/technician" element={<TechnicianDashboard />} />
+            <Route path="/staff/care-swap" element={<AdminCareSwap />} />
+            <Route path="/staff/settings" element={<AdminSettings />} />
             <Route path="/staff/country" element={<StaffCountry />} />
             <Route path="/staff/city" element={<StaffCity />} />
             <Route path="/staff/zone" element={<StaffZone />} />
