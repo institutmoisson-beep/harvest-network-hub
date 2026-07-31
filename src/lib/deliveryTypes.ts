@@ -8,7 +8,16 @@ export type DeliveryStatus =
   | "delivered"
   | "cancelled";
 
-export type PaymentMethod = "orange_money" | "wave" | "moov_money" | "crypto";
+export type PaymentMethod = string;
+
+export interface PaymentDestination {
+  id: string;
+  method: PaymentMethod;
+  label: string;
+  value: string;
+  is_active: boolean;
+  display_order: number;
+}
 
 export interface Delivery {
   id: string;
@@ -47,38 +56,28 @@ export const deliveryStatusConfig: Record<DeliveryStatus, { label: string; color
   cancelled: { label: "Annulée", color: "bg-muted" },
 };
 
-export const paymentMethods: { id: PaymentMethod; label: string; color: string }[] = [
-  { id: "orange_money", label: "Orange Money", color: "bg-orange-500 hover:bg-orange-600" },
-  { id: "wave", label: "Wave", color: "bg-sky-500 hover:bg-sky-600" },
-  { id: "moov_money", label: "Moov Money", color: "bg-blue-700 hover:bg-blue-800" },
-  { id: "crypto", label: "Crypto (USDT)", color: "bg-amber-600 hover:bg-amber-700" },
-];
-
-/**
- * Merchant / receiving details per payment channel. In production these
- * should come from admin-configurable settings; centralised here so they're
- * easy to update in one place once real merchant accounts are available.
- */
-export const paymentDestinations: Record<PaymentMethod, { label: string; value: string }> = {
-  orange_money: { label: "Numéro Orange Money", value: "+225 07 00 00 00 00" },
-  moov_money: { label: "Numéro Moov Money", value: "+225 01 00 00 00 00" },
-  wave: { label: "Lien de paiement Wave", value: "https://pay.wave.com/m/M_ci_INSTITUT_MOISSON/c/ci/" },
-  crypto: { label: "Adresse USDT (TRC20)", value: "TXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" },
+/** Visual accent per known method id; unrecognised (custom, admin-added) methods fall back to the brand gradient. */
+export const paymentMethodColors: Record<string, string> = {
+  orange_money: "bg-orange-500 hover:bg-orange-600",
+  wave: "bg-sky-500 hover:bg-sky-600",
+  moov_money: "bg-blue-700 hover:bg-blue-800",
+  crypto: "bg-amber-600 hover:bg-amber-700",
 };
+export const defaultPaymentColor = "bg-gradient-purple hover:opacity-90";
 
-/** Builds the deep-link / URL to open for a given payment method + delivery. */
-export function buildPaymentLink(method: PaymentMethod, delivery: Pick<Delivery, "amount" | "id">): string {
-  const amount = Math.round(delivery.amount);
-  switch (method) {
+/** Builds the deep-link / URL to open for a given payment destination + delivery amount. */
+export function buildPaymentLink(destination: PaymentDestination, amount: number): string {
+  const rounded = Math.round(amount);
+  switch (destination.method) {
     case "wave":
-      return `${paymentDestinations.wave.value}?amount=${amount}&reference=${delivery.id.slice(0, 8)}`;
+      return `${destination.value}?amount=${rounded}`;
     case "orange_money":
-      return `tel:*144*1*${encodeURIComponent(paymentDestinations.orange_money.value.replace(/\s/g, ""))}*${amount}%23`;
+      return `tel:*144*1*${encodeURIComponent(destination.value.replace(/\s/g, ""))}*${rounded}%23`;
     case "moov_money":
-      return `tel:*555*1*${encodeURIComponent(paymentDestinations.moov_money.value.replace(/\s/g, ""))}*${amount}%23`;
+      return `tel:*555*1*${encodeURIComponent(destination.value.replace(/\s/g, ""))}*${rounded}%23`;
     case "crypto":
-      return `#crypto`;
+      return "#crypto";
     default:
-      return "#";
+      return destination.value;
   }
 }
