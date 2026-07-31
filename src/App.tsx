@@ -19,6 +19,9 @@ const DashboardNetwork = lazy(() => import("./pages/DashboardNetwork.tsx"));
 const DashboardCommissions = lazy(() => import("./pages/DashboardCommissions.tsx"));
 const DashboardPacks = lazy(() => import("./pages/DashboardPacks.tsx"));
 const DashboardOrders = lazy(() => import("./pages/DashboardOrders.tsx"));
+const DashboardDeliveries = lazy(() => import("./pages/DashboardDeliveries.tsx"));
+const CourierDashboard = lazy(() => import("./pages/CourierDashboard.tsx"));
+const AdminCouriers = lazy(() => import("./pages/AdminCouriers.tsx"));
 const Directory = lazy(() => import("./pages/Directory.tsx"));
 const CompanyProfile = lazy(() => import("./pages/CompanyProfile.tsx"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard.tsx"));
@@ -101,6 +104,8 @@ const App = () => (
             <Route path="/admin/relays" element={<AdminRelays />} />
             <Route path="/staff/hr" element={<StaffHR />} />
             <Route path="/staff/delivery" element={<StaffDelivery />} />
+            <Route path="/staff/couriers" element={<AdminCouriers />} />
+            <Route path="/courier" element={<CourierDashboard />} />
             <Route path="/staff/country" element={<StaffCountry />} />
             <Route path="/staff/city" element={<StaffCity />} />
             <Route path="/staff/zone" element={<StaffZone />} />
@@ -123,6 +128,7 @@ const App = () => (
               <Route path="commissions" element={<DashboardCommissions />} />
               <Route path="packs" element={<DashboardPacks />} />
               <Route path="orders" element={<DashboardOrders />} />
+              <Route path="deliveries" element={<DashboardDeliveries />} />
               <Route path="custom-orders" element={<DashboardCustomOrders />} />
               <Route path="submissions" element={<DashboardSubmissions />} />
               <Route path="wholesale" element={<CommerceProducts kind="wholesale" />} />
