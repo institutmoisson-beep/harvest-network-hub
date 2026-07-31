@@ -5,7 +5,7 @@ import logo from "@/assets/logo.png";
 import CurrencySelector from "@/components/CurrencySelector";
 import {
   LayoutDashboard, Users, Building2, Wallet, TrendingUp, UserCircle,
-  LogOut, Menu, X, ChevronRight, Shield, Package, DollarSign, MessageCircle, Handshake, Download, ShoppingBag, Boxes, PackageCheck, HeartHandshake, Siren, MapPin, Truck, Globe, Globe2, Radio, Trophy, Sprout, IdCard, ScanLine, PackagePlus, PackageSearch
+  LogOut, Menu, X, ChevronRight, Shield, Package, DollarSign, MessageCircle, Handshake, Download, ShoppingBag, Boxes, PackageCheck, HeartHandshake, Siren, MapPin, Truck, Globe, Globe2, Radio, Trophy, Sprout, IdCard, ScanLine, PackagePlus, PackageSearch, Wrench, Store, Settings
 } from "lucide-react";
 
 const baseMenuItems = [
@@ -50,6 +50,8 @@ const roleMenuItems: Record<string, { icon: any; label: string; path: string }[]
     { icon: Users, label: "Ressources Humaines", path: "/staff/hr" },
     { icon: Truck, label: "Gestion Livraison", path: "/staff/delivery" },
     { icon: Truck, label: "Livreurs & QR Paiement", path: "/staff/couriers" },
+    { icon: Wrench, label: "Moisson Care & Swap", path: "/staff/care-swap" },
+    { icon: Settings, label: "Paramètres", path: "/staff/settings" },
   ],
   pack_manager: [{ icon: Package, label: "Gestion Packs", path: "/staff/packs" }, { icon: Boxes, label: "Gestion Commerce", path: "/staff/commerce" }],
   financier: [{ icon: DollarSign, label: "Gestion Finance", path: "/staff/finance" }, { icon: Boxes, label: "Gestion Commerce", path: "/staff/commerce" }],
@@ -68,6 +70,8 @@ const roleMenuItems: Record<string, { icon: any; label: string; path: string }[]
   custom_orders_manager: [{ icon: Package, label: "Commandes hors-catalogue", path: "/admin/custom-orders" }],
   submissions_manager: [{ icon: PackageSearch, label: "Mises à disposition", path: "/admin/submissions" }],
   courier: [{ icon: Truck, label: "Espace Livreur", path: "/courier" }],
+  technician: [{ icon: Wrench, label: "Moisson Repair Hub", path: "/technician" }],
+  store_partner: [{ icon: Store, label: "Magasin Partenaire", path: "/store-partner" }],
 };
 
 const DashboardLayout = () => {
