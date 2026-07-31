@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckCircle2, Copy, ExternalLink, Loader2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -6,10 +6,10 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
   buildPaymentLink,
-  paymentDestinations,
-  paymentMethods,
+  defaultPaymentColor,
+  paymentMethodColors,
   type Delivery,
-  type PaymentMethod,
+  type PaymentDestination,
 } from "@/lib/deliveryTypes";
 
 interface PaymentCheckoutDialogProps {
@@ -19,8 +19,21 @@ interface PaymentCheckoutDialogProps {
 }
 
 const PaymentCheckoutDialog = ({ delivery, onOpenChange, onClaimed }: PaymentCheckoutDialogProps) => {
-  const [method, setMethod] = useState<PaymentMethod | null>(null);
+  const [destinations, setDestinations] = useState<PaymentDestination[]>([]);
+  const [selected, setSelected] = useState<PaymentDestination | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!delivery) { setSelected(null); return; }
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("payment_destinations")
+        .select("*")
+        .eq("is_active", true)
+        .order("display_order");
+      setDestinations(data || []);
+    })();
+  }, [delivery]);
 
   const copy = async (text: string) => {
     try {
@@ -31,18 +44,18 @@ const PaymentCheckoutDialog = ({ delivery, onOpenChange, onClaimed }: PaymentChe
     }
   };
 
-  const openPaymentLink = (m: PaymentMethod) => {
-    if (!delivery) return;
-    const link = buildPaymentLink(m, delivery);
-    if (m !== "crypto") window.open(link, "_blank");
+  const openPaymentLink = () => {
+    if (!delivery || !selected) return;
+    const link = buildPaymentLink(selected, delivery.amount);
+    if (selected.method !== "crypto") window.open(link, "_blank");
   };
 
   const confirmPayment = async () => {
-    if (!delivery || !method) return;
+    if (!delivery || !selected) return;
     setSubmitting(true);
     const { error } = await (supabase as any).rpc("client_claim_payment", {
       _delivery_id: delivery.id,
-      _payment_method: method,
+      _payment_method: selected.method,
     });
     setSubmitting(false);
     if (error) {
@@ -71,44 +84,48 @@ const PaymentCheckoutDialog = ({ delivery, onOpenChange, onClaimed }: PaymentChe
             </span>
           </div>
 
-          {!method ? (
-            <div className="grid grid-cols-2 gap-2">
-              {paymentMethods.map((pm) => (
-                <Button
-                  key={pm.id}
-                  type="button"
-                  onClick={() => setMethod(pm.id)}
-                  className={`h-14 font-display text-xs text-white ${pm.color}`}
-                >
-                  {pm.label}
-                </Button>
-              ))}
-            </div>
+          {!selected ? (
+            destinations.length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-6">Aucun moyen de paiement disponible pour le moment.</p>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                {destinations.map((d) => (
+                  <Button
+                    key={d.id}
+                    type="button"
+                    onClick={() => setSelected(d)}
+                    className={`h-14 font-display text-xs text-white ${paymentMethodColors[d.method] || defaultPaymentColor}`}
+                  >
+                    {d.label}
+                  </Button>
+                ))}
+              </div>
+            )
           ) : (
             <div className="space-y-3">
               <div className="rounded-lg border border-border p-3 space-y-2">
-                <p className="text-xs text-muted-foreground">{paymentDestinations[method].label}</p>
+                <p className="text-xs text-muted-foreground">{selected.label}</p>
                 <div className="flex items-center gap-2">
                   <code className="flex-1 text-xs bg-muted/50 rounded px-2 py-1.5 truncate">
-                    {paymentDestinations[method].value}
+                    {selected.value}
                   </code>
                   <button
                     type="button"
-                    onClick={() => copy(paymentDestinations[method].value)}
+                    onClick={() => copy(selected.value)}
                     className="p-1.5 rounded-md hover:bg-primary/10 text-primary shrink-0"
                   >
                     <Copy size={14} />
                   </button>
                 </div>
-                {method !== "crypto" && (
-                  <Button type="button" variant="outline" size="sm" className="w-full text-xs" onClick={() => openPaymentLink(method)}>
+                {selected.method !== "crypto" && (
+                  <Button type="button" variant="outline" size="sm" className="w-full text-xs" onClick={openPaymentLink}>
                     <ExternalLink size={14} className="mr-1" />
-                    {method === "wave" ? "Ouvrir le lien de paiement Wave" : "Composer le code de paiement"}
+                    {selected.method === "wave" ? "Ouvrir le lien de paiement" : "Composer le code de paiement"}
                   </Button>
                 )}
-                {method === "crypto" && (
+                {selected.method === "crypto" && (
                   <p className="text-[10px] text-muted-foreground">
-                    Envoyez exactement {delivery.amount.toLocaleString()} {delivery.currency} en équivalent USDT (réseau TRC20) à l'adresse ci-dessus.
+                    Envoyez exactement {delivery.amount.toLocaleString()} {delivery.currency} en équivalent à l'adresse ci-dessus.
                   </p>
                 )}
               </div>
@@ -119,7 +136,7 @@ const PaymentCheckoutDialog = ({ delivery, onOpenChange, onClaimed }: PaymentChe
               </div>
 
               <div className="flex gap-2">
-                <Button type="button" variant="outline" className="flex-1" onClick={() => setMethod(null)}>
+                <Button type="button" variant="outline" className="flex-1" onClick={() => setSelected(null)}>
                   Changer
                 </Button>
                 <Button type="button" onClick={confirmPayment} disabled={submitting} className="flex-1 bg-gradient-purple text-primary-foreground glow-purple">
