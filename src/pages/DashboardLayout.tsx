@@ -14,6 +14,7 @@ const baseMenuItems = [
   { icon: Boxes, label: "Produits en gros", path: "/dashboard/wholesale" },
   { icon: PackageCheck, label: "Distribution", path: "/dashboard/distribution" },
   { icon: ShoppingBag, label: "Mes Commandes", path: "/dashboard/orders" },
+  { icon: Truck, label: "Mes Livraisons", path: "/dashboard/deliveries" },
   { icon: Package, label: "Commande hors-catalogue", path: "/dashboard/custom-orders" },
   { icon: PackagePlus, label: "Mise à disposition", path: "/dashboard/submissions" },
   { icon: Users, label: "Mon Réseau", path: "/dashboard/network" },
@@ -48,6 +49,7 @@ const roleMenuItems: Record<string, { icon: any; label: string; path: string }[]
     { icon: MapPin, label: "Points de relais", path: "/admin/relays" },
     { icon: Users, label: "Ressources Humaines", path: "/staff/hr" },
     { icon: Truck, label: "Gestion Livraison", path: "/staff/delivery" },
+    { icon: Truck, label: "Livreurs & QR Paiement", path: "/staff/couriers" },
   ],
   pack_manager: [{ icon: Package, label: "Gestion Packs", path: "/staff/packs" }, { icon: Boxes, label: "Gestion Commerce", path: "/staff/commerce" }],
   financier: [{ icon: DollarSign, label: "Gestion Finance", path: "/staff/finance" }, { icon: Boxes, label: "Gestion Commerce", path: "/staff/commerce" }],
@@ -65,6 +67,7 @@ const roleMenuItems: Record<string, { icon: any; label: string; path: string }[]
   grenier_manager: [{ icon: Sprout, label: "Orchestration Grenier", path: "/admin/grenier" }],
   custom_orders_manager: [{ icon: Package, label: "Commandes hors-catalogue", path: "/admin/custom-orders" }],
   submissions_manager: [{ icon: PackageSearch, label: "Mises à disposition", path: "/admin/submissions" }],
+  courier: [{ icon: Truck, label: "Espace Livreur", path: "/courier" }],
 };
 
 const DashboardLayout = () => {
