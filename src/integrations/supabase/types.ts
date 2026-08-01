@@ -101,6 +101,54 @@ export type Database = {
         }
         Relationships: []
       }
+      care_swap_notifications: {
+        Row: {
+          claim_id: string | null
+          created_at: string
+          id: string
+          message: string
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          claim_id?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          read?: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          claim_id?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "care_swap_notifications_claim_id_fkey"
+            columns: ["claim_id"]
+            isOneToOne: false
+            referencedRelation: "warranty_claims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "care_swap_notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       career_bonus_payouts: {
         Row: {
           amount: number
@@ -540,6 +588,8 @@ export type Database = {
           id: string
           product_name: string
           quantity: number
+          reference_product_id: string | null
+          reference_product_type: string | null
           status: string
           total_amount: number | null
           unit_price: number
@@ -558,6 +608,8 @@ export type Database = {
           id?: string
           product_name: string
           quantity: number
+          reference_product_id?: string | null
+          reference_product_type?: string | null
           status?: string
           total_amount?: number | null
           unit_price: number
@@ -576,6 +628,8 @@ export type Database = {
           id?: string
           product_name?: string
           quantity?: number
+          reference_product_id?: string | null
+          reference_product_type?: string | null
           status?: string
           total_amount?: number | null
           unit_price?: number
@@ -583,6 +637,248 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      deliveries: {
+        Row: {
+          amount: number
+          assigned_by: string | null
+          client_id: string
+          client_name: string
+          client_phone: string | null
+          courier_id: string | null
+          created_at: string
+          currency: string
+          delivered_at: string | null
+          delivery_address: string | null
+          delivery_city: string | null
+          delivery_country: string | null
+          id: string
+          order_id: string
+          order_type: string
+          payment_claimed_at: string | null
+          payment_method: string | null
+          payment_reviewed_at: string | null
+          payment_reviewed_by: string | null
+          product_name: string
+          qr_token: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          assigned_by?: string | null
+          client_id: string
+          client_name: string
+          client_phone?: string | null
+          courier_id?: string | null
+          created_at?: string
+          currency?: string
+          delivered_at?: string | null
+          delivery_address?: string | null
+          delivery_city?: string | null
+          delivery_country?: string | null
+          id?: string
+          order_id: string
+          order_type: string
+          payment_claimed_at?: string | null
+          payment_method?: string | null
+          payment_reviewed_at?: string | null
+          payment_reviewed_by?: string | null
+          product_name: string
+          qr_token?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          assigned_by?: string | null
+          client_id?: string
+          client_name?: string
+          client_phone?: string | null
+          courier_id?: string | null
+          created_at?: string
+          currency?: string
+          delivered_at?: string | null
+          delivery_address?: string | null
+          delivery_city?: string | null
+          delivery_country?: string | null
+          id?: string
+          order_id?: string
+          order_type?: string
+          payment_claimed_at?: string | null
+          payment_method?: string | null
+          payment_reviewed_at?: string | null
+          payment_reviewed_by?: string | null
+          product_name?: string
+          qr_token?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deliveries_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_courier_id_fkey"
+            columns: ["courier_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_payment_reviewed_by_fkey"
+            columns: ["payment_reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      delivery_notifications: {
+        Row: {
+          created_at: string
+          delivery_id: string | null
+          id: string
+          message: string
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_id?: string | null
+          id?: string
+          message: string
+          read?: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          delivery_id?: string | null
+          id?: string
+          message?: string
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "delivery_notifications_delivery_id_fkey"
+            columns: ["delivery_id"]
+            isOneToOne: false
+            referencedRelation: "deliveries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "delivery_notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      device_brands: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          logo_url: string | null
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name?: string
+        }
+        Relationships: []
+      }
+      devices: {
+        Row: {
+          brand_id: string
+          buyer_name: string | null
+          buyer_phone: string | null
+          created_at: string
+          id: string
+          model: string
+          qr_hash: string
+          serial_number: string
+          status: string
+          store_id: string | null
+          updated_at: string
+          warranty_end_date: string | null
+          warranty_start_date: string | null
+        }
+        Insert: {
+          brand_id: string
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          created_at?: string
+          id?: string
+          model: string
+          qr_hash?: string
+          serial_number: string
+          status?: string
+          store_id?: string | null
+          updated_at?: string
+          warranty_end_date?: string | null
+          warranty_start_date?: string | null
+        }
+        Update: {
+          brand_id?: string
+          buyer_name?: string | null
+          buyer_phone?: string | null
+          created_at?: string
+          id?: string
+          model?: string
+          qr_hash?: string
+          serial_number?: string
+          status?: string
+          store_id?: string | null
+          updated_at?: string
+          warranty_end_date?: string | null
+          warranty_start_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "devices_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "device_brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "devices_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       emergencies: {
         Row: {
@@ -654,6 +950,41 @@ export type Database = {
             columns: ["emergency_id"]
             isOneToOne: false
             referencedRelation: "emergencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_locations: {
+        Row: {
+          is_sharing: boolean
+          latitude: number
+          longitude: number
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          is_sharing?: boolean
+          latitude: number
+          longitude: number
+          role: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          is_sharing?: boolean
+          latitude?: number
+          longitude?: number
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_locations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -971,6 +1302,50 @@ export type Database = {
           },
         ]
       }
+      payment_destinations: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          label: string
+          method: string
+          updated_at: string
+          updated_by: string | null
+          value: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          label: string
+          method: string
+          updated_at?: string
+          updated_by?: string | null
+          value: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          label?: string
+          method?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_destinations_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_methods: {
         Row: {
           created_at: string
@@ -1152,6 +1527,7 @@ export type Database = {
           is_system_active: boolean
           last_name: string
           phone: string | null
+          preferred_currency: string
           referral_code: string
           referred_by: string | null
           signature_url: string | null
@@ -1183,6 +1559,7 @@ export type Database = {
           is_system_active?: boolean
           last_name?: string
           phone?: string | null
+          preferred_currency?: string
           referral_code?: string
           referred_by?: string | null
           signature_url?: string | null
@@ -1214,6 +1591,7 @@ export type Database = {
           is_system_active?: boolean
           last_name?: string
           phone?: string | null
+          preferred_currency?: string
           referral_code?: string
           referred_by?: string | null
           signature_url?: string | null
@@ -1274,6 +1652,51 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      repair_orders: {
+        Row: {
+          claim_id: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          parts_used: string[]
+          repair_status: string
+          technician_id: string | null
+        }
+        Insert: {
+          claim_id: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          parts_used?: string[]
+          repair_status?: string
+          technician_id?: string | null
+        }
+        Update: {
+          claim_id?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          parts_used?: string[]
+          repair_status?: string
+          technician_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repair_orders_claim_id_fkey"
+            columns: ["claim_id"]
+            isOneToOne: false
+            referencedRelation: "warranty_claims"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repair_orders_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       role_assignments: {
         Row: {
@@ -1362,6 +1785,42 @@ export type Database = {
           postal_code?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      spare_parts: {
+        Row: {
+          created_at: string
+          id: string
+          low_stock_threshold: number
+          model_compatibility: string | null
+          name: string
+          stock_quantity: number
+          supplier_ref: string | null
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          low_stock_threshold?: number
+          model_compatibility?: string | null
+          name: string
+          stock_quantity?: number
+          supplier_ref?: string | null
+          unit_price?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          low_stock_threshold?: number
+          model_compatibility?: string | null
+          name?: string
+          stock_quantity?: number
+          supplier_ref?: string | null
+          unit_price?: number
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1505,6 +1964,89 @@ export type Database = {
         }
         Relationships: []
       }
+      warranty_claims: {
+        Row: {
+          admin_notes: string | null
+          claim_type: string
+          claimant_name: string | null
+          claimant_phone: string | null
+          created_at: string
+          device_id: string
+          id: string
+          issue_description: string | null
+          media_urls: string[]
+          replacement_device_id: string | null
+          status: string
+          store_id: string | null
+          technician_id: string | null
+          technician_notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          claim_type: string
+          claimant_name?: string | null
+          claimant_phone?: string | null
+          created_at?: string
+          device_id: string
+          id?: string
+          issue_description?: string | null
+          media_urls?: string[]
+          replacement_device_id?: string | null
+          status?: string
+          store_id?: string | null
+          technician_id?: string | null
+          technician_notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          claim_type?: string
+          claimant_name?: string | null
+          claimant_phone?: string | null
+          created_at?: string
+          device_id?: string
+          id?: string
+          issue_description?: string | null
+          media_urls?: string[]
+          replacement_device_id?: string | null
+          status?: string
+          store_id?: string | null
+          technician_id?: string | null
+          technician_notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warranty_claims_device_id_fkey"
+            columns: ["device_id"]
+            isOneToOne: false
+            referencedRelation: "devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warranty_claims_replacement_device_id_fkey"
+            columns: ["replacement_device_id"]
+            isOneToOne: false
+            referencedRelation: "devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warranty_claims_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warranty_claims_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -1543,6 +2085,9 @@ export type Database = {
           phone: string
           product_name: string
           quantity: number
+          reference_product_id: string
+          reference_product_name: string
+          reference_product_type: string
           referral_code: string
           status: string
           total_amount: number
@@ -1599,6 +2144,27 @@ export type Database = {
           _period: string
           _user_id: string
         }
+        Returns: undefined
+      }
+      admin_register_device_stock: {
+        Args: {
+          _brand_id: string
+          _model: string
+          _serial_number: string
+          _store_id: string
+        }
+        Returns: string
+      }
+      admin_repair_custom_order_commission: {
+        Args: { _order_id: string }
+        Returns: undefined
+      }
+      admin_review_delivery_payment: {
+        Args: { _approve: boolean; _delivery_id: string }
+        Returns: undefined
+      }
+      admin_review_swap_claim: {
+        Args: { _admin_notes?: string; _claim_id: string; _decision: string }
         Returns: undefined
       }
       admin_set_identity_verified: {
@@ -1667,6 +2233,23 @@ export type Database = {
         }
         Returns: string
       }
+      assign_delivery: {
+        Args: {
+          _amount: number
+          _client_id: string
+          _client_name: string
+          _client_phone: string
+          _courier_id: string
+          _currency: string
+          _delivery_address: string
+          _delivery_city: string
+          _delivery_country: string
+          _order_id: string
+          _order_type: string
+          _product_name: string
+        }
+        Returns: string
+      }
       assign_role: {
         Args: {
           _city?: string
@@ -1677,6 +2260,10 @@ export type Database = {
         Returns: undefined
       }
       auto_assign_user_grade: { Args: { _user_id: string }; Returns: string }
+      client_claim_payment: {
+        Args: { _delivery_id: string; _payment_method: string }
+        Returns: undefined
+      }
       compute_custom_order_commission: {
         Args: { _order_id: string }
         Returns: number
@@ -1689,6 +2276,10 @@ export type Database = {
         }[]
       }
       count_unread_broadcasts: { Args: never; Returns: number }
+      courier_update_delivery_status: {
+        Args: { _delivery_id: string; _status: string }
+        Returns: undefined
+      }
       create_broadcast: {
         Args: {
           _content: string
@@ -1719,6 +2310,40 @@ export type Database = {
           last_name: string
           referral_code: string
         }[]
+      }
+      get_delivery_by_qr: {
+        Args: { _token: string }
+        Returns: {
+          amount: number
+          assigned_by: string | null
+          client_id: string
+          client_name: string
+          client_phone: string | null
+          courier_id: string | null
+          created_at: string
+          currency: string
+          delivered_at: string | null
+          delivery_address: string | null
+          delivery_city: string | null
+          delivery_country: string | null
+          id: string
+          order_id: string
+          order_type: string
+          payment_claimed_at: string | null
+          payment_method: string | null
+          payment_reviewed_at: string | null
+          payment_reviewed_by: string | null
+          product_name: string
+          qr_token: string
+          status: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "deliveries"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       get_downline: {
         Args: { _user_id: string }
@@ -1762,6 +2387,18 @@ export type Database = {
           new_wallet_balance: number
           operation_id: string
           shares_sold: number
+        }[]
+      }
+      list_couriers: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          city: string
+          country: string
+          first_name: string
+          id: string
+          last_name: string
+          phone: string
         }[]
       }
       list_emergencies_for_admin: {
@@ -1878,6 +2515,26 @@ export type Database = {
           user_id: string
         }[]
       }
+      list_store_partners: {
+        Args: never
+        Returns: {
+          city: string
+          country: string
+          first_name: string
+          id: string
+          last_name: string
+          phone: string
+        }[]
+      }
+      list_technicians: {
+        Args: never
+        Returns: {
+          first_name: string
+          id: string
+          last_name: string
+          phone: string
+        }[]
+      }
       list_users_for_career: {
         Args: never
         Returns: {
@@ -1921,6 +2578,14 @@ export type Database = {
         Returns: string
       }
       mark_broadcast_read: { Args: { _message_id: string }; Returns: undefined }
+      mark_care_swap_notification_read: {
+        Args: { _id: string }
+        Returns: undefined
+      }
+      mark_delivery_notification_read: {
+        Args: { _id: string }
+        Returns: undefined
+      }
       move_referral_position: {
         Args: { _member_id: string; _new_position: string }
         Returns: undefined
@@ -1957,8 +2622,21 @@ export type Database = {
           order_id: string
         }[]
       }
+      reassign_delivery_courier: {
+        Args: { _courier_id: string; _delivery_id: string }
+        Returns: undefined
+      }
       recalc_all_grades: { Args: never; Returns: number }
       recalc_my_grade: { Args: never; Returns: string }
+      register_device_sale: {
+        Args: {
+          _buyer_name: string
+          _buyer_phone: string
+          _serial_number: string
+          _warranty_months?: number
+        }
+        Returns: string
+      }
       revoke_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1970,6 +2648,39 @@ export type Database = {
         Args: {
           _status: Database["public"]["Enums"]["account_status"]
           _user_id: string
+        }
+        Returns: undefined
+      }
+      set_live_location: {
+        Args: {
+          _is_sharing: boolean
+          _latitude: number
+          _longitude: number
+          _role: string
+        }
+        Returns: undefined
+      }
+      submit_warranty_claim: {
+        Args: {
+          _claim_type: string
+          _claimant_name: string
+          _claimant_phone: string
+          _issue_description: string
+          _media_urls?: string[]
+          _qr_hash: string
+        }
+        Returns: string
+      }
+      technician_assign_claim: {
+        Args: { _claim_id: string; _technician_id: string }
+        Returns: string
+      }
+      technician_update_repair: {
+        Args: {
+          _parts_used?: string[]
+          _repair_id: string
+          _status: string
+          _technician_notes?: string
         }
         Returns: undefined
       }
@@ -1987,6 +2698,18 @@ export type Database = {
           _status: Database["public"]["Enums"]["delivery_status"]
         }
         Returns: undefined
+      }
+      verify_device_by_qr: {
+        Args: { _qr_hash: string }
+        Returns: {
+          brand_name: string
+          days_remaining: number
+          device_id: string
+          is_authentic: boolean
+          model: string
+          status: string
+          warranty_end_date: string
+        }[]
       }
       verify_investment_document: {
         Args: { _operation_id: string }
@@ -2054,6 +2777,9 @@ export type Database = {
         | "grenier_manager"
         | "custom_orders_manager"
         | "submissions_manager"
+        | "courier"
+        | "technician"
+        | "store_partner"
       career_level:
         | "semeur"
         | "cultivateur"
@@ -2248,6 +2974,9 @@ export const Constants = {
         "grenier_manager",
         "custom_orders_manager",
         "submissions_manager",
+        "courier",
+        "technician",
+        "store_partner",
       ],
       career_level: [
         "semeur",
