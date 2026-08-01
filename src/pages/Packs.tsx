@@ -1,3 +1,4 @@
+import Seo from "@/components/Seo";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -102,6 +103,8 @@ const Packs = () => {
   };
 
   return (
+    <>
+      <Seo title={"Packs d'activation | Institut Moisson"} description={"Découvrez les packs Institut Moisson : produits partenaires et activation de votre compte Moissonneur."} path="/packs" />
     <div className="min-h-screen">
       <Navbar />
       <div className="pt-24 pb-16">
@@ -118,6 +121,10 @@ const Packs = () => {
               Choisissez un pack pour activer votre système MLM et commencer à gagner des commissions.
             </p>
           </div>
+
+          <h2 className="font-display text-xl font-bold text-center mb-6">
+            Nos packs disponibles
+          </h2>
 
           <div className="max-w-3xl mx-auto mb-10 flex gap-3 flex-wrap">
             <div className="relative flex-1 min-w-[200px]">
@@ -258,6 +265,7 @@ const Packs = () => {
         </DialogContent>
       </Dialog>
     </div>
+    </>
   );
 };
 

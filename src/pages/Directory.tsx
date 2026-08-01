@@ -1,3 +1,4 @@
+import Seo from "@/components/Seo";
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -38,6 +39,8 @@ const Directory = () => {
   });
 
   return (
+    <>
+      <Seo title={"Annuaire des entreprises partenaires | Institut Moisson"} description={"Découvrez les stands des entreprises partenaires de l'Institut Moisson, leurs produits et leurs services."} path="/directory" />
     <div className="min-h-screen">
       <Navbar />
       <div className="pt-24 pb-16">
@@ -54,6 +57,10 @@ const Directory = () => {
               Découvrez nos entreprises partenaires et leurs produits. Cliquez sur un stand pour voir le profil et les produits.
             </p>
           </div>
+
+          <h2 className="font-display text-xl font-bold text-center mb-6">
+            Nos entreprises partenaires
+          </h2>
 
           <div className="max-w-md mx-auto mb-10 relative">
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -75,7 +82,7 @@ const Directory = () => {
                   <div className="glass-card rounded-2xl overflow-hidden hover:glow-purple transition-all duration-500 group cursor-pointer">
                     <div className="h-32 bg-gradient-purple flex items-center justify-center text-5xl group-hover:scale-105 transition-transform">
                       {company.logo_url ? (
-                        <img src={company.logo_url} alt="" className="w-full h-full object-cover" />
+                        <img src={company.logo_url} alt={`Logo de ${company.name}`} className="w-full h-full object-cover" />
                       ) : "🏢"}
                     </div>
                     <div className="p-5">
@@ -104,6 +111,7 @@ const Directory = () => {
       </div>
       <Footer />
     </div>
+    </>
   );
 };
 

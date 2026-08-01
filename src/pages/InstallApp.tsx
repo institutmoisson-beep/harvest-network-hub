@@ -1,3 +1,4 @@
+import Seo from "@/components/Seo";
 import { Download, Globe, Monitor, Share2, Smartphone, CheckCircle2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -9,6 +10,8 @@ const InstallApp = () => {
   const { canInstall, isInstalled, isIos, promptInstall } = usePwaInstall();
 
   return (
+    <>
+      <Seo title={"Télécharger l'application | Institut Moisson"} description={"Installez l'application Institut Moisson sur mobile ou ordinateur en quelques secondes."} path="/telecharger-app" />
     <div className="min-h-screen">
       <Navbar />
 
@@ -114,6 +117,7 @@ const InstallApp = () => {
 
       <Footer />
     </div>
+    </>
   );
 };
 

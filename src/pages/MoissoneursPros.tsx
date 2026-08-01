@@ -1,3 +1,4 @@
+import Seo from "@/components/Seo";
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -38,6 +39,8 @@ const MoissoneursPros = () => {
   };
 
   return (
+    <>
+      <Seo title={"Moissonneurs Pros — professionnels certifiés | Institut Moisson"} description={"Trouvez des Moissonneurs certifiés disponibles pour vos projets, collaborations et prestations."} path="/moissonneurs-pros" />
     <div className="min-h-screen">
       <Navbar />
       <div className="pt-24 pb-16">
@@ -54,6 +57,10 @@ const MoissoneursPros = () => {
               Découvrez les Moissonneurs certifiés, disponibles pour vos projets et collaborations.
             </p>
           </div>
+
+          <h2 className="font-display text-xl font-bold text-center mb-6">
+            Les professionnels certifiés de la communauté
+          </h2>
 
           <div className="max-w-md mx-auto mb-10 relative">
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -73,7 +80,7 @@ const MoissoneursPros = () => {
                   <div className="flex items-start gap-4">
                     <div className="w-14 h-14 rounded-full bg-gradient-gold flex items-center justify-center text-2xl shrink-0">
                       {pro.avatar_url ? (
-                        <img src={pro.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
+                        <img src={pro.avatar_url} alt={`Photo de ${pro.first_name} ${pro.last_name}`} className="w-full h-full rounded-full object-cover" />
                       ) : (
                         <User size={24} className="text-background" />
                       )}
@@ -113,6 +120,7 @@ const MoissoneursPros = () => {
       </div>
       <Footer />
     </div>
+    </>
   );
 };
 

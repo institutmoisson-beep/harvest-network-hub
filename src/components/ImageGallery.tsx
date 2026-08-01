@@ -58,6 +58,7 @@ const ImageGallery = ({ images, name, heightClass = "h-44", showThumbnails = fal
             <button
               type="button"
               onClick={prev}
+              aria-label="Image précédente"
               className="absolute left-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-background/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
             >
               <ChevronLeft size={14} />
@@ -65,6 +66,7 @@ const ImageGallery = ({ images, name, heightClass = "h-44", showThumbnails = fal
             <button
               type="button"
               onClick={next}
+              aria-label="Image suivante"
               className="absolute right-1 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-background/70 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
             >
               <ChevronRight size={14} />
@@ -90,6 +92,7 @@ const ImageGallery = ({ images, name, heightClass = "h-44", showThumbnails = fal
             <button
               key={img + i}
               type="button"
+              aria-label={`Afficher l'image ${i + 1}`}
               onClick={(e) => { e.stopPropagation(); setCurrent(i); }}
               className={`shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 transition-colors ${
                 i === current ? "border-primary" : "border-transparent opacity-60 hover:opacity-100"

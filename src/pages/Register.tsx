@@ -1,3 +1,4 @@
+import Seo from "@/components/Seo";
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -78,6 +79,8 @@ const Register = () => {
   };
 
   return (
+    <>
+      <Seo title={"Devenir Moissonneur — Inscription | Institut Moisson"} description={"Créez votre compte Moissonneur et rejoignez une communauté d'entraide et d'opportunités."} path="/register" />
     <div className="min-h-screen flex items-center justify-center px-4 py-20 relative">
       <div className="absolute inset-0 bg-gradient-to-br from-purple-deep/20 via-background to-background" />
       <div className="relative z-10 w-full max-w-lg">
@@ -175,6 +178,7 @@ const Register = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
