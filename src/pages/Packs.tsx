@@ -119,6 +119,10 @@ const Packs = () => {
             </p>
           </div>
 
+          <h2 className="font-display text-xl font-bold text-center mb-6">
+            Nos packs disponibles
+          </h2>
+
           <div className="max-w-3xl mx-auto mb-10 flex gap-3 flex-wrap">
             <div className="relative flex-1 min-w-[200px]">
               <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
