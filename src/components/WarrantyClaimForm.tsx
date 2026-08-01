@@ -36,7 +36,13 @@ const WarrantyClaimForm = ({ qrHash, onSubmitted }: WarrantyClaimFormProps) => {
     try {
       let mediaUrls: string[] = [];
       if (files.length > 0) {
-        mediaUrls = await uploadOptimizedImages(files, "care-swap-media", "claims");
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          toast.error("Connectez-vous pour joindre des photos à votre demande");
+          setSubmitting(false);
+          return;
+        }
+        mediaUrls = await uploadOptimizedImages(files, "care-swap-media", `${user.id}/claims`);
       }
       const { data, error } = await (supabase as any).rpc("submit_warranty_claim", {
         _qr_hash: qrHash,
