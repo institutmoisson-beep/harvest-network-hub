@@ -1,3 +1,4 @@
+import Seo from "@/components/Seo";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/Navbar";
@@ -47,6 +48,8 @@ const stories = [
 
 const Index = () => {
   return (
+    <>
+      <Seo title={"Institut Moisson — Communauté d'entraide & opportunités"} description={"Rejoignez les Moissonneurs : entraide, fonds communautaire, formation et opportunités partagées partout dans le monde."} path="/" />
     <div className="min-h-screen">
       <Navbar />
 
@@ -270,6 +273,7 @@ const Index = () => {
 
       <Footer />
     </div>
+    </>
   );
 };
 

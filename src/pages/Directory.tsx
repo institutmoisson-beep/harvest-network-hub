@@ -1,3 +1,4 @@
+import Seo from "@/components/Seo";
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -38,6 +39,8 @@ const Directory = () => {
   });
 
   return (
+    <>
+      <Seo title={"Annuaire des entreprises partenaires | Institut Moisson"} description={"Découvrez les stands des entreprises partenaires de l'Institut Moisson, leurs produits et leurs services."} path="/directory" />
     <div className="min-h-screen">
       <Navbar />
       <div className="pt-24 pb-16">
@@ -108,6 +111,7 @@ const Directory = () => {
       </div>
       <Footer />
     </div>
+    </>
   );
 };
 

@@ -1,3 +1,4 @@
+import Seo from "@/components/Seo";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import Navbar from "@/components/Navbar";
@@ -102,6 +103,8 @@ const Packs = () => {
   };
 
   return (
+    <>
+      <Seo title={"Packs d'activation | Institut Moisson"} description={"Découvrez les packs Institut Moisson : produits partenaires et activation de votre compte Moissonneur."} path="/packs" />
     <div className="min-h-screen">
       <Navbar />
       <div className="pt-24 pb-16">
@@ -262,6 +265,7 @@ const Packs = () => {
         </DialogContent>
       </Dialog>
     </div>
+    </>
   );
 };
 

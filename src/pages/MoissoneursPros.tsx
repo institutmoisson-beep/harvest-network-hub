@@ -1,3 +1,4 @@
+import Seo from "@/components/Seo";
 import { useEffect, useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -38,6 +39,8 @@ const MoissoneursPros = () => {
   };
 
   return (
+    <>
+      <Seo title={"Moissonneurs Pros — professionnels certifiés | Institut Moisson"} description={"Trouvez des Moissonneurs certifiés disponibles pour vos projets, collaborations et prestations."} path="/moissonneurs-pros" />
     <div className="min-h-screen">
       <Navbar />
       <div className="pt-24 pb-16">
@@ -117,6 +120,7 @@ const MoissoneursPros = () => {
       </div>
       <Footer />
     </div>
+    </>
   );
 };
 
