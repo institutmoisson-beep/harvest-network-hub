@@ -2311,6 +2311,7 @@ export type Database = {
           referral_code: string
         }[]
       }
+      get_community_fund_balance: { Args: never; Returns: number }
       get_delivery_by_qr: {
         Args: { _token: string }
         Returns: {

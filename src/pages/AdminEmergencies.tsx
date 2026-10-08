@@ -46,10 +46,10 @@ const AdminEmergencies = () => {
   const load = async () => {
     const [eRes, fRes] = await Promise.all([
       supabase.rpc("list_emergencies_for_admin"),
-      supabase.from("community_fund").select("balance").limit(1).maybeSingle(),
+      supabase.rpc("get_community_fund_balance"),
     ]);
     if (eRes.data) setList(eRes.data);
-    if (fRes.data) setFundBalance(Number(fRes.data.balance));
+    if (fRes.data != null) setFundBalance(Number(fRes.data));
   };
 
   const updateStatus = async (id: string, status: string, note?: string) => {

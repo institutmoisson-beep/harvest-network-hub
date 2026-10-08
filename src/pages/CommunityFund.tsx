@@ -23,11 +23,11 @@ const CommunityFund = () => {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     const [fundRes, txRes, walletRes] = await Promise.all([
-      supabase.from("community_fund").select("balance").limit(1).maybeSingle(),
+      supabase.rpc("get_community_fund_balance"),
       supabase.from("community_fund_transactions").select("*").order("created_at", { ascending: false }).limit(100),
       user ? supabase.from("wallets").select("balance").eq("user_id", user.id).maybeSingle() : Promise.resolve({ data: null } as any),
     ]);
-    if (fundRes.data) setFundBalance(Number(fundRes.data.balance));
+    if (fundRes.data != null) setFundBalance(Number(fundRes.data));
     if (walletRes.data) setWalletBalance(Number(walletRes.data.balance));
     if (txRes.data) {
       setTxs(txRes.data);
